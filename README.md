@@ -1,4 +1,4 @@
-# [<img src="https://s3.internetdata.io/internetdata-public/brand/mark.svg" alt="InternetData" width="24"/>](https://internetdata.io/) InternetData .NET Client Library
+# [<img src="https://s3.internetdata.io/internetdata-public/brand/mark.svg" alt="InternetData" height="28"/>](https://internetdata.io/) InternetData .NET Client Library
 
 [![NuGet](https://img.shields.io/nuget/v/InternetData.svg)](https://www.nuget.org/packages/InternetData)
 [![license](https://img.shields.io/nuget/l/InternetData.svg)](LICENSE)
