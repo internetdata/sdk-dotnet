@@ -54,7 +54,7 @@ public class DatabaseTests
         Assert.Equal("bogon_ip", family.Base);
         Assert.Equal("Bogon IP", family.Name);
         Assert.Equal(DatabaseStanding.Licensed, family.Standing);
-        Assert.Equal(DatabaseLicenseType.Internal, family.LicenseType);
+        Assert.Equal(DatabaseLicense_type.Standard, family.LicenseType);
         // A license with no end date is null, not a zero instant.
         Assert.Null(family.Expires);
         Assert.Equal(new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero), family.Starts);

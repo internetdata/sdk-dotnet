@@ -115,7 +115,7 @@ public class ConformanceTests
 
         Assert.Equal(
             wire.Order().ToArray(),
-            Enum.GetNames<DatabaseLicenseType>().Select(n => n.ToLowerInvariant()).Order().ToArray());
+            Enum.GetNames<DatabaseLicense_type>().Select(n => n.ToLowerInvariant()).Order().ToArray());
         foreach (var term in wire)
         {
             var family = Assert.Single(await Listed(Family(license_type: $"\"{term}\"")));
