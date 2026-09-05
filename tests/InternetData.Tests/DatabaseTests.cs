@@ -126,11 +126,28 @@ public class DatabaseTests
         Assert.DoesNotContain("abc123", handler.Calls[0], StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// The key is optional because what this API serves without a license is a product decision,
+    /// and a client that could not be constructed without one would have to change shape to follow
+    /// it. What must never go out is <c>Authorization: Bearer </c> with nothing after it, which
+    /// reads as a wrong key rather than as none.
+    /// </summary>
     [Fact]
-    public void AClientWithoutAKeyIsRefusedAtConstruction()
+    public async Task AKeylessClientSendsNoAuthorizationHeader()
     {
-        Assert.Throws<ArgumentException>(() => new InternetDataClient(new InternetDataClientOptions()));
-        Assert.Throws<ArgumentException>(() => new InternetDataClient("  "));
+        foreach (var apiKey in new string?[] { null, "" })
+        {
+            var handler = StubHandler.Paths(Bodies);
+            using var client = new InternetDataClient(new InternetDataClientOptions
+            {
+                ApiKey = apiKey,
+                HttpClient = new HttpClient(handler),
+            });
+
+            await client.Database.MetadataAsync("bogon_ip_v1");
+
+            Assert.Null(Assert.Single(handler.Authorizations));
+        }
     }
 
     // .NET's HttpClient follows redirects by DEFAULT, unlike the JDK's, so a borrowed one is the

@@ -1,11 +1,13 @@
 namespace InternetData;
 
-/// <summary>Settings for an <see cref="InternetDataClient"/>. Only the key has no default.</summary>
+/// <summary>Settings for an <see cref="InternetDataClient"/>. Every one of them has a working default.</summary>
 public sealed class InternetDataClientOptions
 {
     /// <summary>
-    /// Your API key, carrying the <c>db.download</c> scope. Required: every endpoint of this API
-    /// is authenticated, so there is no useful keyless client to build.
+    /// Your API key, carrying the <c>db.download</c> scope. Leave it unset to send no
+    /// <c>Authorization</c> header at all, which reaches only what the API serves without a
+    /// license. Every database published today is licensed, so a keyless client is answered 401
+    /// for now; what changes that is a product decision rather than this library's.
     /// </summary>
     public string? ApiKey { get; set; }
 

@@ -7,8 +7,10 @@ namespace InternetData.Integration;
 /// </summary>
 /// <remarks>
 /// The key is observable only when the secret holds something NON-EMPTY. CI interpolates a secret
-/// that does not exist to an empty string rather than leaving the variable unset, and an empty key
-/// would be refused at construction rather than skipping with a reason.
+/// that does not exist to an empty string rather than leaving the variable unset, and this gate is
+/// the only thing standing between that and a green run: the client accepts a keyless build and
+/// sends no Authorization header, so an ungated suite would collect 401s that every assertion
+/// downstream reads as an ordinary refusal.
 /// </remarks>
 internal static class Staging
 {

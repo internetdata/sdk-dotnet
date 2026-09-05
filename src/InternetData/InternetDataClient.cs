@@ -6,8 +6,9 @@ namespace InternetData;
 /// <remarks>
 /// <para>Build one and keep it: it owns a connection pool that is wasted if it is rebuilt per
 /// request. It is safe to use from several threads at once.</para>
-/// <para>Every endpoint is authenticated, so a key is required. Which databases a key can see is
-/// decided by the API, not here.</para>
+/// <para>Every database published today is licensed, so bring a key; it is optional nonetheless,
+/// and a client built without one sends no <c>Authorization</c> header at all. Which databases a
+/// key can see is decided by the API, not here.</para>
 /// </remarks>
 public sealed class InternetDataClient : IDisposable
 {
@@ -19,6 +20,12 @@ public sealed class InternetDataClient : IDisposable
     /// <summary>A client with every default, on the key you were issued.</summary>
     public InternetDataClient(string apiKey)
         : this(new InternetDataClientOptions { ApiKey = apiKey }, null)
+    {
+    }
+
+    /// <summary>A client with every default and no key, reaching only what needs no license.</summary>
+    public InternetDataClient()
+        : this(new InternetDataClientOptions(), null)
     {
     }
 
@@ -49,13 +56,6 @@ public sealed class InternetDataClient : IDisposable
     private InternetDataClient(InternetDataClientOptions o, HttpClient? supplied)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(o.Retries, nameof(o.Retries));
-        // Not a 401 at request time: this API serves nothing anonymously, so an absent key is a
-        // configuration mistake and worth reporting where it was made.
-        if (string.IsNullOrWhiteSpace(o.ApiKey))
-        {
-            throw new ArgumentException(
-                "an API key carrying the db.download scope is required", nameof(o.ApiKey));
-        }
 
         var http = supplied ?? o.HttpClient;
         if (http is null)
