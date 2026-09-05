@@ -56,8 +56,8 @@ public class DatabaseTests
                 Assert.True(
                     Enum.IsDefined(family.Standing), $"{family.Base} carries an undocumented standing");
                 Assert.True(
-                    family.Redistribution is null || Enum.IsDefined(family.Redistribution.Value),
-                    $"{family.Base} carries an undocumented redistribution term");
+                    family.LicenseType is null || Enum.IsDefined(family.LicenseType.Value),
+                    $"{family.Base} carries an undocumented license_type term");
                 // A license covers the family, and these are the ids the download and checksum
                 // calls take.
                 Assert.True(family.Versions.Count > 0, $"{family.Base} carries no versions");

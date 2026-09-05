@@ -15,7 +15,7 @@ public class DatabaseTests
     {
         ["/api/v2/database/list"] = new Route("""
             {"databases":[{"base":"bogon_ip","name":"Bogon IP","summary":"Reserved address space",
-            "standing":"licensed","redistribution":"internal","starts":"2026-01-01T00:00:00Z",
+            "standing":"licensed","license_type":"standard","starts":"2026-01-01T00:00:00Z",
             "expires":null,"versions":[{"id":"bogon_ip_v1","version":1,"summary":"v1",
             "formats":["csvgz","mmdb"]}]}]}
             """),
@@ -54,7 +54,7 @@ public class DatabaseTests
         Assert.Equal("bogon_ip", family.Base);
         Assert.Equal("Bogon IP", family.Name);
         Assert.Equal(DatabaseStanding.Licensed, family.Standing);
-        Assert.Equal(DatabaseRedistribution.Internal, family.Redistribution);
+        Assert.Equal(DatabaseLicenseType.Internal, family.LicenseType);
         // A license with no end date is null, not a zero instant.
         Assert.Null(family.Expires);
         Assert.Equal(new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero), family.Starts);

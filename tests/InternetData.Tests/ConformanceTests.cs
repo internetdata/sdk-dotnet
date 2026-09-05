@@ -102,28 +102,28 @@ public class ConformanceTests
         {
             var family = Assert.Single(await Listed($$"""
                 {"base":"bogon_ip","name":"Bogon IP","summary":"s","standing":"{{standing}}",
-                "redistribution":null,"starts":null,"expires":null,"versions":[]}
+                "license_type":null,"starts":null,"expires":null,"versions":[]}
                 """));
             Assert.Equal(standing, family.Standing.ToString().ToLowerInvariant());
         }
     }
 
     [Fact]
-    public async Task TheRedistributionTermsAreModelled_AndAbsenceIsNull()
+    public async Task TheLicenseTypesAreModelled_AndAbsenceIsNull()
     {
-        var wire = Corpus.Strings("redistribution");
+        var wire = Corpus.Strings("license_type");
 
         Assert.Equal(
             wire.Order().ToArray(),
-            Enum.GetNames<DatabaseRedistribution>().Select(n => n.ToLowerInvariant()).Order().ToArray());
+            Enum.GetNames<DatabaseLicenseType>().Select(n => n.ToLowerInvariant()).Order().ToArray());
         foreach (var term in wire)
         {
-            var family = Assert.Single(await Listed(Family(redistribution: $"\"{term}\"")));
-            Assert.Equal(term, family.Redistribution!.Value.ToString().ToLowerInvariant());
+            var family = Assert.Single(await Listed(Family(license_type: $"\"{term}\"")));
+            Assert.Equal(term, family.LicenseType!.Value.ToString().ToLowerInvariant());
         }
         // No license means no term, which is null rather than the first enum member.
-        var unlicensed = Assert.Single(await Listed(Family(redistribution: "null")));
-        Assert.Null(unlicensed.Redistribution);
+        var unlicensed = Assert.Single(await Listed(Family(license_type: "null")));
+        Assert.Null(unlicensed.LicenseType);
     }
 
     // An enum inside a LIST is the one place NSwag writes no converter, and System.Text.Json reads
@@ -224,10 +224,10 @@ public class ConformanceTests
         """;
 
     private static string Family(
-        string name = "bogon_ip", string redistribution = "null", string versions = "[]")
+        string name = "bogon_ip", string license_type = "null", string versions = "[]")
         => $$"""
             {"base":"{{name}}","name":"Bogon IP","summary":"s","standing":"licensed",
-            "redistribution":{{redistribution}},"starts":null,"expires":null,"versions":{{versions}}}
+            "license_type":{{license_type}},"starts":null,"expires":null,"versions":{{versions}}}
             """;
 
     private static string Catalog(params string[] families)

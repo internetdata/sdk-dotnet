@@ -75,15 +75,12 @@ namespace InternetData
         partial void ProcessResponse(System.Net.Http.HttpClient client, System.Net.Http.HttpResponseMessage response);
 
         /// <summary>
-        /// Every database your organization may see, and where each one stands
+        /// List
         /// </summary>
         /// <remarks>
         /// The whole published catalog, with your organization's licence beside
         /// <br/>each entry, so `standing` says whether a database is yours today
         /// <br/>(`licensed`), was (`expired`), or has never been bought (`unlicensed`).
-        /// <br/>
-        /// <br/>Databases commissioned for a single customer are not listed to anyone
-        /// <br/>else.
         /// </remarks>
         /// <returns>OK</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
@@ -94,15 +91,12 @@ namespace InternetData
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <summary>
-        /// Every database your organization may see, and where each one stands
+        /// List
         /// </summary>
         /// <remarks>
         /// The whole published catalog, with your organization's licence beside
         /// <br/>each entry, so `standing` says whether a database is yours today
         /// <br/>(`licensed`), was (`expired`), or has never been bought (`unlicensed`).
-        /// <br/>
-        /// <br/>Databases commissioned for a single customer are not listed to anyone
-        /// <br/>else.
         /// </remarks>
         /// <returns>OK</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
@@ -185,7 +179,7 @@ namespace InternetData
         }
 
         /// <summary>
-        /// Redirect to a time-limited download URL for one database
+        /// Download
         /// </summary>
         /// <remarks>
         /// Answers `302`; the bytes come straight from object storage rather than
@@ -201,7 +195,7 @@ namespace InternetData
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <summary>
-        /// Redirect to a time-limited download URL for one database
+        /// Download
         /// </summary>
         /// <remarks>
         /// Answers `302`; the bytes come straight from object storage rather than
@@ -341,7 +335,7 @@ namespace InternetData
         }
 
         /// <summary>
-        /// What is inside one database - schema, sample rows, row count, sizes
+        /// Metadata
         /// </summary>
         /// <remarks>
         /// Poll this to decide whether today's build is worth fetching: it carries
@@ -360,7 +354,7 @@ namespace InternetData
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <summary>
-        /// What is inside one database - schema, sample rows, row count, sizes
+        /// Metadata
         /// </summary>
         /// <remarks>
         /// Poll this to decide whether today's build is worth fetching: it carries
@@ -487,8 +481,11 @@ namespace InternetData
         }
 
         /// <summary>
-        /// Checksums for one published file, to verify a download
+        /// Checksums
         /// </summary>
+        /// <remarks>
+        /// Checksums for one published file, so a download can be verified after it lands.
+        /// </remarks>
         /// <param name="id">Database identifier (e.g. `vpn_ip_v1`, `resproxy_provider_v1`).</param>
         /// <param name="format">Database file format.</param>
         /// <returns>OK</returns>
@@ -500,8 +497,11 @@ namespace InternetData
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <summary>
-        /// Checksums for one published file, to verify a download
+        /// Checksums
         /// </summary>
+        /// <remarks>
+        /// Checksums for one published file, so a download can be verified after it lands.
+        /// </remarks>
         /// <param name="id">Database identifier (e.g. `vpn_ip_v1`, `resproxy_provider_v1`).</param>
         /// <param name="format">Database file format.</param>
         /// <returns>OK</returns>
@@ -635,7 +635,7 @@ namespace InternetData
         }
 
         /// <summary>
-        /// Your organization's recent download attempts, newest first
+        /// History
         /// </summary>
         /// <remarks>
         /// Refusals are listed too: a denial is what answers "it stopped working",
@@ -651,7 +651,7 @@ namespace InternetData
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <summary>
-        /// Your organization's recent download attempts, newest first
+        /// History
         /// </summary>
         /// <remarks>
         /// Refusals are listed too: a denial is what answers "it stopped working",
@@ -745,7 +745,7 @@ namespace InternetData
         }
 
         /// <summary>
-        /// Download a database file
+        /// Download
         /// </summary>
         /// <remarks>
         /// Returns the requested database file as a binary download.
@@ -763,7 +763,7 @@ namespace InternetData
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <summary>
-        /// Download a database file
+        /// Download
         /// </summary>
         /// <remarks>
         /// Returns the requested database file as a binary download.
@@ -891,7 +891,7 @@ namespace InternetData
         }
 
         /// <summary>
-        /// Get checksums for a database file
+        /// Checksums
         /// </summary>
         /// <remarks>
         /// Returns MD5, SHA-1, SHA-256, and SHA-512 checksums for the currently
@@ -908,7 +908,7 @@ namespace InternetData
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <summary>
-        /// Get checksums for a database file
+        /// Checksums
         /// </summary>
         /// <remarks>
         /// Returns MD5, SHA-1, SHA-256, and SHA-512 checksums for the currently
@@ -1037,7 +1037,7 @@ namespace InternetData
         }
 
         /// <summary>
-        /// Get metadata for a database
+        /// Metadata
         /// </summary>
         /// <remarks>
         /// Returns publish freshness information for the currently published version
@@ -1054,7 +1054,7 @@ namespace InternetData
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <summary>
-        /// Get metadata for a database
+        /// Metadata
         /// </summary>
         /// <remarks>
         /// Returns publish freshness information for the currently published version
@@ -1369,9 +1369,9 @@ namespace InternetData
         /// <br/>is no licence.
         /// <br/>
         /// </summary>
-        [System.Text.Json.Serialization.JsonPropertyName("redistribution")]
-        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<DatabaseRedistribution>))]
-        public DatabaseRedistribution? Redistribution { get; set; } = default!;
+        [System.Text.Json.Serialization.JsonPropertyName("license_type")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<DatabaseLicense_type>))]
+        public DatabaseLicense_type? LicenseType { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("starts")]
         public System.DateTimeOffset? Starts { get; set; } = default!;
@@ -1874,14 +1874,14 @@ namespace InternetData
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
-    public enum DatabaseRedistribution
+    public enum DatabaseLicense_type
     {
 
         [System.Runtime.Serialization.EnumMember(Value = @"evaluation")]
         Evaluation = 0,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"internal")]
-        Internal = 1,
+        [System.Runtime.Serialization.EnumMember(Value = @"standard")]
+        Standard = 1,
 
         [System.Runtime.Serialization.EnumMember(Value = @"redistribute")]
         Redistribute = 2,
