@@ -129,7 +129,7 @@ services.AddHttpClient<InternetDataClient>()
 
 ### What you can see
 
-`ListAsync` returns the catalog as your organization is entitled to see it, and a database commissioned for a single customer is simply absent from everyone else's, rather than listed as `Unlicensed`. So the catalog is not the same for every key, and this call is the only place it can be read.
+`ListAsync` returns the catalog as your organization is entitled to see it.
 
 ## Other Libraries
 
