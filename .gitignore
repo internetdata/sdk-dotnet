@@ -1,0 +1,15 @@
+bin/
+obj/
+
+# Package output, and the symbol packages alongside it.
+*.nupkg
+*.snupkg
+
+# IDE and OS noise.
+.vs/
+.idea/
+*.user
+.DS_Store
+
+# Package output from scripts/publish.sh.
+artifacts/

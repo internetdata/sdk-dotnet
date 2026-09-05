@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # The library is always built for net8.0; this varies which runtime LOADS it, so the
+        # matrix covers both the compatibility floor and the current LTS a consumer is likely on.
+        runtime: [floor, latest]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+      - run: dotnet restore
+      - run: dotnet build --no-restore -c Release
+      # LatestPatch is the framework default, so `floor` runs on the newest 8.0.x. `Disable`
+      # would ALSO turn off patch roll-forward and demand an exact 8.0.0 that no runner has.
+      - run: dotnet test --no-build -c Release
+        env:
+          DOTNET_ROLL_FORWARD: ${{ matrix.runtime == 'latest' && 'LatestMajor' || 'LatestPatch' }}

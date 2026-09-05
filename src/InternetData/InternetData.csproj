@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The compatibility floor, not a support statement: a net8.0 library loads on every
+         later runtime, so this is the widest reach available without giving up DateOnly,
+         which the metadata document's calendar date uses. -->
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>12.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>InternetData</RootNamespace>
+    <AssemblyName>InternetData</AssemblyName>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest</AnalysisLevel>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>InternetData</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Mslm Dev</Authors>
+    <Company>Mslm Dev</Company>
+    <Product>InternetData</Product>
+    <Description>The official .NET client library for the InternetData API. Download the licensed IP, ASN and domain databases, with checksums, build metadata and download history.</Description>
+    <PackageTags>ip;asn;domain;geolocation;database;mmdb;internetdata</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://internetdata.io</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/internetdata/sdk-dotnet</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+
+  <!-- Source Link writes the BUILD MACHINE's absolute paths into the symbol package, so a package
+       built anywhere but a runner would publish whatever directory tree it was built in. This maps
+       them to /_/ and makes the artifact reproducible at the same time. -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="/" />
+    <None Include="../../LICENSE" Pack="true" PackagePath="/" />
+  </ItemGroup>
+
+</Project>

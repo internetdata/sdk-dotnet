@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- A project of its own, deliberately OUTSIDE InternetData.sln and with no ProjectReference.
+       The suite in ../tests exercises this working tree; this one exercises the artifact a
+       stranger restores from nuget.org, which is the only way to notice a tag that never landed,
+       a package that ships no lib/ asset, or an API a consumer cannot reach. A ProjectReference
+       here would quietly defeat all of it, so scripts/run.sh refuses to run with one and
+       ProvenanceTests fails the run if the package came from anywhere but a package. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>12.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <OutputType>Exe</OutputType>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+    <NoWarn>$(NoWarn);xUnit1051</NoWarn>
+    <!-- The range a consumer would write, and the gate scripts/run.sh reads to decide whether
+         anything published satisfies it. The runner overrides this with the newest published
+         version for the run, so a daily run keeps testing what is newest rather than the lowest
+         version the range happens to admit. -->
+    <InternetDataVersion Condition="'$(InternetDataVersion)' == ''">[1.0.0,2.0.0)</InternetDataVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="InternetData" Version="$(InternetDataVersion)" />
+    <PackageReference Include="xunit.v3" Version="4.0.0" />
+  </ItemGroup>
+
+</Project>

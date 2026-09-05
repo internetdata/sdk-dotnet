@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>12.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <OutputType>Exe</OutputType>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+    <!-- xUnit1051 wants TestContext.Current.CancellationToken on every awaited call, which buys
+         responsiveness this suite does not need at the cost of an extra argument on every
+         assertion. -->
+    <NoWarn>$(NoWarn);xUnit1051</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" Version="4.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/InternetData/InternetData.csproj" />
+  </ItemGroup>
+
+  <!-- The corpus sdk/common generates. Copied rather than read by relative path so the suite works
+       the same from `dotnet test` and from a published test binary. -->
+  <ItemGroup>
+    <None Include="../../testdata/testdata.json" CopyToOutputDirectory="PreserveNewest" Link="testdata.json" />
+  </ItemGroup>
+
+</Project>
