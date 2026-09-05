@@ -21,7 +21,7 @@ public class ConformanceTests
             using var client = Stub.Client(Failing(c), new InternetDataClientOptions { Retries = 0 });
 
             var error = await Assert.ThrowsAsync<InternetDataException>(
-                () => client.MetadataAsync("bogon_ip_v1"));
+                () => client.Database.MetadataAsync("bogon_ip_v1"));
 
             var expect = c.GetProperty("expect");
             Assert.Equal(expect.GetProperty("kind").GetString(), Wire(error.Kind));
@@ -56,7 +56,7 @@ public class ConformanceTests
             var handler = Failing(c);
             using var client = Stub.Client(handler, new InternetDataClientOptions { Retries = 2 });
 
-            await Assert.ThrowsAsync<InternetDataException>(() => client.MetadataAsync("bogon_ip_v1"));
+            await Assert.ThrowsAsync<InternetDataException>(() => client.Database.MetadataAsync("bogon_ip_v1"));
 
             Assert.Equal(1, handler.Calls.Count);
         }
@@ -69,7 +69,7 @@ public class ConformanceTests
         var handler = Failing(c);
         using var client = Stub.Client(handler, new InternetDataClientOptions { Retries = 2 });
 
-        await Assert.ThrowsAsync<InternetDataException>(() => client.MetadataAsync("bogon_ip_v1"));
+        await Assert.ThrowsAsync<InternetDataException>(() => client.Database.MetadataAsync("bogon_ip_v1"));
 
         Assert.Equal(3, handler.Calls.Count);
     }
@@ -150,7 +150,7 @@ public class ConformanceTests
         {
             var handler = StubHandler.Always(new Route(Checksums));
             using var client = Stub.Client(handler);
-            await client.ChecksumsAsync("bogon_ip_v1", Enum.Parse<DatabaseFormat>(format, true));
+            await client.Database.ChecksumsAsync("bogon_ip_v1", Enum.Parse<DatabaseFormat>(format, true));
             Assert.Contains($"format={format}", handler.Calls[0], StringComparison.Ordinal);
         }
     }
@@ -199,9 +199,9 @@ public class ConformanceTests
         using var a = Stub.Client(handler, new InternetDataClientOptions { ApiKey = "one" });
         using var b = Stub.Client(handler, new InternetDataClientOptions { ApiKey = "two" });
 
-        var mine = await a.ListAsync();
-        var theirs = await b.ListAsync();
-        var again = await b.ListAsync();
+        var mine = await a.Database.ListAsync();
+        var theirs = await b.Database.ListAsync();
+        var again = await b.Database.ListAsync();
 
         Assert.Equal("private_to_one", Assert.Single(mine).Base);
         Assert.Equal("bogon_ip", Assert.Single(theirs).Base);
@@ -236,7 +236,7 @@ public class ConformanceTests
     private static async Task<IReadOnlyList<Database>> Listed(params string[] families)
     {
         using var client = Stub.Client(StubHandler.Always(new Route(Catalog(families))));
-        return await client.ListAsync();
+        return await client.Database.ListAsync();
     }
 
     // ErrorKind.BadRequest is `bad_request` in the corpus. Spelling the mapping out beats making

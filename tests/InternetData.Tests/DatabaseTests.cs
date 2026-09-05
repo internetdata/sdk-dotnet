@@ -41,7 +41,7 @@ public class DatabaseTests
         var handler = StubHandler.Paths(Bodies);
         using var client = Stub.Client(handler);
 
-        var sums = await client.ChecksumsAsync("bogon_ip_v1", DatabaseFormat.Csvgz);
+        var sums = await client.Database.ChecksumsAsync("bogon_ip_v1", DatabaseFormat.Csvgz);
         Assert.Equal("m", sums.Md5);
         Assert.Equal("s1", sums.Sha1);
         // The digest a caller actually wants must not be null.
@@ -50,7 +50,7 @@ public class DatabaseTests
 
         // A license is held against the FAMILY, and the ids the download and checksum calls take
         // hang off its versions.
-        var family = Assert.Single(await client.ListAsync());
+        var family = Assert.Single(await client.Database.ListAsync());
         Assert.Equal("bogon_ip", family.Base);
         Assert.Equal("Bogon IP", family.Name);
         Assert.Equal(DatabaseStanding.Licensed, family.Standing);
@@ -63,7 +63,7 @@ public class DatabaseTests
         Assert.Equal(1, published.Version);
         Assert.Equal(new[] { DatabaseFormat.Csvgz, DatabaseFormat.Mmdb }, published.Formats);
 
-        var downloads = await client.DownloadsAsync();
+        var downloads = await client.Database.DownloadsAsync();
         var attempt = Assert.Single(downloads);
         Assert.Equal("bogon_ip_v1", attempt.DatasetId);
         Assert.Equal(DownloadOutcome.Ok, attempt.Outcome);
@@ -73,7 +73,7 @@ public class DatabaseTests
         Assert.Equal("203.0.113.7", attempt.ClientIp);
         Assert.Equal("curl/8", attempt.UserAgent);
 
-        var metadata = await client.MetadataAsync("bogon_ip_v1");
+        var metadata = await client.Database.MetadataAsync("bogon_ip_v1");
         Assert.Equal("bogon_ip_v1", metadata.Id);
         Assert.Equal(new DateOnly(2026, 9, 4), metadata.Updated);
         Assert.Equal("daily", metadata.UpdateFreq);
@@ -90,8 +90,8 @@ public class DatabaseTests
         var handler = StubHandler.Paths(Bodies);
         using var client = Stub.Client(handler);
 
-        await client.DownloadsAsync();
-        await client.DownloadsAsync(10);
+        await client.Database.DownloadsAsync();
+        await client.Database.DownloadsAsync(10);
 
         Assert.DoesNotContain("limit", handler.Calls[0], StringComparison.Ordinal);
         Assert.Contains("limit=10", handler.Calls[1], StringComparison.Ordinal);
@@ -108,7 +108,7 @@ public class DatabaseTests
         });
         using var client = Stub.Client(handler);
 
-        var url = await client.DownloadUrlAsync("bogon_ip_v1", DatabaseFormat.Csvgz);
+        var url = await client.Database.DownloadUrlAsync("bogon_ip_v1", DatabaseFormat.Csvgz);
 
         Assert.Equal("https://s3.example.test/bogon_ip_v1.csv.gz?sig=abc", url);
         Assert.Equal(1, handler.Calls.Count);
@@ -120,7 +120,7 @@ public class DatabaseTests
         var handler = StubHandler.Paths(Bodies);
         using var client = Stub.Client(handler, new InternetDataClientOptions { ApiKey = "abc123" });
 
-        await client.MetadataAsync("bogon_ip_v1");
+        await client.Database.MetadataAsync("bogon_ip_v1");
 
         Assert.Equal("Bearer abc123", Assert.Single(handler.Authorizations));
         Assert.DoesNotContain("abc123", handler.Calls[0], StringComparison.Ordinal);
@@ -145,7 +145,7 @@ public class DatabaseTests
         using var client = new InternetDataClient(
             following, new InternetDataClientOptions { BaseUrl = origin.BaseUrl, ApiKey = "k" });
 
-        var call = client.DownloadUrlAsync("bogon_ip_v1", DatabaseFormat.Csvgz);
+        var call = client.Database.DownloadUrlAsync("bogon_ip_v1", DatabaseFormat.Csvgz);
         var error = await Assert.ThrowsAsync<InvalidOperationException>(
             () => call.WaitAsync(TimeSpan.FromSeconds(15)));
 
@@ -160,7 +160,7 @@ public class DatabaseTests
         using var client = new InternetDataClient(
             new InternetDataClientOptions { BaseUrl = origin.BaseUrl, ApiKey = "k" });
 
-        var url = await client.DownloadUrlAsync("bogon_ip_v1", DatabaseFormat.Csvgz);
+        var url = await client.Database.DownloadUrlAsync("bogon_ip_v1", DatabaseFormat.Csvgz);
 
         Assert.Equal(origin.PayloadUrl, url);
         Assert.False(origin.StorageWasAsked);
@@ -179,7 +179,7 @@ public class DatabaseTests
             new InternetDataClientOptions { BaseUrl = origin.BaseUrl, ApiKey = "k" });
         var path = Path.Combine(TempDir(), "database.csv.gz");
 
-        var written = await client.DownloadAsync("bogon_ip_v1", DatabaseFormat.Csvgz, path);
+        var written = await client.Database.DownloadAsync("bogon_ip_v1", DatabaseFormat.Csvgz, path);
 
         Assert.Equal(payload.Length, written);
         Assert.Equal(payload, await File.ReadAllBytesAsync(path));
@@ -196,9 +196,9 @@ public class DatabaseTests
         using var client = new InternetDataClient(
             new InternetDataClientOptions { BaseUrl = origin.BaseUrl, ApiKey = "k" });
         var path = Path.Combine(TempDir(), "database.csv.gz");
-        await client.DownloadAsync("bogon_ip_v1", DatabaseFormat.Csvgz, path);
+        await client.Database.DownloadAsync("bogon_ip_v1", DatabaseFormat.Csvgz, path);
 
-        var bytes = await client.DownloadBytesAsync("bogon_ip_v1", DatabaseFormat.Csvgz);
+        var bytes = await client.Database.DownloadBytesAsync("bogon_ip_v1", DatabaseFormat.Csvgz);
 
         Assert.Equal(await File.ReadAllBytesAsync(path), bytes);
         Assert.Null(origin.StorageAuthorization);
@@ -218,7 +218,7 @@ public class DatabaseTests
         var path = Path.Combine(TempDir(), "database.csv.gz");
 
         await Assert.ThrowsAnyAsync<IOException>(
-            () => client.DownloadAsync("bogon_ip_v1", DatabaseFormat.Csvgz, path));
+            () => client.Database.DownloadAsync("bogon_ip_v1", DatabaseFormat.Csvgz, path));
 
         Assert.False(File.Exists(path), "a short transfer left a file that reads as a whole database");
         Assert.False(File.Exists(path + ".part"), "the .part file outlived a failed transfer");
@@ -233,7 +233,7 @@ public class DatabaseTests
             new InternetDataClientOptions { BaseUrl = origin.BaseUrl, ApiKey = "k" });
 
         await Assert.ThrowsAnyAsync<IOException>(
-            () => client.DownloadBytesAsync("bogon_ip_v1", DatabaseFormat.Csvgz));
+            () => client.Database.DownloadBytesAsync("bogon_ip_v1", DatabaseFormat.Csvgz));
     }
 
     // A database the organization does not license is refused by the API before any transfer
@@ -247,7 +247,7 @@ public class DatabaseTests
         var path = Path.Combine(TempDir(), "unlicensed.csv.gz");
 
         var error = await Assert.ThrowsAsync<InternetDataException>(
-            () => client.DownloadAsync("vpn_ip_v1", DatabaseFormat.Csvgz, path));
+            () => client.Database.DownloadAsync("vpn_ip_v1", DatabaseFormat.Csvgz, path));
 
         Assert.Equal(ErrorKind.Forbidden, error.Kind);
         Assert.Equal(403, error.StatusCode);

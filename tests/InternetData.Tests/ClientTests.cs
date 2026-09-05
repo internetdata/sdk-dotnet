@@ -25,7 +25,7 @@ public class ClientTests
         using var client = new InternetDataClient(
             borrowed, new InternetDataClientOptions { ApiKey = "k", BaseUrl = "https://elsewhere.test" });
 
-        await client.MetadataAsync("bogon_ip_v1");
+        await client.Database.MetadataAsync("bogon_ip_v1");
 
         Assert.Equal("https://elsewhere.test", Assert.Single(seen).GetLeftPart(UriPartial.Authority));
         Assert.Equal("https://internetdata.io", InternetDataClient.DefaultBaseUrl);
@@ -40,8 +40,8 @@ public class ClientTests
         using var standard = Stub.Client(byDefault);
         using var bare = Stub.Client(none, new InternetDataClientOptions { Retries = 0 });
 
-        await Assert.ThrowsAsync<InternetDataException>(() => standard.ListAsync());
-        await Assert.ThrowsAsync<InternetDataException>(() => bare.ListAsync());
+        await Assert.ThrowsAsync<InternetDataException>(() => standard.Database.ListAsync());
+        await Assert.ThrowsAsync<InternetDataException>(() => bare.Database.ListAsync());
 
         Assert.Equal(3, byDefault.Calls.Count);
         Assert.Equal(1, none.Calls.Count);
@@ -58,7 +58,7 @@ public class ClientTests
         });
         using var client = Stub.Client(handler, new InternetDataClientOptions { Retries = 1 });
 
-        var error = await Assert.ThrowsAsync<InternetDataException>(() => client.ListAsync());
+        var error = await Assert.ThrowsAsync<InternetDataException>(() => client.Database.ListAsync());
 
         Assert.Equal(ErrorKind.Network, error.Kind);
         Assert.True(error.Retryable);
@@ -76,7 +76,7 @@ public class ClientTests
         // Wire only reclassifies a cancellation the CALLER did not ask for, which is how an
         // HttpClient timeout is told apart from a token the caller cancelled.
         await Assert.ThrowsAnyAsync<OperationCanceledException>(
-            () => client.MetadataAsync("bogon_ip_v1", cts.Token));
+            () => client.Database.MetadataAsync("bogon_ip_v1", cts.Token));
     }
 
     [Fact]
@@ -91,7 +91,7 @@ public class ClientTests
         // Disposing a borrowed client would break every other consumer of an IHttpClientFactory
         // instance, which is exactly what typed-client registration hands us.
         using var second = new InternetDataClient(borrowed, new InternetDataClientOptions { ApiKey = "k" });
-        Assert.Equal("bogon_ip_v1", (await second.MetadataAsync("bogon_ip_v1")).Id);
+        Assert.Equal("bogon_ip_v1", (await second.Database.MetadataAsync("bogon_ip_v1")).Id);
     }
 
     // HttpClient.Timeout covers the response BODY under the default ResponseContentRead and stops
@@ -115,7 +115,7 @@ public class ClientTests
         });
 
         var started = Stopwatch.StartNew();
-        var bytes = await client.DownloadBytesAsync("bogon_ip_v1", DatabaseFormat.Csvgz);
+        var bytes = await client.Database.DownloadBytesAsync("bogon_ip_v1", DatabaseFormat.Csvgz);
 
         Assert.Equal(payload, bytes);
         Assert.True(

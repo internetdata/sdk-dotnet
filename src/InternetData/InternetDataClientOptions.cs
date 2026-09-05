@@ -34,8 +34,8 @@ public sealed class InternetDataClientOptions
     /// Use a specific <see cref="HttpClient"/>, for a proxy, a custom handler or a test double.
     /// </summary>
     /// <remarks>
-    /// It MUST NOT follow redirects, or <see cref="InternetDataClient.DownloadUrlAsync"/> would
-    /// fetch the database instead of returning its link. A client supplied here is never disposed.
+    /// It MUST NOT follow redirects, or <see cref="DatabaseApi.DownloadUrlAsync"/> would fetch the
+    /// database instead of returning its link. A client supplied here is never disposed.
     /// </remarks>
     public HttpClient? HttpClient { get; set; }
 }

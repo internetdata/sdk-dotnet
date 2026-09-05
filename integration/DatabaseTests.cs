@@ -31,7 +31,7 @@ public class DatabaseTests
         var (client, recorder) = Staging.Client();
         using (client)
         {
-            var databases = await client.ListAsync();
+            var databases = await client.Database.ListAsync();
 
             Assert.NotEmpty(databases);
             var licensed = databases
@@ -81,7 +81,7 @@ public class DatabaseTests
         using (client)
         {
             var error = await Assert.ThrowsAsync<InternetDataException>(
-                () => client.DownloadUrlAsync(Staging.UnlicensedId, Format));
+                () => client.Database.DownloadUrlAsync(Staging.UnlicensedId, Format));
 
             Assert.Equal(ErrorKind.Forbidden, error.Kind);
             Assert.Equal(403, error.StatusCode);
@@ -128,7 +128,7 @@ public class DatabaseTests
         var (client, _) = Staging.Client();
         using (client)
         {
-            var url = await client.DownloadUrlAsync(DatabaseId, Format);
+            var url = await client.Database.DownloadUrlAsync(DatabaseId, Format);
 
             Assert.StartsWith("https://", url, StringComparison.Ordinal);
             // Asserted as a boolean rather than with DoesNotContain, which prints the operand it
@@ -151,7 +151,7 @@ public class DatabaseTests
         var (client, _) = Staging.Client();
         using (client)
         {
-            var raw = await client.DownloadBytesAsync(DatabaseId, Format);
+            var raw = await client.Database.DownloadBytesAsync(DatabaseId, Format);
 
             Assert.Equal(transfer.Written, raw.LongLength);
             Assert.Equal(transfer.Checksums.Sha256, Digest(raw));
@@ -170,7 +170,7 @@ public class DatabaseTests
         var (client, _) = Staging.Client();
         using (client)
         {
-            var attempts = await client.DownloadsAsync(50);
+            var attempts = await client.Database.DownloadsAsync(50);
 
             Assert.NotEmpty(attempts);
             Assert.All(attempts, a => Assert.True(
@@ -197,7 +197,7 @@ public class DatabaseTests
             var (client, recorder) = Staging.Client();
             using (client)
             {
-                var metadata = await client.MetadataAsync(DatabaseId);
+                var metadata = await client.Database.MetadataAsync(DatabaseId);
                 Assert.Equal(DatabaseId, metadata.Id);
                 Assert.True(metadata.Entries > 0, $"{DatabaseId} publishes no row count");
                 var size = PublishedSize(metadata);
@@ -207,10 +207,10 @@ public class DatabaseTests
 
                 var dir = Directory.CreateTempSubdirectory("internetdata-integration-").FullName;
                 var path = Path.Combine(dir, DatabaseId + ".csv.gz");
-                var written = await client.DownloadAsync(DatabaseId, Format, path);
+                var written = await client.Database.DownloadAsync(DatabaseId, Format, path);
                 // Read after the transfer, so a rebuild between the two calls shows up as a digest
                 // mismatch rather than passing against a digest of nothing.
-                var checksums = await client.ChecksumsAsync(DatabaseId, Format);
+                var checksums = await client.Database.ChecksumsAsync(DatabaseId, Format);
                 Console.WriteLine($"{DatabaseId}.{Format}: {written} bytes, metadata says {size}");
 
                 shared = new Transfer(written, path, checksums, recorder.Seen);

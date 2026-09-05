@@ -24,16 +24,18 @@ using InternetData;
 
 using var client = new InternetDataClient(Environment.GetEnvironmentVariable("INTERNETDATA_API_KEY")!);
 
-foreach (var db in await client.ListAsync())
+foreach (var db in await client.Database.ListAsync())
 {
     Console.WriteLine($"{db.Base}: {db.Standing}");   // bogon_ip: Licensed
 }
 ```
 
+Every call hangs off `client.Database`, which is the whole of this API and is where the sibling VPNDetection library keeps the same seven calls.
+
 A license covers a database FAMILY, while a download names one of its versions, so the ids you pass to the other calls come from `Versions`:
 
 ```csharp
-var family = (await client.ListAsync()).First(db => db.Standing == DatabaseStanding.Licensed);
+var family = (await client.Database.ListAsync()).First(db => db.Standing == DatabaseStanding.Licensed);
 var id = family.Versions[^1].Id;              // "bogon_ip_v1"
 var formats = family.Versions[^1].Formats;    // [Csvgz, Mmdb]
 ```
@@ -43,7 +45,7 @@ var formats = family.Versions[^1].Formats;    // [Csvgz, Mmdb]
 `DownloadAsync` streams to a path, so nothing bigger than a chunk is ever held in memory:
 
 ```csharp
-var written = await client.DownloadAsync(id, DatabaseFormat.Csvgz, $"{id}.csv.gz");
+var written = await client.Database.DownloadAsync(id, DatabaseFormat.Csvgz, $"{id}.csv.gz");
 ```
 
 The bytes land in a neighboring `.part` file that is renamed on completion, so a transfer that dies half way leaves nothing that reads as a whole database.
@@ -51,7 +53,7 @@ The bytes land in a neighboring `.part` file that is renamed on completion, so a
 For a small database, take the bytes directly:
 
 ```csharp
-var bytes = await client.DownloadBytesAsync("bogon_asn_v1", DatabaseFormat.Csvgz);
+var bytes = await client.Database.DownloadBytesAsync("bogon_asn_v1", DatabaseFormat.Csvgz);
 ```
 
 This holds the whole file in memory, and the catalog spans seven orders of magnitude, so check `MetadataAsync` first for anything you have not measured.
@@ -61,7 +63,7 @@ This holds the whole file in memory, and the catalog spans seven orders of magni
 The API answers a download with a `302` to a time-limited URL that carries its own authorization, so `DownloadUrlAsync` gives you a link you can pass to a downloader, a job queue or another machine without passing your key along with it:
 
 ```csharp
-var url = await client.DownloadUrlAsync(id, DatabaseFormat.Mmdb);
+var url = await client.Database.DownloadUrlAsync(id, DatabaseFormat.Mmdb);
 ```
 
 The library follows nothing: you get the link, not the file. The link authorizes the START of a transfer, so one already running is not interrupted when it lapses.
@@ -73,7 +75,7 @@ Because a `302` is the answer, an `HttpClient` you supply yourself must not foll
 `MetadataAsync` carries the build date, the row count and a size per format, without downloading anything:
 
 ```csharp
-var metadata = await client.MetadataAsync(id);
+var metadata = await client.Database.MetadataAsync(id);
 Console.WriteLine($"{metadata.Updated} {metadata.Entries} rows, {metadata.Size["csvgz"]} bytes");
 Console.WriteLine(metadata.UpdateFreq);          // "daily"
 ```
@@ -81,7 +83,7 @@ Console.WriteLine(metadata.UpdateFreq);          // "daily"
 ### Verifying what arrived
 
 ```csharp
-var sums = await client.ChecksumsAsync(id, DatabaseFormat.Csvgz);
+var sums = await client.Database.ChecksumsAsync(id, DatabaseFormat.Csvgz);
 Console.WriteLine(sums.Sha256);
 ```
 
@@ -90,7 +92,7 @@ Console.WriteLine(sums.Sha256);
 Your organization's recent attempts, newest first. Refusals are listed too, which is what answers "it stopped working":
 
 ```csharp
-foreach (var attempt in await client.DownloadsAsync(limit: 20))
+foreach (var attempt in await client.Database.DownloadsAsync(limit: 20))
 {
     Console.WriteLine($"{attempt.Created:u} {attempt.DatasetId} {attempt.Outcome} {attempt.Bytes}");
 }
@@ -103,7 +105,7 @@ Failures throw an `InternetDataException` carrying a `Kind` and a `Retryable` fl
 ```csharp
 try
 {
-    await client.MetadataAsync(id);
+    await client.Database.MetadataAsync(id);
 }
 catch (InternetDataException e)
 {
