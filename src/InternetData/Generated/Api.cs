@@ -1377,10 +1377,22 @@ namespace InternetData
         public System.DateTimeOffset? Starts { get; set; } = default!;
 
         /// <summary>
-        /// Null when the licence has no end date, or when there is none.
+        /// A hard stop. Null when the licence has no end date, which is the normal case for a rolling agreement, and when there is no licence. A rolling licence reports its turnover date in renews_at instead.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("expires")]
         public System.DateTimeOffset? Expires { get; set; } = default!;
+
+        /// <summary>
+        /// When a rolling licence next renews. Null when the licence has no defined term, when expires sets a hard stop instead, and when there is no licence.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("renews_at")]
+        public System.DateTimeOffset? RenewsAt { get; set; } = default!;
+
+        /// <summary>
+        /// The last day notice of non-renewal can be given for the term ending at renews_at. Null whenever renews_at is, and when the agreement records no notice period.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("notice_due_at")]
+        public System.DateTimeOffset? NoticeDueAt { get; set; } = default!;
 
         /// <summary>
         /// Every published version of this family, oldest first. Old versions
