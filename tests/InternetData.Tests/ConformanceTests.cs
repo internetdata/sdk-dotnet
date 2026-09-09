@@ -102,7 +102,7 @@ public class ConformanceTests
         {
             var family = Assert.Single(await Listed($$"""
                 {"base":"bogon_ip","name":"Bogon IP","summary":"s","standing":"{{standing}}",
-                "license_type":null,"starts":null,"expires":null,"versions":[]}
+                "license_type":null,"starts":null,"expires":null,"renews_at":null,"notice_due_at":null,"versions":[]}
                 """));
             Assert.Equal(standing, family.Standing.ToString().ToLowerInvariant());
         }
@@ -227,7 +227,7 @@ public class ConformanceTests
         string name = "bogon_ip", string license_type = "null", string versions = "[]")
         => $$"""
             {"base":"{{name}}","name":"Bogon IP","summary":"s","standing":"licensed",
-            "license_type":{{license_type}},"starts":null,"expires":null,"versions":{{versions}}}
+            "license_type":{{license_type}},"starts":null,"expires":null,"renews_at":null,"notice_due_at":null,"versions":{{versions}}}
             """;
 
     private static string Catalog(params string[] families)

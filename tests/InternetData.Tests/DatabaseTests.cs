@@ -16,7 +16,7 @@ public class DatabaseTests
         ["/api/v2/database/list"] = new Route("""
             {"databases":[{"base":"bogon_ip","name":"Bogon IP","summary":"Reserved address space",
             "standing":"licensed","license_type":"standard","starts":"2026-01-01T00:00:00Z",
-            "expires":null,"versions":[{"id":"bogon_ip_v1","version":1,"summary":"v1",
+            "expires":null,"renews_at":null,"notice_due_at":null,"versions":[{"id":"bogon_ip_v1","version":1,"summary":"v1",
             "formats":["csvgz","mmdb"]}]}]}
             """),
         ["/api/v2/database/checksum"] = new Route("""
