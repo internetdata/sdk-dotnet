@@ -1331,6 +1331,42 @@ namespace InternetData
     }
 
     /// <summary>
+    /// A file format a database version is published in.
+    /// </summary>
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public enum DatabaseFormat
+    {
+
+        [System.Runtime.Serialization.EnumMember(Value = @"csvgz")]
+        Csvgz = 0,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"mmdb")]
+        Mmdb = 1,
+
+    }
+
+    /// <summary>
+    /// Where your licence for a database family stands today. `licensed` is a
+    /// <br/>live grant, `expired` one whose term has ended, and `unlicensed` a
+    /// <br/>database published but never bought.
+    /// <br/>
+    /// </summary>
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public enum Standing
+    {
+
+        [System.Runtime.Serialization.EnumMember(Value = @"licensed")]
+        Licensed = 0,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"expired")]
+        Expired = 1,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"unlicensed")]
+        Unlicensed = 2,
+
+    }
+
+    /// <summary>
     /// One database FAMILY, with your organization's licence beside it. A
     /// <br/>licence covers the family, while a download names a specific version,
     /// <br/>so the ids passed to `download` and `checksum` come from `versions`.
@@ -1355,18 +1391,13 @@ namespace InternetData
         [System.Text.Json.Serialization.JsonPropertyName("summary")]
         public string Summary { get; set; } = default!;
 
-        /// <summary>
-        /// `licensed` is a live grant, `expired` one whose term has ended, and
-        /// <br/>`unlicensed` a database published but never bought.
-        /// <br/>
-        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("standing")]
-        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<DatabaseStanding>))]
-        public DatabaseStanding Standing { get; set; } = default!;
+        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<Standing>))]
+        public Standing Standing { get; set; } = default!;
 
         /// <summary>
         /// What your licence permits you to do with the data. Null when there
-        /// <br/>is no licence.
+        /// <br/>is no licence, which is every family with standing `unlicensed`.
         /// <br/>
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("license_type")]
@@ -1798,18 +1829,6 @@ namespace InternetData
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
-    public enum DatabaseFormat
-    {
-
-        [System.Runtime.Serialization.EnumMember(Value = @"csvgz")]
-        Csvgz = 0,
-
-        [System.Runtime.Serialization.EnumMember(Value = @"mmdb")]
-        Mmdb = 1,
-
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
     internal partial class Response
     {
 
@@ -1871,21 +1890,6 @@ namespace InternetData
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
-    public enum DatabaseStanding
-    {
-
-        [System.Runtime.Serialization.EnumMember(Value = @"licensed")]
-        Licensed = 0,
-
-        [System.Runtime.Serialization.EnumMember(Value = @"expired")]
-        Expired = 1,
-
-        [System.Runtime.Serialization.EnumMember(Value = @"unlicensed")]
-        Unlicensed = 2,
-
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
     public enum DatabaseLicense_type
     {
 
@@ -1899,7 +1903,6 @@ namespace InternetData
         Redistribute = 2,
 
     }
-
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
     public enum DownloadOutcome
@@ -2014,7 +2017,6 @@ namespace InternetData
         DB_NOT_FOUND = 0,
 
     }
-
 
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
     internal partial class FileResponse : System.IDisposable

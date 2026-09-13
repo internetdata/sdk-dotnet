@@ -53,7 +53,7 @@ public class DatabaseTests
         var family = Assert.Single(await client.Database.ListAsync());
         Assert.Equal("bogon_ip", family.Base);
         Assert.Equal("Bogon IP", family.Name);
-        Assert.Equal(DatabaseStanding.Licensed, family.Standing);
+        Assert.Equal(Standing.Licensed, family.Standing);
         Assert.Equal(DatabaseLicense_type.Standard, family.LicenseType);
         // A license with no end date is null, not a zero instant.
         Assert.Null(family.Expires);

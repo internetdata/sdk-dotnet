@@ -97,7 +97,7 @@ public class ConformanceTests
 
         Assert.Equal(
             wire.Order().ToArray(),
-            Enum.GetNames<DatabaseStanding>().Select(n => n.ToLowerInvariant()).Order().ToArray());
+            Enum.GetNames<Standing>().Select(n => n.ToLowerInvariant()).Order().ToArray());
         foreach (var standing in wire)
         {
             var family = Assert.Single(await Listed($$"""
