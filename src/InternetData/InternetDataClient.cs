@@ -56,21 +56,26 @@ public sealed class InternetDataClient : IDisposable
     private InternetDataClient(InternetDataClientOptions o, HttpClient? supplied)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(o.Retries, nameof(o.Retries));
+        Wire.CheckTimeout(o.RequestTimeout, nameof(o.RequestTimeout));
 
         var http = supplied ?? o.HttpClient;
+        TimeSpan? requestTimeout = null;
         if (http is null)
         {
             // Redirects OFF: unlike the JDK's client, .NET's follows them by default, and the
-            // download endpoint answers 302 with the link this library exists to hand back.
+            // download endpoint answers 302 with the link this library exists to hand back. No
+            // HttpClient.Timeout either: it ends at the response head, so a JSON body that stalls
+            // after it would hang forever. The bound is this library's own, per attempt.
             http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false })
             {
-                Timeout = o.RequestTimeout,
+                Timeout = Timeout.InfiniteTimeSpan,
             };
             this.ownedHttpClient = http;
+            requestTimeout = o.RequestTimeout;
         }
 
         var wire = new WireClient(http) { BaseUrl = o.BaseUrl, ApiKey = o.ApiKey };
-        this.Database = new DatabaseApi(wire, http, o.Retries);
+        this.Database = new DatabaseApi(wire, http, o.Retries, requestTimeout);
     }
 
     /// <summary>

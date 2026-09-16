@@ -15,15 +15,20 @@ internal static class Wire
     /// A server-supplied <c>Retry-After</c> wins over the backoff schedule, and is also the only
     /// thing that makes a 429 retryable at all.
     /// </summary>
+    /// <remarks>
+    /// <c>timeout</c> bounds each ATTEMPT; null means none of this library's own, which leaves a
+    /// borrowed <see cref="HttpClient"/> to its own timeout.
+    /// </remarks>
     internal static async Task<T> ExecuteAsync<T>(
-        int retries, Func<CancellationToken, Task<T>> call, CancellationToken cancellationToken)
+        int retries, TimeSpan? timeout, Func<CancellationToken, Task<T>> call,
+        CancellationToken cancellationToken)
     {
         for (var attempt = 0; ; attempt++)
         {
             InternetDataException failure;
             try
             {
-                return await call(cancellationToken).ConfigureAwait(false);
+                return await AttemptAsync(timeout, call, cancellationToken).ConfigureAwait(false);
             }
             catch (WireException e)
             {
@@ -33,10 +38,12 @@ internal static class Wire
             {
                 failure = new InternetDataException(ErrorKind.Network, e.Message, null, null, e);
             }
-            catch (OperationCanceledException e) when (!cancellationToken.IsCancellationRequested)
+            catch (Exception e) when (e is TimeoutException
+                || (e is OperationCanceledException && !cancellationToken.IsCancellationRequested))
             {
-                // The caller's token is not the one that fired, so this is the HttpClient's own
-                // timeout rather than a cancellation anybody asked for.
+                // The caller's token is not the one that fired, so this is a timeout - this
+                // library's own, or a borrowed HttpClient's - rather than a cancellation anybody
+                // asked for.
                 failure = new InternetDataException(ErrorKind.Network, "the request timed out", null, null, e);
             }
 
@@ -46,6 +53,56 @@ internal static class Wire
             }
             await Task.Delay(failure.RetryAfter ?? Backoff(attempt), cancellationToken).ConfigureAwait(false);
         }
+    }
+
+    /// <summary>The rule <see cref="HttpClient.Timeout"/> applies, which this bound replaces.</summary>
+    internal static void CheckTimeout(TimeSpan value, string name)
+    {
+        if (value != Timeout.InfiniteTimeSpan
+            && (value <= TimeSpan.Zero || value.TotalMilliseconds > int.MaxValue))
+        {
+            throw new ArgumentOutOfRangeException(
+                name, value, "a timeout must be positive, or Timeout.InfiniteTimeSpan");
+        }
+    }
+
+    // One attempt against a deadline this library owns. Raced rather than left to the token alone:
+    // cancelling releases the socket, but only a handler that HONORS the token then settles.
+    private static async Task<T> AttemptAsync<T>(
+        TimeSpan? timeout, Func<CancellationToken, Task<T>> call, CancellationToken cancellationToken)
+    {
+        if (timeout is not { } limit || limit == Timeout.InfiniteTimeSpan)
+        {
+            return await call(cancellationToken).ConfigureAwait(false);
+        }
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        deadline.CancelAfter(limit);
+        var pending = call(deadline.Token);
+        try
+        {
+            return await pending.WaitAsync(limit, cancellationToken).ConfigureAwait(false);
+        }
+        catch
+        {
+            // The attempt may still be running. Whatever it ends in is released rather than left
+            // behind: a response nobody will read holds a connection, and an unread fault is
+            // reported as unobserved.
+            deadline.Cancel();
+            _ = pending.ContinueWith(
+                Release, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default);
+            throw;
+        }
+    }
+
+    private static void Release<T>(Task<T> abandoned)
+    {
+        if (abandoned.IsCompletedSuccessfully)
+        {
+            (abandoned.Result as IDisposable)?.Dispose();
+            return;
+        }
+        _ = abandoned.Exception;
     }
 
     internal static InternetDataException Translate(WireException e)

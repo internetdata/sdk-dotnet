@@ -22,13 +22,13 @@ public sealed class InternetDataClientOptions
     public int Retries { get; set; } = 2;
 
     /// <summary>
-    /// How long one request may take before it is abandoned. Default 30 seconds. Ignored when you
+    /// How long one attempt may take before it is abandoned. Default 30 seconds. Ignored when you
     /// supply your own <see cref="HttpClient"/>, which carries its own timeout.
     /// </summary>
     /// <remarks>
-    /// This bounds the response HEAD, not a transfer: a download is read with
-    /// <see cref="HttpCompletionOption.ResponseHeadersRead"/>, so a multi-gigabyte database is not
-    /// abandoned for taking longer than a metadata call would.
+    /// Per ATTEMPT, so a retried call may take longer in total. It runs from connecting to the
+    /// last byte of the answer. A database transfer is bounded only up to its response head, so a
+    /// multi-gigabyte download is not abandoned for taking longer than a metadata call would.
     /// </remarks>
     public TimeSpan RequestTimeout { get; set; } = TimeSpan.FromSeconds(30);
 

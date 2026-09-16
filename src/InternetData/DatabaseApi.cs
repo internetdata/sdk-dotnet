@@ -19,12 +19,14 @@ public sealed class DatabaseApi
     private readonly WireClient wire;
     private readonly HttpClient transfer;
     private readonly int retries;
+    private readonly TimeSpan? timeout;
 
-    internal DatabaseApi(WireClient wire, HttpClient transfer, int retries)
+    internal DatabaseApi(WireClient wire, HttpClient transfer, int retries, TimeSpan? timeout)
     {
         this.wire = wire;
         this.transfer = transfer;
         this.retries = retries;
+        this.timeout = timeout;
     }
 
     /// <summary>
@@ -43,6 +45,7 @@ public sealed class DatabaseApi
     public Task<IReadOnlyList<Database>> ListAsync(CancellationToken cancellationToken = default)
         => Wire.ExecuteAsync(
             retries,
+            timeout,
             async ct => (await wire.ListDatabasesAsync(ct).ConfigureAwait(false)).Databases,
             cancellationToken);
 
@@ -58,7 +61,8 @@ public sealed class DatabaseApi
     public Task<DatabaseMetadata> MetadataAsync(string id, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
-        return Wire.ExecuteAsync(retries, ct => wire.DatabaseMetadataV2Async(id, ct), cancellationToken);
+        return Wire.ExecuteAsync(
+            retries, timeout, ct => wire.DatabaseMetadataV2Async(id, ct), cancellationToken);
     }
 
     /// <summary>
@@ -74,6 +78,7 @@ public sealed class DatabaseApi
         ArgumentException.ThrowIfNullOrEmpty(id);
         return Wire.ExecuteAsync(
             retries,
+            timeout,
             async ct => (await wire.DatabaseChecksumV2Async(id, format, ct).ConfigureAwait(false)).Checksums,
             cancellationToken);
     }
@@ -86,6 +91,7 @@ public sealed class DatabaseApi
         int? limit = null, CancellationToken cancellationToken = default)
         => Wire.ExecuteAsync(
             retries,
+            timeout,
             async ct => (await wire.ListDownloadsAsync(limit, ct).ConfigureAwait(false)).Downloads,
             cancellationToken);
 
@@ -102,7 +108,7 @@ public sealed class DatabaseApi
         string id, DatabaseFormat format, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
-        return Wire.ExecuteAsync(retries, async ct =>
+        return Wire.ExecuteAsync(retries, timeout, async ct =>
         {
             try
             {
@@ -213,13 +219,13 @@ public sealed class DatabaseApi
         string id, DatabaseFormat format, CancellationToken cancellationToken)
     {
         var url = await DownloadUrlAsync(id, format, cancellationToken).ConfigureAwait(false);
-        return await Wire.ExecuteAsync(retries, async ct =>
+        return await Wire.ExecuteAsync(retries, timeout, async ct =>
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, url);
             // ResponseHeadersRead is load-bearing, not an optimization. Under the default the whole
-            // body is read inside SendAsync, and HttpClient.Timeout covers all of it, so a 30
+            // body is read inside SendAsync, and the attempt's timeout covers all of it, so a 30
             // second client would abandon any database that takes longer than that to move. With
-            // headers-only the timeout stops at the response head.
+            // headers-only the attempt ends at the response head.
             var response = await transfer
                 .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct)
                 .ConfigureAwait(false);
