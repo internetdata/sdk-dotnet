@@ -234,15 +234,16 @@ public sealed class DatabaseApi
                 return response;
             }
             // Left unread: the status is what separates a lapsed link from a refused one, and
-            // nothing bounds the size of an error body.
+            // nothing bounds the size of an error body. Wrapped so a 5xx is retried: nothing has
+            // been written yet, unlike a body that dies part way, which is never fetched again.
             var status = (int)response.StatusCode;
             var retryAfter = Wire.RetryAfterOf(response.Headers);
             response.Dispose();
-            throw new InternetDataException(
+            throw new ClassifiedException(new InternetDataException(
                 Wire.KindOf(status, retryAfter),
                 $"object storage refused the download link with status {status}",
                 status,
-                retryAfter);
+                retryAfter));
         }, cancellationToken).ConfigureAwait(false);
     }
 

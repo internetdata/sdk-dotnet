@@ -34,6 +34,10 @@ internal static class Wire
             {
                 failure = Translate(e);
             }
+            catch (ClassifiedException e)
+            {
+                failure = e.Failure;
+            }
             catch (HttpRequestException e)
             {
                 failure = new InternetDataException(ErrorKind.Network, e.Message, null, null, e);
@@ -229,6 +233,15 @@ internal static class Wire
         var wait = BackoffBase * Math.Pow(2, Math.Min(attempt, 16));
         return wait > BackoffCap ? BackoffCap : wait;
     }
+}
+
+// A failure an attempt has already classified, carried out of it so ExecuteAsync retries it by the
+// same rule as a generated call's. An InternetDataException thrown inside an attempt escapes
+// unretried, so a failure that must be retried wraps itself in this.
+internal sealed class ClassifiedException(InternetDataException failure)
+    : Exception(failure.Message, failure)
+{
+    internal InternetDataException Failure { get; } = failure;
 }
 
 // The generated client emits no auth plumbing at all and knows nothing about redirects, so both
