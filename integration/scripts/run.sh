@@ -64,6 +64,7 @@ function main() {
         fi
         echo "==> ${PACKAGE} ${range} matches published ${published//$'\n'/, }"
         version="$(printf '%s\n' "$published" | tail -1)"
+        assertRangeIsCurrent "$range" "$version"
     fi
 
     reportKey
@@ -101,24 +102,33 @@ function declaredRange() {
 # that does not exist answers 404, and one with no matching version answers a list nothing survives;
 # both mean the same thing here, so both come back empty.
 function publishedVersions() {
-    local range="$1" body low high version
+    local range="$1" low high version
     low="${range#[}"
     low="${low%%,*}"
     high="${range##*,}"
     high="${high%)}"
-    body="$(curl -fsS "$INDEX" 2>/dev/null || true)"
     # Not a pipeline: a `while` whose last iteration skips a version exits non-zero, which `set -e`
     # would read as the lookup itself having failed.
     while read -r version ; do
         if [ -n "$version" ] && inRange "$version" "$low" "$high" ; then
             echo "$version"
         fi
-    # \r as well as \n: nuget.org answers with CRLF, and left in place every version comes out
-    # as "\r1.0.0", which the anchored match below drops. The gate would then report nothing
-    # published forever, which is indistinguishable from the truth before the first release.
-    done < <(printf '%s' "$body" | tr -d ' \r\n' \
+    done < <(allPublishedVersions)
+    return 0
+}
+
+# Every stable version the registry will serve, range ignored and ascending, so the staleness gate
+# has something to compare the range's ceiling against.
+#
+# \r as well as \n: nuget.org answers with CRLF, and left in place every version comes out as
+# "\r1.0.0", which the anchored match drops. The gate would then report nothing published forever,
+# which is indistinguishable from the truth before the first release.
+function allPublishedVersions() {
+    local body
+    body="$(curl -fsS "$INDEX" 2>/dev/null || true)"
+    printf '%s' "$body" | tr -d ' \r\n' \
         | sed -n 's/.*"versions":\[\([^]]*\)\].*/\1/p' | tr ',' '\n' | tr -d '"' \
-        | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V)
+        | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V
     return 0
 }
 
@@ -128,6 +138,20 @@ function inRange() {
     lowest="$(printf '%s\n%s\n' "$version" "$low" | sort -V | head -1)"
     highest="$(printf '%s\n%s\n' "$version" "$high" | sort -V | head -1)"
     [ "$lowest" = "$low" ] && [ "$highest" = "$version" ] && [ "$version" != "$high" ]
+}
+
+# The range must still admit the NEWEST release, or this suite quietly exercises an obsolete client
+# forever: it sat on [1.0.0,2.0.0) testing 1.2.1 while 2.0.0 was out, and 2.0.0 renamed an enum the
+# suite names, so it could not even have compiled against the release it was meant to check.
+function assertRangeIsCurrent() {
+    local range="$1" newestInRange="$2" newestOverall
+    newestOverall="$(allPublishedVersions | tail -1)"
+    if [ -n "$newestOverall" ] && [ "$newestInRange" != "$newestOverall" ] ; then
+        echo "==> FAILED: ${PACKAGE} ${newestOverall} is published but ${range} admits only up to" \
+            "${newestInRange}, so this suite would test an obsolete client. Bump" \
+            "InternetDataVersion in the csproj." >&2
+        exit 1
+    fi
 }
 
 function localFeed() {

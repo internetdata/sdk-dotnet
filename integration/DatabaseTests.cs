@@ -35,7 +35,7 @@ public class DatabaseTests
 
             Assert.NotEmpty(databases);
             var licensed = databases
-                .Where(d => d.Standing == DatabaseStanding.Licensed)
+                .Where(d => d.Standing == Standing.Licensed)
                 .Select(d => d.Base)
                 .Order()
                 .ToArray();
@@ -47,7 +47,7 @@ public class DatabaseTests
             // The catalog is a discovery surface, not a license list: an unlicensed database is
             // still listed, which is what makes `standing` worth reading. A private one is absent
             // instead, and nothing here may assume otherwise.
-            Assert.Contains(databases, d => d.Standing != DatabaseStanding.Licensed);
+            Assert.Contains(databases, d => d.Standing != Standing.Licensed);
 
             foreach (var family in databases)
             {

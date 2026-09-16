@@ -19,7 +19,7 @@
          anything published satisfies it. The runner overrides this with the newest published
          version for the run, so a daily run keeps testing what is newest rather than the lowest
          version the range happens to admit. -->
-    <InternetDataVersion Condition="'$(InternetDataVersion)' == ''">[1.0.0,2.0.0)</InternetDataVersion>
+    <InternetDataVersion Condition="'$(InternetDataVersion)' == ''">[2.0.0,3.0.0)</InternetDataVersion>
   </PropertyGroup>
 
   <ItemGroup>
