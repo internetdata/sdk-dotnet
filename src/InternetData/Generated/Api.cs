@@ -78,7 +78,7 @@ namespace InternetData
         /// List
         /// </summary>
         /// <remarks>
-        /// The whole published catalog, with your organization's licence beside
+        /// The whole published catalog, with your organization's license beside
         /// <br/>each entry, so `standing` says whether a database is yours today
         /// <br/>(`licensed`), was (`expired`), or has never been bought (`unlicensed`).
         /// </remarks>
@@ -94,7 +94,7 @@ namespace InternetData
         /// List
         /// </summary>
         /// <remarks>
-        /// The whole published catalog, with your organization's licence beside
+        /// The whole published catalog, with your organization's license beside
         /// <br/>each entry, so `standing` says whether a database is yours today
         /// <br/>(`licensed`), was (`expired`), or has never been bought (`unlicensed`).
         /// </remarks>
@@ -285,7 +285,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<Error>("Your organization holds no licence for this database, or its term has\nended.\n`rc`: `NOT_LICENSED`, `LICENSE_EXPIRED`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<Error>("Your organization holds no license for this database, or its term has\nended.\n`rc`: `NOT_LICENSED`, `LICENSE_EXPIRED`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 404)
@@ -438,7 +438,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<Error>("Your organization holds no licence for this database, or its term has\nended.\n`rc`: `NOT_LICENSED`, `LICENSE_EXPIRED`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<Error>("Your organization holds no license for this database, or its term has\nended.\n`rc`: `NOT_LICENSED`, `LICENSE_EXPIRED`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 404)
@@ -592,7 +592,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<Error>("Your organization holds no licence for this database, or its term has\nended.\n`rc`: `NOT_LICENSED`, `LICENSE_EXPIRED`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<Error>("Your organization holds no license for this database, or its term has\nended.\n`rc`: `NOT_LICENSED`, `LICENSE_EXPIRED`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 404)
@@ -1346,7 +1346,7 @@ namespace InternetData
     }
 
     /// <summary>
-    /// Where your licence for a database family stands today. `licensed` is a
+    /// Where your license for a database family stands today. `licensed` is a
     /// <br/>live grant, `expired` one whose term has ended, and `unlicensed` a
     /// <br/>database published but never bought.
     /// <br/>
@@ -1367,8 +1367,8 @@ namespace InternetData
     }
 
     /// <summary>
-    /// One database FAMILY, with your organization's licence beside it. A
-    /// <br/>licence covers the family, while a download names a specific version,
+    /// One database FAMILY, with your organization's license beside it. A
+    /// <br/>license covers the family, while a download names a specific version,
     /// <br/>so the ids passed to `download` and `checksum` come from `versions`.
     /// <br/>
     /// </summary>
@@ -1377,7 +1377,7 @@ namespace InternetData
     {
 
         /// <summary>
-        /// The family, e.g. `vpn_ip`. What a licence is held against.
+        /// The family, e.g. `vpn_ip`. What a license is held against.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("base")]
         public string Base { get; set; } = default!;
@@ -1396,8 +1396,8 @@ namespace InternetData
         public Standing Standing { get; set; } = default!;
 
         /// <summary>
-        /// What your licence permits you to do with the data. Null when there
-        /// <br/>is no licence, which is every family with standing `unlicensed`.
+        /// What your license permits you to do with the data. Null when there
+        /// <br/>is no license, which is every family with standing `unlicensed`.
         /// <br/>
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("license_type")]
@@ -1408,13 +1408,13 @@ namespace InternetData
         public System.DateTimeOffset? Starts { get; set; } = default!;
 
         /// <summary>
-        /// A hard stop. Null when the licence has no end date, which is the normal case for a rolling agreement, and when there is no licence. A rolling licence reports its turnover date in renews_at instead.
+        /// A hard stop. Null when the license has no end date, which is the normal case for a rolling agreement, and when there is no license. A rolling license reports its turnover date in renews_at instead.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("expires")]
         public System.DateTimeOffset? Expires { get; set; } = default!;
 
         /// <summary>
-        /// When a rolling licence next renews. Null when the licence has no defined term, when expires sets a hard stop instead, and when there is no licence.
+        /// When a rolling license next renews. Null when the license has no defined term, when expires sets a hard stop instead, and when there is no license.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("renews_at")]
         public System.DateTimeOffset? RenewsAt { get; set; } = default!;
