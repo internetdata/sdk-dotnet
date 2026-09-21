@@ -241,7 +241,7 @@ public class ConformanceTests
 
     // ErrorKind.BadRequest is `bad_request` in the corpus. Spelling the mapping out beats making
     // the enum's own name a wire contract nobody can see.
-    private static string Wire(ErrorKind kind) => kind switch
+    internal static string Wire(ErrorKind kind) => kind switch
     {
         ErrorKind.BadRequest => "bad_request",
         ErrorKind.Unauthorized => "unauthorized",

@@ -1,14 +1,18 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+
+using Xunit;
 
 namespace InternetData.Tests;
 
 /// <summary>One canned HTTP answer.</summary>
 internal sealed record Route(string Body, int Status = 200, IReadOnlyDictionary<string, string>? Headers = null);
 
-// The shared conformance corpus sdk/common generates into every SDK repo, plus what a C# suite
-// needs to read it: a stub transport that counts what it was asked for.
+// The shared conformance corpus sdk/common generates into every SDK repo, plus the two things a
+// C# suite needs to read it: a stub transport that counts what it was asked for, and a way to
+// compare a typed answer against language-neutral JSON.
 internal static class Corpus
 {
     internal static readonly JsonElement Data = Load();
@@ -18,6 +22,51 @@ internal static class Corpus
 
     internal static string[] Strings(string name)
         => Data.GetProperty(name).EnumerateArray().Select(v => v.GetString()!).ToArray();
+
+    // Renders a detail object back to its wire form. Comparing THAT to the corpus checks the
+    // JsonPropertyName annotations too, which a property-by-property assertion would not.
+    internal static string AsWire(object? value)
+        => value is null ? "null" : JsonSerializer.Serialize(value, WireOptions);
+
+    internal static void AssertWire(JsonElement expected, object? actual, string because)
+    {
+        var got = JsonDocument.Parse(AsWire(actual)).RootElement;
+        Assert.True(Same(expected, got), $"{because}: got {got.GetRawText()}, want {expected.GetRawText()}");
+    }
+
+    // JsonNode.DeepEquals is .NET 9, and this library's floor is net8.0.
+    private static bool Same(JsonElement a, JsonElement b)
+    {
+        if (a.ValueKind != b.ValueKind)
+        {
+            return false;
+        }
+        switch (a.ValueKind)
+        {
+            case JsonValueKind.Object:
+                var aProps = a.EnumerateObject().ToDictionary(p => p.Name, p => p.Value);
+                var bProps = b.EnumerateObject().ToDictionary(p => p.Name, p => p.Value);
+                return aProps.Count == bProps.Count
+                    && aProps.All(p => bProps.TryGetValue(p.Key, out var other) && Same(p.Value, other));
+            case JsonValueKind.Array:
+                return a.EnumerateArray().SequenceEqual(b.EnumerateArray(), new SameComparer());
+            default:
+                return a.GetRawText() == b.GetRawText();
+        }
+    }
+
+    private sealed class SameComparer : IEqualityComparer<JsonElement>
+    {
+        public bool Equals(JsonElement x, JsonElement y) => Same(x, y);
+
+        public int GetHashCode(JsonElement obj) => 0;
+    }
+
+    private static readonly JsonSerializerOptions WireOptions = new()
+    {
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
+    };
 
     private static JsonElement Load()
     {

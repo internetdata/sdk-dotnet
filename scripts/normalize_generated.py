@@ -49,6 +49,27 @@ INTERNAL_TYPES = [
     "DbUnauthorizedIdErrorRc",
     "DbNotFoundError",
     "DbNotFoundErrorRc",
+    # The IAM surface and the OAuth request and error bodies. The joined spec carries them, but
+    # nothing here wraps IAM and client.Oauth builds its own requests and reads its own errors, so
+    # a public class would be API nobody calls that only a major could take back. The three OAuth
+    # answers client.Oauth returns stay public.
+    "AccountRc",
+    "Identity",
+    "AccountUser",
+    "AccountOrgRef",
+    "AccountOrgWrap",
+    "AccountOrg",
+    "ApikeyList",
+    "ApikeyDetail",
+    "AccountCreateApikeyRequest",
+    "AccountCreatedApikey",
+    "AccountRevealedApikey",
+    "DeviceAuthorizationRequest",
+    "TokenRequest",
+    "RevokeRequest",
+    "OauthError",
+    "Response_type",
+    "Code_challenge_method",
 ]
 
 # The spec's one csvgz/mmdb enum is reached from three places, and an inline
@@ -135,7 +156,7 @@ def pascal_case_properties(src):
     renamed = []
 
     def fix(m):
-        want = "".join(part[:1].upper() + part[1:] for part in m.group("wire").split("_"))
+        want = pascal_of(m.group("wire"))
         have = m.group("name")
         if want == have:
             return m.group(0)
@@ -143,6 +164,15 @@ def pascal_case_properties(src):
         return m.group(1) + want
 
     return PROPERTY.sub(fix, src), renamed
+
+
+def pascal_of(wire):
+    """The PascalCase of a wire name, without a vendor namespace.
+
+    `mslm:apikey_id` is `ApikeyId`, as every SDK surfaces it: NSwag keeps the colon, and
+    `Mslm:apikeyId` is not an identifier at all.
+    """
+    return "".join(part[:1].upper() + part[1:] for part in wire.split(":")[-1].split("_"))
 
 
 def rename_types(src):
@@ -228,7 +258,7 @@ def check(src) -> int:
     """Refuses to leave behind the defects this script exists to remove."""
     bad = []
     for m in PROPERTY.finditer(src):
-        want = "".join(part[:1].upper() + part[1:] for part in m.group("wire").split("_"))
+        want = pascal_of(m.group("wire"))
         if m.group("name") != want:
             bad.append(f"property {m.group('name')} should be {want}, from the wire name")
     for name in INTERNAL_TYPES:

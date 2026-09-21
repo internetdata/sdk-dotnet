@@ -76,10 +76,11 @@ public sealed class InternetDataClient : IDisposable
 
         var wire = new WireClient(http) { BaseUrl = o.BaseUrl, ApiKey = o.ApiKey };
         this.Database = new DatabaseApi(wire, http, o.Retries, requestTimeout);
+        this.Oauth = new OauthApi(http, o.BaseUrl, o.Retries, requestTimeout);
     }
 
     /// <summary>
-    /// The database catalog and its downloads, which is every call this API serves.
+    /// The database catalog and its downloads.
     /// </summary>
     /// <remarks>
     /// They hang off here rather than off the client itself, which is where the sibling
@@ -87,6 +88,12 @@ public sealed class InternetDataClient : IDisposable
     /// same way.
     /// </remarks>
     public DatabaseApi Database { get; }
+
+    /// <summary>
+    /// Sign a person in with OAuth's device flow and receive one of their API keys. Its requests
+    /// never carry this client's key.
+    /// </summary>
+    public OauthApi Oauth { get; }
 
     /// <summary>Releases the <see cref="HttpClient"/>, if this client created it.</summary>
     public void Dispose() => ownedHttpClient?.Dispose();

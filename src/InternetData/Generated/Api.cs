@@ -1178,6 +1178,1659 @@ namespace InternetData
             }
         }
 
+        /// <summary>
+        /// Identity
+        /// </summary>
+        /// <remarks>
+        /// The identity behind this credential: what it is, the organization it is
+        /// <br/>scoped to, and the scopes it currently holds.
+        /// <br/>
+        /// <br/>`user` is present for an OAuth token and ABSENT for an API key, which
+        /// <br/>has an organization but no person behind it. `credential.kind` says
+        /// <br/>which you are holding, so a client can branch without guessing from a
+        /// <br/>missing field.
+        /// <br/>
+        /// <br/>Narrower than what the console shows its own user on purpose: an
+        /// <br/>integration needs a name to display and an organization to address, not
+        /// <br/>a profile. The `scopes` array is what the credential may do RIGHT NOW,
+        /// <br/>so a client can render its own capabilities rather than discovering
+        /// <br/>them from a 403.
+        /// </remarks>
+        /// <returns>The caller.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task<Identity> AccountIdentityAsync()
+        {
+            return AccountIdentityAsync(System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Identity
+        /// </summary>
+        /// <remarks>
+        /// The identity behind this credential: what it is, the organization it is
+        /// <br/>scoped to, and the scopes it currently holds.
+        /// <br/>
+        /// <br/>`user` is present for an OAuth token and ABSENT for an API key, which
+        /// <br/>has an organization but no person behind it. `credential.kind` says
+        /// <br/>which you are holding, so a client can branch without guessing from a
+        /// <br/>missing field.
+        /// <br/>
+        /// <br/>Narrower than what the console shows its own user on purpose: an
+        /// <br/>integration needs a name to display and an organization to address, not
+        /// <br/>a profile. The `scopes` array is what the credential may do RIGHT NOW,
+        /// <br/>so a client can render its own capabilities rather than discovering
+        /// <br/>them from a 403.
+        /// </remarks>
+        /// <returns>The caller.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<Identity> AccountIdentityAsync(System.Threading.CancellationToken cancellationToken)
+        {
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    request_.Method = new System.Net.Http.HttpMethod("GET");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "api/v1/iam/identity"
+                    urlBuilder_.Append("api/v1/iam/identity");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<Identity>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        if (status_ == 401)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<AccountRc>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<AccountRc>("No credential was presented, or it is not valid.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 403)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<AccountRc>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<AccountRc>("The credential does not hold the scope this endpoint requires. The\nmissing scope is deliberately not named.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new WireException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Organization
+        /// </summary>
+        /// <remarks>
+        /// The organization this credential is scoped to.
+        /// <br/>
+        /// <br/>There is no way to name a different one. A credential describes exactly
+        /// <br/>one organization, so an identifier in the path could only ever be your
+        /// <br/>own or a refusal.
+        /// </remarks>
+        /// <returns>The organization.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task<AccountOrgWrap> AccountOrgAsync()
+        {
+            return AccountOrgAsync(System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Organization
+        /// </summary>
+        /// <remarks>
+        /// The organization this credential is scoped to.
+        /// <br/>
+        /// <br/>There is no way to name a different one. A credential describes exactly
+        /// <br/>one organization, so an identifier in the path could only ever be your
+        /// <br/>own or a refusal.
+        /// </remarks>
+        /// <returns>The organization.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<AccountOrgWrap> AccountOrgAsync(System.Threading.CancellationToken cancellationToken)
+        {
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    request_.Method = new System.Net.Http.HttpMethod("GET");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "api/v1/iam/org"
+                    urlBuilder_.Append("api/v1/iam/org");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<AccountOrgWrap>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        if (status_ == 401)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<AccountRc>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<AccountRc>("No credential was presented, or it is not valid.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 403)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<AccountRc>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<AccountRc>("The credential does not hold the scope this endpoint requires. The\nmissing scope is deliberately not named.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new WireException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Members
+        /// </summary>
+        /// <remarks>
+        /// Read-only. Adding or removing a member is an invitation flow with email
+        /// <br/>in the middle rather than a POST, and modelling it as one here would
+        /// <br/>promise something this API does not do.
+        /// </remarks>
+        /// <returns>The members.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task<AccountRc> AccountOrgMembersAsync()
+        {
+            return AccountOrgMembersAsync(System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Members
+        /// </summary>
+        /// <remarks>
+        /// Read-only. Adding or removing a member is an invitation flow with email
+        /// <br/>in the middle rather than a POST, and modelling it as one here would
+        /// <br/>promise something this API does not do.
+        /// </remarks>
+        /// <returns>The members.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<AccountRc> AccountOrgMembersAsync(System.Threading.CancellationToken cancellationToken)
+        {
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    request_.Method = new System.Net.Http.HttpMethod("GET");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "api/v1/iam/org/members"
+                    urlBuilder_.Append("api/v1/iam/org/members");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<AccountRc>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        if (status_ == 401)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<AccountRc>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<AccountRc>("No credential was presented, or it is not valid.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 403)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<AccountRc>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<AccountRc>("The credential does not hold the scope this endpoint requires. The\nmissing scope is deliberately not named.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new WireException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// List
+        /// </summary>
+        /// <remarks>
+        /// Metadata only. A key's secret is never in a list - not here and not in
+        /// <br/>the console - because a list is the response that ends up in logs,
+        /// <br/>caches and support tickets.
+        /// <br/>
+        /// <br/>`retrievable` says whether the secret could still be read back at all.
+        /// <br/>A key issued before this product stored secrets recoverably was never
+        /// <br/>kept, so `reveal` will refuse it permanently; rotating produces one
+        /// <br/>that can be read.
+        /// </remarks>
+        /// <returns>The organization's keys, newest first.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task<ApikeyList> AccountListApikeysAsync()
+        {
+            return AccountListApikeysAsync(System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// List
+        /// </summary>
+        /// <remarks>
+        /// Metadata only. A key's secret is never in a list - not here and not in
+        /// <br/>the console - because a list is the response that ends up in logs,
+        /// <br/>caches and support tickets.
+        /// <br/>
+        /// <br/>`retrievable` says whether the secret could still be read back at all.
+        /// <br/>A key issued before this product stored secrets recoverably was never
+        /// <br/>kept, so `reveal` will refuse it permanently; rotating produces one
+        /// <br/>that can be read.
+        /// </remarks>
+        /// <returns>The organization's keys, newest first.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<ApikeyList> AccountListApikeysAsync(System.Threading.CancellationToken cancellationToken)
+        {
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    request_.Method = new System.Net.Http.HttpMethod("GET");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "api/v1/iam/apikeys"
+                    urlBuilder_.Append("api/v1/iam/apikeys");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<ApikeyList>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        if (status_ == 401)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<AccountRc>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<AccountRc>("No credential was presented, or it is not valid.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 403)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<AccountRc>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<AccountRc>("The credential does not hold the scope this endpoint requires. The\nmissing scope is deliberately not named.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new WireException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Create
+        /// </summary>
+        /// <remarks>
+        /// Creates a key and returns its secret.
+        /// <br/>
+        /// <br/>This is the ONLY response that ever carries the secret, and only
+        /// <br/>because this is the moment it comes into existence. Store it now.
+        /// </remarks>
+        /// <returns>The new key, including its secret.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task<AccountCreatedApikey> AccountCreateApikeyAsync(AccountCreateApikeyRequest body)
+        {
+            return AccountCreateApikeyAsync(body, System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Create
+        /// </summary>
+        /// <remarks>
+        /// Creates a key and returns its secret.
+        /// <br/>
+        /// <br/>This is the ONLY response that ever carries the secret, and only
+        /// <br/>because this is the moment it comes into existence. Store it now.
+        /// </remarks>
+        /// <returns>The new key, including its secret.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<AccountCreatedApikey> AccountCreateApikeyAsync(AccountCreateApikeyRequest body, System.Threading.CancellationToken cancellationToken)
+        {
+            if (body == null)
+                throw new System.ArgumentNullException("body");
+
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    var json_ = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(body, JsonSerializerSettings);
+                    var content_ = new System.Net.Http.ByteArrayContent(json_);
+                    content_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
+                    request_.Content = content_;
+                    request_.Method = new System.Net.Http.HttpMethod("POST");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "api/v1/iam/apikeys"
+                    urlBuilder_.Append("api/v1/iam/apikeys");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<AccountCreatedApikey>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        if (status_ == 400)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<AccountRc>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<AccountRc>("The request body is missing a required field.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 401)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<AccountRc>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<AccountRc>("No credential was presented, or it is not valid.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 403)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<AccountRc>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<AccountRc>("The credential does not hold the scope this endpoint requires. The\nmissing scope is deliberately not named.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new WireException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Rotate
+        /// </summary>
+        /// <remarks>
+        /// Replaces the secret behind a key, keeping its id, name and settings.
+        /// <br/>The previous secret stops working immediately.
+        /// </remarks>
+        /// <param name="id">The key's id, as returned by the list endpoint. Never the key itself.</param>
+        /// <returns>The key, with its new secret.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task<AccountCreatedApikey> AccountRotateApikeyAsync(System.Guid id)
+        {
+            return AccountRotateApikeyAsync(id, System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Rotate
+        /// </summary>
+        /// <remarks>
+        /// Replaces the secret behind a key, keeping its id, name and settings.
+        /// <br/>The previous secret stops working immediately.
+        /// </remarks>
+        /// <param name="id">The key's id, as returned by the list endpoint. Never the key itself.</param>
+        /// <returns>The key, with its new secret.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<AccountCreatedApikey> AccountRotateApikeyAsync(System.Guid id, System.Threading.CancellationToken cancellationToken)
+        {
+            if (id == null)
+                throw new System.ArgumentNullException("id");
+
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    request_.Content = new System.Net.Http.StringContent(string.Empty, System.Text.Encoding.UTF8, "application/json");
+                    request_.Method = new System.Net.Http.HttpMethod("POST");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "api/v1/iam/apikeys/{id}/rotate"
+                    urlBuilder_.Append("api/v1/iam/apikeys/");
+                    urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(id, System.Globalization.CultureInfo.InvariantCulture)));
+                    urlBuilder_.Append("/rotate");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<AccountCreatedApikey>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        if (status_ == 401)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<AccountRc>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<AccountRc>("No credential was presented, or it is not valid.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 403)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<AccountRc>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<AccountRc>("The credential does not hold the scope this endpoint requires. The\nmissing scope is deliberately not named.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 404)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<AccountRc>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<AccountRc>("No such key in this organization.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new WireException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Revoke
+        /// </summary>
+        /// <remarks>
+        /// Stops the key working. Revocation is soft: the key stays listed with a
+        /// <br/>`revoked_at`, because the organization still owns whatever it did while
+        /// <br/>it was alive.
+        /// </remarks>
+        /// <param name="id">The key's id, as returned by the list endpoint. Never the key itself.</param>
+        /// <returns>Revoked.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task<AccountRc> AccountRevokeApikeyAsync(System.Guid id)
+        {
+            return AccountRevokeApikeyAsync(id, System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Revoke
+        /// </summary>
+        /// <remarks>
+        /// Stops the key working. Revocation is soft: the key stays listed with a
+        /// <br/>`revoked_at`, because the organization still owns whatever it did while
+        /// <br/>it was alive.
+        /// </remarks>
+        /// <param name="id">The key's id, as returned by the list endpoint. Never the key itself.</param>
+        /// <returns>Revoked.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<AccountRc> AccountRevokeApikeyAsync(System.Guid id, System.Threading.CancellationToken cancellationToken)
+        {
+            if (id == null)
+                throw new System.ArgumentNullException("id");
+
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    request_.Content = new System.Net.Http.StringContent(string.Empty, System.Text.Encoding.UTF8, "application/json");
+                    request_.Method = new System.Net.Http.HttpMethod("POST");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "api/v1/iam/apikeys/{id}/revoke"
+                    urlBuilder_.Append("api/v1/iam/apikeys/");
+                    urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(id, System.Globalization.CultureInfo.InvariantCulture)));
+                    urlBuilder_.Append("/revoke");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<AccountRc>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        if (status_ == 401)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<AccountRc>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<AccountRc>("No credential was presented, or it is not valid.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 403)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<AccountRc>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<AccountRc>("The credential does not hold the scope this endpoint requires. The\nmissing scope is deliberately not named.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 404)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<AccountRc>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<AccountRc>("No such key in this organization.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new WireException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Reveal
+        /// </summary>
+        /// <remarks>
+        /// Returns an existing key's secret.
+        /// <br/>
+        /// <br/>Its own scope rather than part of `apikeys.manage`, because the two are
+        /// <br/>different acts: rotating replaces a secret you never see, while this
+        /// <br/>hands one over.
+        /// <br/>
+        /// <br/>Refused with `NOT_RETRIEVABLE` for a key issued before this product
+        /// <br/>stored secrets recoverably - that secret was never kept, so no retry
+        /// <br/>will ever produce it. Rotate the key instead.
+        /// </remarks>
+        /// <param name="id">The key's id, as returned by the list endpoint. Never the key itself.</param>
+        /// <returns>The key's secret.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task<AccountRevealedApikey> AccountRevealApikeyAsync(System.Guid id)
+        {
+            return AccountRevealApikeyAsync(id, System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Reveal
+        /// </summary>
+        /// <remarks>
+        /// Returns an existing key's secret.
+        /// <br/>
+        /// <br/>Its own scope rather than part of `apikeys.manage`, because the two are
+        /// <br/>different acts: rotating replaces a secret you never see, while this
+        /// <br/>hands one over.
+        /// <br/>
+        /// <br/>Refused with `NOT_RETRIEVABLE` for a key issued before this product
+        /// <br/>stored secrets recoverably - that secret was never kept, so no retry
+        /// <br/>will ever produce it. Rotate the key instead.
+        /// </remarks>
+        /// <param name="id">The key's id, as returned by the list endpoint. Never the key itself.</param>
+        /// <returns>The key's secret.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<AccountRevealedApikey> AccountRevealApikeyAsync(System.Guid id, System.Threading.CancellationToken cancellationToken)
+        {
+            if (id == null)
+                throw new System.ArgumentNullException("id");
+
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    request_.Content = new System.Net.Http.StringContent(string.Empty, System.Text.Encoding.UTF8, "application/json");
+                    request_.Method = new System.Net.Http.HttpMethod("POST");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "api/v1/iam/apikeys/{id}/reveal"
+                    urlBuilder_.Append("api/v1/iam/apikeys/");
+                    urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(id, System.Globalization.CultureInfo.InvariantCulture)));
+                    urlBuilder_.Append("/reveal");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<AccountRevealedApikey>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        if (status_ == 401)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<AccountRc>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<AccountRc>("No credential was presented, or it is not valid.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 403)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<AccountRc>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<AccountRc>("The credential does not hold the scope this endpoint requires. The\nmissing scope is deliberately not named.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 404)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<AccountRc>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<AccountRc>("No such key in this organization, or its secret was never stored\nrecoverably (`NOT_RETRIEVABLE`).\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new WireException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Discovery
+        /// </summary>
+        /// <remarks>
+        /// RFC 8414 authorization server metadata: the endpoints, the grant types
+        /// <br/>and the scopes this server supports.
+        /// <br/>
+        /// <br/>Read this rather than hardcoding endpoints. It is also served at
+        /// <br/>`/.well-known/openid-configuration`, identically, because several
+        /// <br/>clients probe that path first.
+        /// </remarks>
+        /// <returns>The server's metadata.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task<OauthMetadata> OauthMetadataAsync()
+        {
+            return OauthMetadataAsync(System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Discovery
+        /// </summary>
+        /// <remarks>
+        /// RFC 8414 authorization server metadata: the endpoints, the grant types
+        /// <br/>and the scopes this server supports.
+        /// <br/>
+        /// <br/>Read this rather than hardcoding endpoints. It is also served at
+        /// <br/>`/.well-known/openid-configuration`, identically, because several
+        /// <br/>clients probe that path first.
+        /// </remarks>
+        /// <returns>The server's metadata.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<OauthMetadata> OauthMetadataAsync(System.Threading.CancellationToken cancellationToken)
+        {
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    request_.Method = new System.Net.Http.HttpMethod("GET");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: ".well-known/oauth-authorization-server"
+                    urlBuilder_.Append(".well-known/oauth-authorization-server");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<OauthMetadata>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new WireException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Device authorization
+        /// </summary>
+        /// <remarks>
+        /// Starts the device flow. Show the `user_code` to the person and send them
+        /// <br/>to `verification_uri`; `verification_uri_complete` has the code already
+        /// <br/>embedded, which is what to open if you can open a browser at all.
+        /// <br/>
+        /// <br/>Then poll `/oauth/token`, no faster than `interval` seconds.
+        /// </remarks>
+        /// <returns>A pending device authorization.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task<DeviceAuthorization> OauthDeviceAuthorizationAsync(DeviceAuthorizationRequest body)
+        {
+            return OauthDeviceAuthorizationAsync(body, System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Device authorization
+        /// </summary>
+        /// <remarks>
+        /// Starts the device flow. Show the `user_code` to the person and send them
+        /// <br/>to `verification_uri`; `verification_uri_complete` has the code already
+        /// <br/>embedded, which is what to open if you can open a browser at all.
+        /// <br/>
+        /// <br/>Then poll `/oauth/token`, no faster than `interval` seconds.
+        /// </remarks>
+        /// <returns>A pending device authorization.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<DeviceAuthorization> OauthDeviceAuthorizationAsync(DeviceAuthorizationRequest body, System.Threading.CancellationToken cancellationToken)
+        {
+            if (body == null)
+                throw new System.ArgumentNullException("body");
+
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    var json_ = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(body, JsonSerializerSettings);
+                    var dictionary_ = System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.Dictionary<string, string>>(json_, JsonSerializerSettings);
+                    var content_ = new System.Net.Http.FormUrlEncodedContent(dictionary_);
+                    content_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/x-www-form-urlencoded");
+                    request_.Content = content_;
+                    request_.Method = new System.Net.Http.HttpMethod("POST");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "oauth/device_authorization"
+                    urlBuilder_.Append("oauth/device_authorization");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<DeviceAuthorization>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        if (status_ == 400)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<OauthError>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<OauthError>("`invalid_request`, `unauthorized_client` when the client may not use\nthe device flow, or `slow_down` when this address has started too\nmany authorizations.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 401)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<OauthError>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<OauthError>("`invalid_client`: the `client_id` is not registered.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new WireException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Authorize
+        /// </summary>
+        /// <remarks>
+        /// The browser entry point for the authorization-code flow. This is a
+        /// <br/>redirect target, not something to call from code.
+        /// <br/>
+        /// <br/>An unknown `client_id` or an unregistered `redirect_uri` is shown to the
+        /// <br/>USER and never redirected, because sending an error to an address we
+        /// <br/>have not verified belongs to you is how an open redirector works.
+        /// <br/>Everything else comes back to your `redirect_uri` with `error`, your
+        /// <br/>`state`, and `iss`.
+        /// </remarks>
+        /// <param name="code_challenge_method">S256 only. `plain` is refused rather than downgraded.</param>
+        /// <param name="state">Returned unchanged. Use it to bind the response to your request.</param>
+        /// <param name="resource">RFC 8707. What the token is FOR, so it cannot be replayed elsewhere.</param>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task OauthAuthorizeAsync(string client_id, string redirect_uri, Response_type response_type, string code_challenge, Code_challenge_method? code_challenge_method, string? scope, string? state, string? resource)
+        {
+            return OauthAuthorizeAsync(client_id, redirect_uri, response_type, code_challenge, code_challenge_method, scope, state, resource, System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Authorize
+        /// </summary>
+        /// <remarks>
+        /// The browser entry point for the authorization-code flow. This is a
+        /// <br/>redirect target, not something to call from code.
+        /// <br/>
+        /// <br/>An unknown `client_id` or an unregistered `redirect_uri` is shown to the
+        /// <br/>USER and never redirected, because sending an error to an address we
+        /// <br/>have not verified belongs to you is how an open redirector works.
+        /// <br/>Everything else comes back to your `redirect_uri` with `error`, your
+        /// <br/>`state`, and `iss`.
+        /// </remarks>
+        /// <param name="code_challenge_method">S256 only. `plain` is refused rather than downgraded.</param>
+        /// <param name="state">Returned unchanged. Use it to bind the response to your request.</param>
+        /// <param name="resource">RFC 8707. What the token is FOR, so it cannot be replayed elsewhere.</param>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task OauthAuthorizeAsync(string client_id, string redirect_uri, Response_type response_type, string code_challenge, Code_challenge_method? code_challenge_method, string? scope, string? state, string? resource, System.Threading.CancellationToken cancellationToken)
+        {
+            if (client_id == null)
+                throw new System.ArgumentNullException("client_id");
+
+            if (redirect_uri == null)
+                throw new System.ArgumentNullException("redirect_uri");
+
+            if (response_type == null)
+                throw new System.ArgumentNullException("response_type");
+
+            if (code_challenge == null)
+                throw new System.ArgumentNullException("code_challenge");
+
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    request_.Method = new System.Net.Http.HttpMethod("GET");
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "oauth/authorize"
+                    urlBuilder_.Append("oauth/authorize");
+                    urlBuilder_.Append('?');
+                    urlBuilder_.Append(System.Uri.EscapeDataString("client_id")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(client_id, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+                    urlBuilder_.Append(System.Uri.EscapeDataString("redirect_uri")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(redirect_uri, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+                    urlBuilder_.Append(System.Uri.EscapeDataString("response_type")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(response_type, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+                    urlBuilder_.Append(System.Uri.EscapeDataString("code_challenge")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(code_challenge, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+                    if (code_challenge_method != null)
+                    {
+                        urlBuilder_.Append(System.Uri.EscapeDataString("code_challenge_method")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(code_challenge_method, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+                    }
+                    if (scope != null)
+                    {
+                        urlBuilder_.Append(System.Uri.EscapeDataString("scope")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(scope, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+                    }
+                    if (state != null)
+                    {
+                        urlBuilder_.Append(System.Uri.EscapeDataString("state")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(state, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+                    }
+                    if (resource != null)
+                    {
+                        urlBuilder_.Append(System.Uri.EscapeDataString("resource")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(resource, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+                    }
+                    urlBuilder_.Length--;
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 302)
+                        {
+                            string responseText_ = ( response_.Content == null ) ? string.Empty : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new WireException("A redirect to the consent screen, or back to your redirect_uri with an error.", status_, responseText_, headers_, null);
+                        }
+                        else
+                        if (status_ == 400)
+                        {
+                            string responseText_ = ( response_.Content == null ) ? string.Empty : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new WireException("Shown to the user. An unverified redirect target is never sent an error.", status_, responseText_, headers_, null);
+                        }
+                        else
+
+                        if (status_ == 200 || status_ == 204)
+                        {
+
+                            return;
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new WireException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Token
+        /// </summary>
+        /// <remarks>
+        /// Three grant types.
+        /// <br/>
+        /// <br/>`urn:ietf:params:oauth:grant-type:device_code` polls a device
+        /// <br/>authorization. Until the person approves it answers
+        /// <br/>`authorization_pending`; poll faster than `interval` and it answers
+        /// <br/>`slow_down`, which means widen your interval and keep it widened.
+        /// <br/>
+        /// <br/>`authorization_code` exchanges a code from `/oauth/authorize`, with the
+        /// <br/>`code_verifier` matching the challenge you sent.
+        /// <br/>
+        /// <br/>`refresh_token` exchanges a refresh token. The presented token is
+        /// <br/>consumed whatever happens next, so store the new one before using it.
+        /// </remarks>
+        /// <returns>Tokens.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task<TokenResponse> OauthTokenAsync(TokenRequest body)
+        {
+            return OauthTokenAsync(body, System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Token
+        /// </summary>
+        /// <remarks>
+        /// Three grant types.
+        /// <br/>
+        /// <br/>`urn:ietf:params:oauth:grant-type:device_code` polls a device
+        /// <br/>authorization. Until the person approves it answers
+        /// <br/>`authorization_pending`; poll faster than `interval` and it answers
+        /// <br/>`slow_down`, which means widen your interval and keep it widened.
+        /// <br/>
+        /// <br/>`authorization_code` exchanges a code from `/oauth/authorize`, with the
+        /// <br/>`code_verifier` matching the challenge you sent.
+        /// <br/>
+        /// <br/>`refresh_token` exchanges a refresh token. The presented token is
+        /// <br/>consumed whatever happens next, so store the new one before using it.
+        /// </remarks>
+        /// <returns>Tokens.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<TokenResponse> OauthTokenAsync(TokenRequest body, System.Threading.CancellationToken cancellationToken)
+        {
+            if (body == null)
+                throw new System.ArgumentNullException("body");
+
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    var json_ = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(body, JsonSerializerSettings);
+                    var dictionary_ = System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.Dictionary<string, string>>(json_, JsonSerializerSettings);
+                    var content_ = new System.Net.Http.FormUrlEncodedContent(dictionary_);
+                    content_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/x-www-form-urlencoded");
+                    request_.Content = content_;
+                    request_.Method = new System.Net.Http.HttpMethod("POST");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "oauth/token"
+                    urlBuilder_.Append("oauth/token");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<TokenResponse>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        if (status_ == 400)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<OauthError>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<OauthError>("An RFC 6749 error. `authorization_pending` and `slow_down` are\nnormal answers while polling a device authorization, not failures.\n`access_denied` means the person refused, and `expired_token` that\nthe device code is no longer valid: it expired, or it was already\nexchanged or refused. `invalid_grant` means the code, device code or\nrefresh token is not valid for this `client_id`. `slow_down` also\nanswers any grant when this address sends too many requests.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 401)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<OauthError>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<OauthError>("`invalid_client`: the `client_id` is not registered.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new WireException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Revoke
+        /// </summary>
+        /// <remarks>
+        /// RFC 7009. Always answers 200, including for a token that was never
+        /// <br/>valid - an endpoint that distinguished the two would be a way to test
+        /// <br/>whether a stolen string is a live credential.
+        /// <br/>
+        /// <br/>Revoking a REFRESH token ends the whole authorization and takes its
+        /// <br/>access tokens with it. Revoking an access token affects only that token.
+        /// </remarks>
+        /// <returns>Always, whatever was presented.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task<object> OauthRevokeAsync(RevokeRequest body)
+        {
+            return OauthRevokeAsync(body, System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Revoke
+        /// </summary>
+        /// <remarks>
+        /// RFC 7009. Always answers 200, including for a token that was never
+        /// <br/>valid - an endpoint that distinguished the two would be a way to test
+        /// <br/>whether a stolen string is a live credential.
+        /// <br/>
+        /// <br/>Revoking a REFRESH token ends the whole authorization and takes its
+        /// <br/>access tokens with it. Revoking an access token affects only that token.
+        /// </remarks>
+        /// <returns>Always, whatever was presented.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<object> OauthRevokeAsync(RevokeRequest body, System.Threading.CancellationToken cancellationToken)
+        {
+            if (body == null)
+                throw new System.ArgumentNullException("body");
+
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    var json_ = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(body, JsonSerializerSettings);
+                    var dictionary_ = System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.Dictionary<string, string>>(json_, JsonSerializerSettings);
+                    var content_ = new System.Net.Http.FormUrlEncodedContent(dictionary_);
+                    content_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/x-www-form-urlencoded");
+                    request_.Content = content_;
+                    request_.Method = new System.Net.Http.HttpMethod("POST");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "oauth/revoke"
+                    urlBuilder_.Append("oauth/revoke");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<object>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new WireException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
         protected struct ObjectResponseResult<T>
         {
             public ObjectResponseResult(T responseObject, string responseText)
@@ -1825,6 +3478,631 @@ namespace InternetData
             get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
             set { _additionalProperties = value; }
         }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    internal partial class AccountRc
+    {
+
+        /// <summary>
+        /// The outcome. `SUCCESS` on success; otherwise the reason.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("rc")]
+        public string Rc { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    internal partial class Identity
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("rc")]
+        public string Rc { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("user")]
+        public AccountUser User { get; set; } = new AccountUser();
+
+        [System.Text.Json.Serialization.JsonPropertyName("org")]
+        public AccountOrgRef Org { get; set; } = new AccountOrgRef();
+
+        /// <summary>
+        /// What this credential may do right now.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("scopes")]
+        public System.Collections.Generic.IReadOnlyList<string> Scopes { get; set; } = new System.Collections.Generic.List<string>();
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    internal partial class AccountUser
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("id")]
+        public System.Guid Id { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("fullname")]
+        public string? Fullname { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("email")]
+        public string? Email { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    internal partial class AccountOrgRef
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("id")]
+        public System.Guid Id { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    internal partial class AccountOrgWrap
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("rc")]
+        public string Rc { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("org")]
+        public AccountOrg Org { get; set; } = new AccountOrg();
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    internal partial class AccountOrg
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("id")]
+        public System.Guid Id { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("name")]
+        public string? Name { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("created")]
+        public System.DateTimeOffset? Created { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    internal partial class ApikeyList
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("rc")]
+        public string Rc { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("keys")]
+        public System.Collections.Generic.IReadOnlyList<ApikeyDetail> Keys { get; set; } = new System.Collections.Generic.List<ApikeyDetail>();
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    /// <summary>
+    /// Key METADATA. Never the key itself.
+    /// </summary>
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    internal partial class ApikeyDetail
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("id")]
+        public System.Guid Id { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("name")]
+        public string Name { get; set; } = default!;
+
+        /// <summary>
+        /// The leading, non-secret part, so a key is recognisable without storing it.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("key_prefix")]
+        public string KeyPrefix { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("created")]
+        public System.DateTimeOffset Created { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("expires")]
+        public System.DateTimeOffset? Expires { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("last_used_at")]
+        public System.DateTimeOffset? LastUsedAt { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("revoked_at")]
+        public System.DateTimeOffset? RevokedAt { get; set; } = default!;
+
+        /// <summary>
+        /// Source-IP allowlist. EMPTY MEANS UNRESTRICTED, not deny-all.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("allowed_cidrs")]
+        public System.Collections.Generic.IReadOnlyList<string>? AllowedCidrs { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("allowed_scopes")]
+        public System.Collections.Generic.IReadOnlyList<string>? AllowedScopes { get; set; } = default!;
+
+        /// <summary>
+        /// Whether this key's secret can still be read back. False permanently for a key issued before secrets were stored recoverably.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("retrievable")]
+        public bool? Retrievable { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    internal partial class AccountCreateApikeyRequest
+    {
+
+        /// <summary>
+        /// A label you will recognise later. Shown wherever the key is listed.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("name")]
+        public string Name { get; set; } = default!;
+
+        /// <summary>
+        /// What the new key may do. Omit for a key that carries no named scope, which is the safe default.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("allowed_scopes")]
+        public System.Collections.Generic.IReadOnlyList<string>? AllowedScopes { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    internal partial class AccountCreatedApikey
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("rc")]
+        public string Rc { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("id")]
+        public System.Guid Id { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("name")]
+        public string? Name { get; set; } = default!;
+
+        /// <summary>
+        /// The secret. Returned once, here, and never again.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("key")]
+        public string Key { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("key_prefix")]
+        public string? KeyPrefix { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("allowed_cidrs")]
+        public System.Collections.Generic.IReadOnlyList<string>? AllowedCidrs { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("allowed_scopes")]
+        public System.Collections.Generic.IReadOnlyList<string>? AllowedScopes { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    internal partial class AccountRevealedApikey
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("rc")]
+        public string Rc { get; set; } = default!;
+
+        /// <summary>
+        /// The secret.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("key")]
+        public string Key { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class OauthMetadata
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("issuer")]
+        public string Issuer { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("authorization_endpoint")]
+        public string AuthorizationEndpoint { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("token_endpoint")]
+        public string TokenEndpoint { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("device_authorization_endpoint")]
+        public string? DeviceAuthorizationEndpoint { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("revocation_endpoint")]
+        public string? RevocationEndpoint { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("scopes_supported")]
+        public System.Collections.Generic.IReadOnlyList<string>? ScopesSupported { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("response_types_supported")]
+        public System.Collections.Generic.IReadOnlyList<string>? ResponseTypesSupported { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("grant_types_supported")]
+        public System.Collections.Generic.IReadOnlyList<string>? GrantTypesSupported { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("code_challenge_methods_supported")]
+        public System.Collections.Generic.IReadOnlyList<string>? CodeChallengeMethodsSupported { get; set; } = default!;
+
+        /// <summary>
+        /// Always `none`. Every client is public and has no secret.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("token_endpoint_auth_methods_supported")]
+        public System.Collections.Generic.IReadOnlyList<string>? TokenEndpointAuthMethodsSupported { get; set; } = default!;
+
+        /// <summary>
+        /// RFC 9207. A redirect back from the authorization endpoint carries `iss`.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("authorization_response_iss_parameter_supported")]
+        public bool? AuthorizationResponseIssParameterSupported { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("service_documentation")]
+        public string? ServiceDocumentation { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    internal partial class DeviceAuthorizationRequest
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("client_id")]
+        public string ClientId { get; set; } = default!;
+
+        /// <summary>
+        /// Space-delimited. Anything your client is not registered for is dropped rather than refused.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("scope")]
+        public string? Scope { get; set; } = default!;
+
+        /// <summary>
+        /// RFC 8707: what the token is for.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("resource")]
+        public string? Resource { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class DeviceAuthorization
+    {
+
+        /// <summary>
+        /// Yours. Poll with it; never show it to anyone.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("device_code")]
+        public string DeviceCode { get; set; } = default!;
+
+        /// <summary>
+        /// Short and typable. This is what the person confirms.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("user_code")]
+        public string UserCode { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("verification_uri")]
+        public string VerificationUri { get; set; } = default!;
+
+        /// <summary>
+        /// The same page with the code already filled in.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("verification_uri_complete")]
+        public string? VerificationUriComplete { get; set; } = default!;
+
+        /// <summary>
+        /// Seconds until both codes expire.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("expires_in")]
+        public int ExpiresIn { get; set; } = default!;
+
+        /// <summary>
+        /// Seconds between polls.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("interval")]
+        public int Interval { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    internal partial class TokenRequest
+    {
+
+        /// <summary>
+        /// `urn:ietf:params:oauth:grant-type:device_code`, `authorization_code` or `refresh_token`.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("grant_type")]
+        public string GrantType { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("client_id")]
+        public string ClientId { get; set; } = default!;
+
+        /// <summary>
+        /// Required by the device code grant.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("device_code")]
+        public string? DeviceCode { get; set; } = default!;
+
+        /// <summary>
+        /// Required by the authorization code grant.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("code")]
+        public string? Code { get; set; } = default!;
+
+        /// <summary>
+        /// Required by the authorization code grant.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("code_verifier")]
+        public string? CodeVerifier { get; set; } = default!;
+
+        /// <summary>
+        /// Authorization code grant: the `redirect_uri` the code was issued against, exactly.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("redirect_uri")]
+        public string? RedirectUri { get; set; } = default!;
+
+        /// <summary>
+        /// Required by the refresh token grant.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("refresh_token")]
+        public string? RefreshToken { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class TokenResponse
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("access_token")]
+        public string AccessToken { get; set; } = default!;
+
+        /// <summary>
+        /// Always `Bearer`.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("token_type")]
+        public string TokenType { get; set; } = default!;
+
+        /// <summary>
+        /// Seconds until the access token expires.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("expires_in")]
+        public int ExpiresIn { get; set; } = default!;
+
+        /// <summary>
+        /// Always returned. A refresh consumes the token it presents, so keep this one.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("refresh_token")]
+        public string? RefreshToken { get; set; } = default!;
+
+        /// <summary>
+        /// What was actually granted, which may be narrower than what was asked for.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("scope")]
+        public string? Scope { get; set; } = default!;
+
+        /// <summary>
+        /// Not part of OAuth. The ID of the API key the person picked when they
+        /// <br/>approved, returned by every grant while this authorization may still
+        /// <br/>read that key back. Absent when no key was picked, or when the
+        /// <br/>person's role no longer allows reading keys back.
+        /// <br/>
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("mslm:apikey_id")]
+        public string? ApikeyId { get; set; } = default!;
+
+        /// <summary>
+        /// Not part of OAuth. The API key itself, so a device ends up holding an
+        /// <br/>ordinary key. Returned by the device code and authorization code
+        /// <br/>grants only, never by a refresh, and only alongside
+        /// <br/>`mslm:apikey_id`. Absent when that key's secret cannot be read back,
+        /// <br/>which is the case for a key created before keys could be shown again
+        /// <br/>in the console; a rotated key can be.
+        /// <br/>
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("mslm:apikey")]
+        public string? Apikey { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    internal partial class RevokeRequest
+    {
+
+        /// <summary>
+        /// An access token or a refresh token.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("token")]
+        public string Token { get; set; } = default!;
+
+        /// <summary>
+        /// Accepted and not checked.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("client_id")]
+        public string? ClientId { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    internal partial class OauthError
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("error")]
+        public string Error { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("error_description")]
+        public string? ErrorDescription { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    internal enum Response_type
+    {
+
+        [System.Runtime.Serialization.EnumMember(Value = @"code")]
+        Code = 0,
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    internal enum Code_challenge_method
+    {
+
+        [System.Runtime.Serialization.EnumMember(Value = @"S256")]
+        S256 = 0,
 
     }
 

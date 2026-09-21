@@ -17,7 +17,7 @@ Targets .NET 8 and newer.
 
 ## Usage
 
-Every endpoint is authenticated, so start with a key carrying the `db.download` scope:
+Every database endpoint is authenticated, so start with a key carrying the `db.download` scope:
 
 ```csharp
 using InternetData;
@@ -30,7 +30,7 @@ foreach (var db in await client.Database.ListAsync())
 }
 ```
 
-Every call hangs off `client.Database`, which is the whole of this API and is where the sibling VPNDetection library keeps the same seven calls.
+The database calls hang off `client.Database`, which is where the sibling VPNDetection library keeps the same seven.
 
 A license covers a database FAMILY, while a download names one of its versions, so the ids you pass to the other calls come from `Versions`:
 
@@ -130,6 +130,27 @@ services.AddHttpClient<InternetDataClient>()
 ### What you can see
 
 `ListAsync` returns the catalog as your organization is entitled to see it.
+
+### Sign in with OAuth (device flow)
+
+A program running on the person's own machine can let them sign in with a browser and pick one of their API keys, instead of asking them to paste it:
+
+```csharp
+using var client = new InternetDataClient();
+
+var device = await client.Oauth.DeviceAuthorizationAsync(
+    "your-client-id", new DeviceAuthorizationOptions { Scope = "account.read apikeys.read apikeys.reveal" });
+Console.WriteLine($"Open {device.VerificationUri} and enter {device.UserCode}");
+
+var token = await client.Oauth.PollDeviceTokenAsync("your-client-id", device);
+if (token.Apikey is null)
+{
+    throw new InvalidOperationException("no API key came back: none was picked, or it can't be shown again");
+}
+using var keyed = new InternetDataClient(new InternetDataClientOptions { ApiKey = token.Apikey });
+```
+
+A denied sign-in throws `OauthAccessDeniedException` and a code that ran out `OauthExpiredTokenException`. Client IDs are issued on request from support@internetdata.io, and `client.Oauth.RevokeAsync("your-client-id", token.RefreshToken)` signs the machine out again.
 
 ## Other Libraries
 

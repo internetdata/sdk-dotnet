@@ -59,6 +59,16 @@ internal static class Wire
         }
     }
 
+    /// <summary>The bound one call runs under: its own value if it named one, else the client's.</summary>
+    internal static TimeSpan? TimeoutFor(TimeSpan? perCall, TimeSpan? client)
+    {
+        if (perCall is { } value)
+        {
+            CheckTimeout(value, nameof(OauthOptions.RequestTimeout));
+        }
+        return perCall ?? client;
+    }
+
     /// <summary>The rule <see cref="HttpClient.Timeout"/> applies, which this bound replaces.</summary>
     internal static void CheckTimeout(TimeSpan value, string name)
     {
@@ -237,7 +247,7 @@ internal static class Wire
 
 // A failure an attempt has already classified, carried out of it so ExecuteAsync retries it by the
 // same rule as a generated call's. An InternetDataException thrown inside an attempt escapes
-// unretried, so a failure that must be retried wraps itself in this.
+// unretried, which OauthException relies on, so a failure that must be retried wraps itself in this.
 internal sealed class ClassifiedException(InternetDataException failure)
     : Exception(failure.Message, failure)
 {

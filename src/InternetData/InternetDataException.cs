@@ -36,7 +36,11 @@ public enum ErrorKind
 }
 
 /// <summary>Every failure this library reports.</summary>
-public sealed class InternetDataException : Exception
+/// <remarks>
+/// An authorization server's refusal is the subclass <see cref="OauthException"/>, so a handler for
+/// this type still catches it.
+/// </remarks>
+public class InternetDataException : Exception
 {
     internal InternetDataException(
         ErrorKind kind, string message, int? statusCode = null,
@@ -62,4 +66,67 @@ public sealed class InternetDataException : Exception
     /// <summary>Whether retrying this exact request could succeed.</summary>
     public bool Retryable
         => Kind is ErrorKind.RateLimited or ErrorKind.ServerError or ErrorKind.Network;
+}
+
+/// <summary>
+/// The authorization server refused an OAuth request: an answer in the 4xx range whose body names
+/// an RFC 6749 error code.
+/// </summary>
+/// <remarks>
+/// <para>Never retryable, and never retried by this library. Its <see cref="InternetDataException.Kind"/>
+/// follows the status like any other answer's, but a 401 here means the <c>client_id</c> is not
+/// registered, never an API key: OAuth requests carry none.</para>
+/// <para><c>access_denied</c> and <c>expired_token</c> arrive as their own subclasses; every other
+/// code, including one this library has never seen, arrives as this type.</para>
+/// </remarks>
+public class OauthException : InternetDataException
+{
+    internal OauthException(string errorCode, string? errorDescription, int? statusCode)
+        : base(
+            statusCode is { } status ? Wire.KindOf(status, null) : ErrorKind.BadRequest,
+            errorDescription is null ? errorCode : $"{errorCode}: {errorDescription}",
+            statusCode)
+    {
+        this.ErrorCode = errorCode;
+        this.ErrorDescription = errorDescription;
+    }
+
+    /// <summary>The RFC 6749 <c>error</c>, such as <c>invalid_grant</c> or <c>slow_down</c>.</summary>
+    public string ErrorCode { get; }
+
+    /// <summary>The server's <c>error_description</c>, when it sent one as a string.</summary>
+    public string? ErrorDescription { get; }
+
+    internal static OauthException Of(string errorCode, string? errorDescription, int? statusCode)
+        => errorCode switch
+        {
+            "access_denied" => new OauthAccessDeniedException(errorDescription, statusCode),
+            "expired_token" => new OauthExpiredTokenException(errorDescription, statusCode),
+            _ => new OauthException(errorCode, errorDescription, statusCode),
+        };
+}
+
+/// <summary>The person refused the sign-in. The device code is spent.</summary>
+public sealed class OauthAccessDeniedException : OauthException
+{
+    internal OauthAccessDeniedException(string? errorDescription, int? statusCode)
+        : base("access_denied", errorDescription, statusCode)
+    {
+    }
+}
+
+/// <summary>
+/// The device code is no longer valid: it expired, or it was already exchanged or refused.
+/// </summary>
+/// <remarks>
+/// <see cref="InternetDataException.StatusCode"/> is null when
+/// <see cref="OauthApi.PollDeviceTokenAsync(string, DeviceAuthorization, CancellationToken)"/> ran
+/// past the code's lifetime without asking the server.
+/// </remarks>
+public sealed class OauthExpiredTokenException : OauthException
+{
+    internal OauthExpiredTokenException(string? errorDescription, int? statusCode)
+        : base("expired_token", errorDescription, statusCode)
+    {
+    }
 }

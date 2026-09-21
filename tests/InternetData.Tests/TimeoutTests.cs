@@ -80,8 +80,8 @@ public class TimeoutTests
     }
 }
 
-// A real socket that takes a request in full, sends a head promising the whole body, and then
-// either stalls part way through it or trickles it a byte at a time.
+// A real socket that takes a request in full, then never answers, or sends a head promising the
+// whole body and either stalls part way through it or trickles it a byte at a time.
 internal sealed class StallingOrigin : IDisposable
 {
     private readonly TcpListener listener = new(IPAddress.Loopback, 0);
@@ -101,6 +101,7 @@ internal sealed class StallingOrigin : IDisposable
 
     internal enum Mode
     {
+        NeverAnswer,
         StallAfterHead,
         Trickle,
     }
@@ -156,6 +157,10 @@ internal sealed class StallingOrigin : IDisposable
             var stream = new NetworkStream(socket, ownsSocket: false);
             await ReadRequestAsync(stream);
             Interlocked.Increment(ref requests);
+            if (mode == Mode.NeverAnswer)
+            {
+                return;
+            }
             var head = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n"
                 + $"Content-Length: {Encoding.UTF8.GetByteCount(body)}\r\nConnection: close\r\n\r\n";
             if (mode == Mode.StallAfterHead)
@@ -182,6 +187,7 @@ internal sealed class StallingOrigin : IDisposable
         await stream.FlushAsync();
     }
 
+    // The head, then as much body as it declares, so a POST counts only once it has fully arrived.
     private static async Task ReadRequestAsync(Stream stream)
     {
         var head = new StringBuilder();
@@ -194,5 +200,14 @@ internal sealed class StallingOrigin : IDisposable
             }
             head.Append((char)one[0]);
         }
+        var length = 0;
+        foreach (var line in head.ToString().Split("\r\n"))
+        {
+            if (line.StartsWith("Content-Length:", StringComparison.OrdinalIgnoreCase))
+            {
+                length = int.Parse(line["Content-Length:".Length..].Trim());
+            }
+        }
+        await stream.ReadExactlyAsync(new byte[length]);
     }
 }
