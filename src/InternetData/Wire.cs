@@ -11,6 +11,12 @@ internal static class Wire
     private static readonly TimeSpan BackoffCap = TimeSpan.FromSeconds(8);
 
     /// <summary>
+    /// The longest wait this library takes: <c>HttpClient.Timeout</c>'s own ceiling, which
+    /// <c>RequestTimeout</c> shares, and the longest <c>Retry-After</c> a retry waits out.
+    /// </summary>
+    internal static readonly TimeSpan LongestWait = TimeSpan.FromMilliseconds(int.MaxValue);
+
+    /// <summary>
     /// Runs a generated call, retrying a transient failure up to <paramref name="retries"/> times.
     /// A server-supplied <c>Retry-After</c> wins over the backoff schedule, and is also the only
     /// thing that makes a 429 retryable at all.
@@ -55,7 +61,13 @@ internal static class Wire
             {
                 throw failure;
             }
-            await Task.Delay(failure.RetryAfter ?? Backoff(attempt), cancellationToken).ConfigureAwait(false);
+            // `Retry-After` is the server's number, and Task.Delay throws ArgumentOutOfRangeException
+            // past ~49.7 days, so `Retry-After: 4294968` failed the call with that raw exception
+            // rather than this library's own. One past LongestWait is waited out on the client's own
+            // backoff instead; the 429 is still a throttle, and the error keeps the value the server
+            // sent.
+            var asked = failure.RetryAfter is { } wait && wait <= LongestWait ? wait : (TimeSpan?)null;
+            await Task.Delay(asked ?? Backoff(attempt), cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -73,7 +85,7 @@ internal static class Wire
     internal static void CheckTimeout(TimeSpan value, string name)
     {
         if (value != Timeout.InfiniteTimeSpan
-            && (value <= TimeSpan.Zero || value.TotalMilliseconds > int.MaxValue))
+            && (value <= TimeSpan.Zero || value > LongestWait))
         {
             throw new ArgumentOutOfRangeException(
                 name, value, "a timeout must be positive, or Timeout.InfiniteTimeSpan");

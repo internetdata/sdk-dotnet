@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -331,6 +332,54 @@ public class DatabaseTests
         var dir = Path.Combine(Path.GetTempPath(), "internetdata-tests-" + Guid.NewGuid().ToString("n"));
         Directory.CreateDirectory(dir);
         return dir;
+    }
+
+    // Storage's own Retry-After on a head 5xx goes through the same wait, so one too long to count
+    // is waited out on the backoff there too rather than failing the transfer with a raw
+    // ArgumentOutOfRangeException, which is what 2.1.0 did.
+    [Fact]
+    public async Task AStorageRetryAfterTooLongToCountIsWaitedOutOnTheBackoff()
+    {
+        var handler = new StubHandler(request => request.RequestUri!.Host == "storage.test"
+            ? StubHandler.Json(new Route("", 503, new Dictionary<string, string> { ["Retry-After"] = "2147483647" }))
+            : StubHandler.Json(new Route(
+                "", 302, new Dictionary<string, string> { ["Location"] = "https://storage.test/blob" })));
+        using var client = Stub.Client(handler, new InternetDataClientOptions { Retries = 1 });
+
+        var started = Stopwatch.StartNew();
+        var failure = await Record.ExceptionAsync(
+            () => client.Database.DownloadBytesAsync("cdn_ip_v1", DatabaseFormat.Mmdb).WaitAsync(TimeSpan.FromSeconds(20)));
+
+        Assert.Equal(2, handler.Calls.Count(call => call == "/blob"));
+        var error = Assert.IsType<InternetDataException>(failure);
+        Assert.Equal(ErrorKind.ServerError, error.Kind);
+        Assert.Equal(503, error.StatusCode);
+        Assert.True(started.Elapsed < TimeSpan.FromSeconds(5), $"took {started.ElapsedMilliseconds}ms");
+    }
+
+    // A C# enum takes any integer by a cast, and 2.1.0 sent `(DatabaseFormat)99` as `format=99`
+    // for the API to refuse a round trip later. Refused before any request, and before a download
+    // creates anything on disk.
+    [Fact]
+    public async Task AnUndefinedFormatIsRefusedBeforeAnyRequest()
+    {
+        var handler = StubHandler.Always(new Route("""{"rc":"BAD_REQUEST"}""", 400));
+        using var client = Stub.Client(handler);
+        var undefined = (DatabaseFormat)99;
+        var path = Path.Combine(TempDir(), "database.mmdb");
+
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
+            () => client.Database.ChecksumsAsync("cdn_ip_v1", undefined));
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
+            () => client.Database.DownloadUrlAsync("cdn_ip_v1", undefined));
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
+            () => client.Database.DownloadBytesAsync("cdn_ip_v1", undefined));
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
+            () => client.Database.DownloadAsync("cdn_ip_v1", undefined, path));
+
+        Assert.Empty(handler.Calls);
+        Assert.False(File.Exists(path));
+        Assert.False(File.Exists(path + ".part"));
     }
 }
 

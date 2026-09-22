@@ -38,9 +38,8 @@ public sealed class DatabaseApi
     /// license covers a FAMILY while a download names one of its versions, so the ids
     /// <see cref="DownloadAsync"/> and <see cref="ChecksumsAsync"/> take come from
     /// <see cref="Database.Versions"/>.</para>
-    /// <para>A database commissioned for a single customer is ABSENT from this list for everyone
-    /// else, rather than present as <c>unlicensed</c>. The catalog therefore differs between keys,
-    /// and this answer is the only place it can be read.</para>
+    /// <para>This is the server's answer for this key, so a listing held from one key is not an
+    /// answer for another.</para>
     /// </remarks>
     public Task<IReadOnlyList<Database>> ListAsync(CancellationToken cancellationToken = default)
         => Wire.ExecuteAsync(
@@ -76,6 +75,7 @@ public sealed class DatabaseApi
         string id, DatabaseFormat format, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
+        CheckFormat(format);
         return Wire.ExecuteAsync(
             retries,
             timeout,
@@ -108,6 +108,7 @@ public sealed class DatabaseApi
         string id, DatabaseFormat format, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
+        CheckFormat(format);
         return Wire.ExecuteAsync(retries, timeout, async ct =>
         {
             try
@@ -265,6 +266,17 @@ public sealed class DatabaseApi
             written += read;
         }
         return written;
+    }
+
+    // A C# enum takes any integer by a cast, and the generated client sends an undefined one as its
+    // number, `format=99`, for the API to refuse a round trip later. Refused here, before any
+    // request; both downloads reach this through DownloadUrlAsync.
+    private static void CheckFormat(DatabaseFormat format)
+    {
+        if (!Enum.IsDefined(format))
+        {
+            throw new ArgumentOutOfRangeException(nameof(format), format, "not a published database format");
+        }
     }
 
     private static string? LocationOf(WireException e)

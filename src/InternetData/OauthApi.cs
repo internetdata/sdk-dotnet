@@ -34,7 +34,7 @@ public sealed class OauthApi
     internal OauthApi(HttpClient http, string baseUrl, int retries, TimeSpan? timeout)
     {
         this.http = http;
-        this.baseUrl = baseUrl.EndsWith('/') ? baseUrl[..^1] : baseUrl;
+        this.baseUrl = baseUrl;
         this.retries = retries;
         this.timeout = timeout;
     }

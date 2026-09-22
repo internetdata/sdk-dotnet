@@ -57,6 +57,10 @@ public sealed class InternetDataClient : IDisposable
     {
         ArgumentOutOfRangeException.ThrowIfNegative(o.Retries, nameof(o.Retries));
         Wire.CheckTimeout(o.RequestTimeout, nameof(o.RequestTimeout));
+        // Every path is appended after a `/`, so a second trailing slash doubled into it, and
+        // `//api/...` is another path, which prod answers with a 308. All of them are dropped here,
+        // once, for the generated calls and OAuth alike.
+        var baseUrl = o.BaseUrl.TrimEnd('/');
 
         var http = supplied ?? o.HttpClient;
         TimeSpan? requestTimeout = null;
@@ -74,9 +78,9 @@ public sealed class InternetDataClient : IDisposable
             requestTimeout = o.RequestTimeout;
         }
 
-        var wire = new WireClient(http) { BaseUrl = o.BaseUrl, ApiKey = o.ApiKey };
+        var wire = new WireClient(http) { BaseUrl = baseUrl, ApiKey = o.ApiKey };
         this.Database = new DatabaseApi(wire, http, o.Retries, requestTimeout);
-        this.Oauth = new OauthApi(http, o.BaseUrl, o.Retries, requestTimeout);
+        this.Oauth = new OauthApi(http, baseUrl, o.Retries, requestTimeout);
     }
 
     /// <summary>
