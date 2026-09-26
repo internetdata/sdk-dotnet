@@ -10,7 +10,7 @@ namespace InternetData.Tests;
 /// <summary>One canned HTTP answer.</summary>
 internal sealed record Route(string Body, int Status = 200, IReadOnlyDictionary<string, string>? Headers = null);
 
-// The shared conformance corpus sdk/common generates into every SDK repo, plus the two things a
+// The shared conformance corpus generated into every SDK repo, plus the two things a
 // C# suite needs to read it: a stub transport that counts what it was asked for, and a way to
 // compare a typed answer against language-neutral JSON.
 internal static class Corpus

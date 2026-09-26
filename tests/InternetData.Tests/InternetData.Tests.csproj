@@ -22,7 +22,7 @@
     <ProjectReference Include="../../src/InternetData/InternetData.csproj" />
   </ItemGroup>
 
-  <!-- The corpus sdk/common generates. Copied rather than read by relative path so the suite works
+  <!-- The generated corpus. Copied rather than read by relative path so the suite works
        the same from `dotnet test` and from a published test binary. -->
   <ItemGroup>
     <None Include="../../testdata/testdata.json" CopyToOutputDirectory="PreserveNewest" Link="testdata.json" />
