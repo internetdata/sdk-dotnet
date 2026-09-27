@@ -25,7 +25,7 @@ public class DatabaseTests
             "checksums":{"md5":"m","sha1":"s1","sha256":"s256","sha512":"s512"}}
             """),
         ["/api/v2/database/downloads"] = new Route("""
-            {"downloads":[{"dataset_id":"bogon_ip_v1","format":"csvgz","outcome":"ok","bytes":760,
+            {"downloads":[{"dataset_id":"bogon_ip_v1","format":"csvgz","outcome":"ok","sample":true,"bytes":760,
             "http_status":302,"apikey_id":"ak_1","client_ip":"203.0.113.7","user_agent":"curl/8",
             "created":"2026-09-04T10:00:00Z"}]}
             """),
@@ -68,6 +68,7 @@ public class DatabaseTests
         var attempt = Assert.Single(downloads);
         Assert.Equal("bogon_ip_v1", attempt.DatasetId);
         Assert.Equal(DownloadOutcome.Ok, attempt.Outcome);
+        Assert.True(attempt.Sample);
         Assert.Equal(760, attempt.Bytes);
         Assert.Equal(302, attempt.HttpStatus);
         Assert.Equal("ak_1", attempt.ApikeyId);

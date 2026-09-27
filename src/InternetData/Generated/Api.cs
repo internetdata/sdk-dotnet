@@ -2440,17 +2440,28 @@ namespace InternetData
         /// The browser entry point for the authorization-code flow. This is a
         /// <br/>redirect target, not something to call from code.
         /// <br/>
+        /// <br/>Any client may sign in without registering first by using a Client ID
+        /// <br/>Metadata Document: make `client_id` an https URL that serves your
+        /// <br/>client's metadata as JSON, naming that same URL as its `client_id`,
+        /// <br/>with `token_endpoint_auth_method` `none` and your `redirect_uris`. An
+        /// <br/>https redirect URI must be on the same origin as the `client_id`; a
+        /// <br/>loopback one (`http://127.0.0.1`, `http://[::1]`, `http://localhost`)
+        /// <br/>matches on any port. Such a client is granted `apikeys.use` at most.
+        /// <br/>
         /// <br/>An unknown `client_id` or an unregistered `redirect_uri` is shown to the
         /// <br/>USER and never redirected, because sending an error to an address we
         /// <br/>have not verified belongs to you is how an open redirector works.
         /// <br/>Everything else comes back to your `redirect_uri` with `error`, your
         /// <br/>`state`, and `iss`.
         /// </remarks>
-        /// <param name="code_challenge_method">S256 only. `plain` is refused rather than downgraded.</param>
+        /// <param name="code_challenge_method">S256, named explicitly. `plain`, or no method at all, is refused rather than downgraded.</param>
         /// <param name="state">Returned unchanged. Use it to bind the response to your request.</param>
-        /// <param name="resource">RFC 8707. What the token is FOR, so it cannot be replayed elsewhere.</param>
+        /// <param name="resource">RFC 8707. What the token is FOR, so it cannot be replayed elsewhere:
+        /// <br/>this brand's MCP server, the only resource it issues tokens for.
+        /// <br/>Anything else answers `invalid_target`. A client that names none is
+        /// <br/>given that server.</param>
         /// <exception cref="WireException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task OauthAuthorizeAsync(string client_id, string redirect_uri, Response_type response_type, string code_challenge, Code_challenge_method? code_challenge_method, string? scope, string? state, string? resource)
+        public virtual System.Threading.Tasks.Task OauthAuthorizeAsync(string client_id, string redirect_uri, Response_type response_type, string code_challenge, Code_challenge_method code_challenge_method, string? scope, string? state, string? resource)
         {
             return OauthAuthorizeAsync(client_id, redirect_uri, response_type, code_challenge, code_challenge_method, scope, state, resource, System.Threading.CancellationToken.None);
         }
@@ -2463,17 +2474,28 @@ namespace InternetData
         /// The browser entry point for the authorization-code flow. This is a
         /// <br/>redirect target, not something to call from code.
         /// <br/>
+        /// <br/>Any client may sign in without registering first by using a Client ID
+        /// <br/>Metadata Document: make `client_id` an https URL that serves your
+        /// <br/>client's metadata as JSON, naming that same URL as its `client_id`,
+        /// <br/>with `token_endpoint_auth_method` `none` and your `redirect_uris`. An
+        /// <br/>https redirect URI must be on the same origin as the `client_id`; a
+        /// <br/>loopback one (`http://127.0.0.1`, `http://[::1]`, `http://localhost`)
+        /// <br/>matches on any port. Such a client is granted `apikeys.use` at most.
+        /// <br/>
         /// <br/>An unknown `client_id` or an unregistered `redirect_uri` is shown to the
         /// <br/>USER and never redirected, because sending an error to an address we
         /// <br/>have not verified belongs to you is how an open redirector works.
         /// <br/>Everything else comes back to your `redirect_uri` with `error`, your
         /// <br/>`state`, and `iss`.
         /// </remarks>
-        /// <param name="code_challenge_method">S256 only. `plain` is refused rather than downgraded.</param>
+        /// <param name="code_challenge_method">S256, named explicitly. `plain`, or no method at all, is refused rather than downgraded.</param>
         /// <param name="state">Returned unchanged. Use it to bind the response to your request.</param>
-        /// <param name="resource">RFC 8707. What the token is FOR, so it cannot be replayed elsewhere.</param>
+        /// <param name="resource">RFC 8707. What the token is FOR, so it cannot be replayed elsewhere:
+        /// <br/>this brand's MCP server, the only resource it issues tokens for.
+        /// <br/>Anything else answers `invalid_target`. A client that names none is
+        /// <br/>given that server.</param>
         /// <exception cref="WireException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task OauthAuthorizeAsync(string client_id, string redirect_uri, Response_type response_type, string code_challenge, Code_challenge_method? code_challenge_method, string? scope, string? state, string? resource, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task OauthAuthorizeAsync(string client_id, string redirect_uri, Response_type response_type, string code_challenge, Code_challenge_method code_challenge_method, string? scope, string? state, string? resource, System.Threading.CancellationToken cancellationToken)
         {
             if (client_id == null)
                 throw new System.ArgumentNullException("client_id");
@@ -2486,6 +2508,9 @@ namespace InternetData
 
             if (code_challenge == null)
                 throw new System.ArgumentNullException("code_challenge");
+
+            if (code_challenge_method == null)
+                throw new System.ArgumentNullException("code_challenge_method");
 
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -2504,10 +2529,7 @@ namespace InternetData
                     urlBuilder_.Append(System.Uri.EscapeDataString("redirect_uri")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(redirect_uri, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
                     urlBuilder_.Append(System.Uri.EscapeDataString("response_type")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(response_type, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
                     urlBuilder_.Append(System.Uri.EscapeDataString("code_challenge")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(code_challenge, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
-                    if (code_challenge_method != null)
-                    {
-                        urlBuilder_.Append(System.Uri.EscapeDataString("code_challenge_method")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(code_challenge_method, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
-                    }
+                    urlBuilder_.Append(System.Uri.EscapeDataString("code_challenge_method")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(code_challenge_method, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
                     if (scope != null)
                     {
                         urlBuilder_.Append(System.Uri.EscapeDataString("scope")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(scope, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
@@ -2557,6 +2579,12 @@ namespace InternetData
                             throw new WireException("Shown to the user. An unverified redirect target is never sent an error.", status_, responseText_, headers_, null);
                         }
                         else
+                        if (status_ == 429)
+                        {
+                            string responseText_ = ( response_.Content == null ) ? string.Empty : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new WireException("Shown to the user. Too many authorizations from one address.", status_, responseText_, headers_, null);
+                        }
+                        else
 
                         if (status_ == 200 || status_ == 204)
                         {
@@ -2595,10 +2623,14 @@ namespace InternetData
         /// <br/>`slow_down`, which means widen your interval and keep it widened.
         /// <br/>
         /// <br/>`authorization_code` exchanges a code from `/oauth/authorize`, with the
-        /// <br/>`code_verifier` matching the challenge you sent.
+        /// <br/>`code_verifier` matching the challenge you sent and the same
+        /// <br/>`redirect_uri`. A code works once: presenting it again also revokes
+        /// <br/>what the first exchange issued.
         /// <br/>
         /// <br/>`refresh_token` exchanges a refresh token. The presented token is
         /// <br/>consumed whatever happens next, so store the new one before using it.
+        /// <br/>Presenting a consumed refresh token again ends the whole authorization,
+        /// <br/>since it means the token was copied.
         /// </remarks>
         /// <returns>Tokens.</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
@@ -2620,10 +2652,14 @@ namespace InternetData
         /// <br/>`slow_down`, which means widen your interval and keep it widened.
         /// <br/>
         /// <br/>`authorization_code` exchanges a code from `/oauth/authorize`, with the
-        /// <br/>`code_verifier` matching the challenge you sent.
+        /// <br/>`code_verifier` matching the challenge you sent and the same
+        /// <br/>`redirect_uri`. A code works once: presenting it again also revokes
+        /// <br/>what the first exchange issued.
         /// <br/>
         /// <br/>`refresh_token` exchanges a refresh token. The presented token is
         /// <br/>consumed whatever happens next, so store the new one before using it.
+        /// <br/>Presenting a consumed refresh token again ends the whole authorization,
+        /// <br/>since it means the token was copied.
         /// </remarks>
         /// <returns>Tokens.</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
@@ -2691,7 +2727,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<OauthError>("An RFC 6749 error. `authorization_pending` and `slow_down` are\nnormal answers while polling a device authorization, not failures.\n`access_denied` means the person refused, and `expired_token` that\nthe device code is no longer valid: it expired, or it was already\nexchanged or refused. `invalid_grant` means the code, device code or\nrefresh token is not valid for this `client_id`. `slow_down` also\nanswers any grant when this address sends too many requests.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<OauthError>("An RFC 6749 error. `authorization_pending` and `slow_down` are\nnormal answers while polling a device authorization, not failures.\n`access_denied` means the person refused, and `expired_token` that\nthe device code is no longer valid: it expired, or it was already\nexchanged or refused. `invalid_grant` means the code, device code or\nrefresh token is not valid for this `client_id`. `invalid_target`\nmeans `resource` names something other than what was authorized.\n`slow_down` also answers any grant when this address sends too many\nrequests.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 401)
@@ -3123,6 +3159,13 @@ namespace InternetData
         // TODO(system.text.json): Add string enum item converter
         public System.Collections.Generic.IReadOnlyList<DatabaseFormat> Formats { get; set; } = new System.Collections.Generic.List<DatabaseFormat>();
 
+        /// <summary>
+        /// The formats an evaluation sample is published in, if any.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("sample_formats")]
+        // TODO(system.text.json): Add string enum item converter
+        public System.Collections.Generic.IReadOnlyList<DatabaseFormat>? SampleFormats { get; set; } = default!;
+
         private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
@@ -3150,6 +3193,12 @@ namespace InternetData
         [System.Text.Json.Serialization.JsonPropertyName("outcome")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<DownloadOutcome>))]
         public DownloadOutcome Outcome { get; set; } = default!;
+
+        /// <summary>
+        /// The evaluation sample rather than the database itself.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("sample")]
+        public bool Sample { get; set; } = default!;
 
         /// <summary>
         /// Object size at redirect time, NOT bytes delivered: the transfer is a
@@ -3258,6 +3307,18 @@ namespace InternetData
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("size")]
         public System.Collections.Generic.IDictionary<string, long> Size { get; set; } = new System.Collections.Generic.Dictionary<string, long>();
+
+        /// <summary>
+        /// Bytes per format of the evaluation sample, where one is published.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("sample_size")]
+        public System.Collections.Generic.IDictionary<string, long>? SampleSize { get; set; } = default!;
+
+        /// <summary>
+        /// Row count in the evaluation sample.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("sample_entries")]
+        public int? SampleEntries { get; set; } = default!;
 
         private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
@@ -3819,6 +3880,12 @@ namespace InternetData
         public System.Collections.Generic.IReadOnlyList<string>? CodeChallengeMethodsSupported { get; set; } = default!;
 
         /// <summary>
+        /// Any client may sign in with an https `client_id` serving its own metadata.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("client_id_metadata_document_supported")]
+        public bool? ClientIdMetadataDocumentSupported { get; set; } = default!;
+
+        /// <summary>
         /// Always `none`. Every client is public and has no secret.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("token_endpoint_auth_methods_supported")]
@@ -3954,10 +4021,16 @@ namespace InternetData
         public string? CodeVerifier { get; set; } = default!;
 
         /// <summary>
-        /// Authorization code grant: the `redirect_uri` the code was issued against, exactly.
+        /// Required by the authorization code grant: the `redirect_uri` the code was issued against, exactly.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("redirect_uri")]
         public string? RedirectUri { get; set; } = default!;
+
+        /// <summary>
+        /// Authorization code grant, optional: RFC 8707, and it must name what was authorized.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("resource")]
+        public string? Resource { get; set; } = default!;
 
         /// <summary>
         /// Required by the refresh token grant.
@@ -4008,19 +4081,22 @@ namespace InternetData
         public string? Scope { get; set; } = default!;
 
         /// <summary>
-        /// Not part of OAuth. The ID of the API key the person picked when they
-        /// <br/>approved, returned by every grant while this authorization may still
-        /// <br/>read that key back. Absent when no key was picked, or when the
-        /// <br/>person's role no longer allows reading keys back.
+        /// Not part of OAuth, and only for our own clients. The ID of the API
+        /// <br/>key the person picked when they approved, returned by every grant
+        /// <br/>while this authorization may still read that key back. Absent when
+        /// <br/>no key was picked, or when the person's role no longer allows
+        /// <br/>reading keys back.
         /// <br/>
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("mslm:apikey_id")]
         public string? ApikeyId { get; set; } = default!;
 
         /// <summary>
-        /// Not part of OAuth. The API key itself, so a device ends up holding an
-        /// <br/>ordinary key. Returned by the device code and authorization code
-        /// <br/>grants only, never by a refresh, and only alongside
+        /// Not part of OAuth, and only for our own clients: a client that signed
+        /// <br/>in with a Client ID Metadata Document never receives a key. The API
+        /// <br/>key itself, so a device ends up holding an ordinary key. Returned by
+        /// <br/>the device code and authorization code grants only, never by a
+        /// <br/>refresh, and only alongside
         /// <br/>`mslm:apikey_id`. Absent when that key's secret cannot be read back,
         /// <br/>which is the case for a key created before keys could be shown again
         /// <br/>in the console; a rotated key can be.
