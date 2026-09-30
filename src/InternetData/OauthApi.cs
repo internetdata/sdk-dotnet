@@ -1,23 +1,37 @@
 using System.Diagnostics;
+using System.Globalization;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 
 namespace InternetData;
 
 /// <summary>
-/// Sign a person in with OAuth's device flow, reached through <see cref="InternetDataClient.Oauth"/>.
+/// Sign a person in with OAuth, by the device flow or the authorization code flow, reached through
+/// <see cref="InternetDataClient.Oauth"/>.
 /// </summary>
 /// <remarks>
 /// <para>A program on the person's own machine starts a sign-in with
 /// <see cref="DeviceAuthorizationAsync(string, DeviceAuthorizationOptions?, CancellationToken)"/>, shows
 /// them <see cref="DeviceAuthorization.VerificationUri"/> and <see cref="DeviceAuthorization.UserCode"/>,
 /// and waits in <see cref="PollDeviceTokenAsync(string, DeviceAuthorization, CancellationToken)"/> while
-/// they approve it in a browser.</para>
+/// they approve it in a browser. An app that can take a browser redirect sends them to
+/// <see cref="AuthorizationUrl(string, string, string, AuthorizationUrlOptions?)"/> instead, with a pair
+/// from <see cref="CreatePkce"/>, and trades the code the redirect brings back in
+/// <see cref="ExchangeAuthorizationCodeAsync(string, string, string, string, CancellationToken)"/>.</para>
 /// <para>No request here carries the client's API key, and none needs one: build the client without
-/// a key to sign someone in. A client ID is issued on request through support@internetdata.io.</para>
+/// a key to sign someone in. A client ID is issued on request through support@internetdata.io, or for
+/// the authorization code flow is the https URL of a client metadata document the app serves.</para>
 /// </remarks>
 public sealed class OauthApi
 {
     private const string DeviceCodeGrant = "urn:ietf:params:oauth:grant-type:device_code";
+
+    /// <summary>The only PKCE method the server accepts.</summary>
+    internal const string PkceMethod = "S256";
+
+    // Refuses a lone surrogate rather than sending U+FFFD in its place.
+    private static readonly UTF8Encoding StrictUtf8 = new(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
     private static readonly string[] MetadataRequired = { "issuer", "authorization_endpoint", "token_endpoint" };
 
@@ -167,6 +181,88 @@ public sealed class OauthApi
             cancellationToken);
     }
 
+    /// <summary>
+    /// The URL to open in the person's browser for the authorization code flow. Makes no request.
+    /// </summary>
+    /// <remarks>
+    /// Once they decide, the server redirects to <paramref name="redirectUri"/> with a <c>code</c> for
+    /// <see cref="ExchangeAuthorizationCodeAsync(string, string, string, string, CancellationToken)"/>
+    /// and the <c>state</c> given here, or with an <c>error</c>. Every value is percent-encoded over
+    /// UTF-8, leaving only <c>A-Z a-z 0-9 - . _ ~</c> literal.
+    /// </remarks>
+    /// <param name="clientId">The client ID.</param>
+    /// <param name="redirectUri">Where the server sends the person back.</param>
+    /// <param name="codeChallenge">The <see cref="Pkce.Challenge"/> of a pair from <see cref="CreatePkce"/>.</param>
+    /// <param name="options">The scope, state and resource to ask for.</param>
+    /// <exception cref="ArgumentException">A required value is empty, or a value has no UTF-8 form.</exception>
+    public string AuthorizationUrl(
+        string clientId, string redirectUri, string codeChallenge, AuthorizationUrlOptions? options = null)
+    {
+        var query = new StringBuilder();
+        AppendParameter(query, "response_type", "code");
+        AppendParameter(query, "client_id", Required(clientId, nameof(clientId)));
+        AppendParameter(query, "redirect_uri", Required(redirectUri, nameof(redirectUri)));
+        AppendParameter(query, "code_challenge", Required(codeChallenge, nameof(codeChallenge)));
+        AppendParameter(query, "code_challenge_method", PkceMethod);
+        foreach (var (name, value) in new[]
+                 { ("scope", options?.Scope), ("state", options?.State), ("resource", options?.Resource) })
+        {
+            if (!string.IsNullOrEmpty(value))
+            {
+                AppendParameter(query, name, value);
+            }
+        }
+        return $"{baseUrl}/oauth/authorize?{query}";
+    }
+
+    /// <summary>Exchange the code a sign-in's redirect brought back for tokens, once.</summary>
+    public Task<TokenResponse> ExchangeAuthorizationCodeAsync(
+        string clientId, string code, string codeVerifier, string redirectUri,
+        CancellationToken cancellationToken = default)
+        => ExchangeAuthorizationCodeAsync(clientId, code, codeVerifier, redirectUri, null, cancellationToken);
+
+    /// <summary>Exchange the code a sign-in's redirect brought back for tokens, once.</summary>
+    /// <remarks>
+    /// <paramref name="codeVerifier"/> is the <see cref="Pkce.Verifier"/> whose challenge went into the
+    /// authorization URL, and <paramref name="redirectUri"/> that URL's, exactly. Never retried: the
+    /// server spends the code on first read, before it checks the verifier, so a retry could only be
+    /// refused.
+    /// </remarks>
+    public Task<TokenResponse> ExchangeAuthorizationCodeAsync(
+        string clientId, string code, string codeVerifier, string redirectUri, OauthOptions? options,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(clientId);
+        ArgumentNullException.ThrowIfNull(code);
+        ArgumentNullException.ThrowIfNull(codeVerifier);
+        ArgumentNullException.ThrowIfNull(redirectUri);
+        return ExchangeAsync(
+            new()
+            {
+                new("grant_type", "authorization_code"), new("code", code), new("redirect_uri", redirectUri),
+                new("client_id", clientId), new("code_verifier", codeVerifier),
+            },
+            options,
+            cancellationToken);
+    }
+
+    /// <summary>
+    /// A fresh PKCE pair for one sign-in: 32 bytes from the system's secure random source as the
+    /// verifier, with its challenge.
+    /// </summary>
+    public Pkce CreatePkce()
+    {
+        var verifier = Base64Url(RandomNumberGenerator.GetBytes(32));
+        return new Pkce(verifier, PkceChallenge(verifier));
+    }
+
+    /// <summary>The <c>S256</c> challenge for a PKCE verifier: its SHA-256, as unpadded base64url.</summary>
+    public string PkceChallenge(string verifier)
+    {
+        ArgumentNullException.ThrowIfNull(verifier);
+        return Base64Url(SHA256.HashData(StrictUtf8.GetBytes(verifier)));
+    }
+
     /// <summary>Wait for the person to approve a device sign-in, with the client's defaults.</summary>
     public Task<TokenResponse> PollDeviceTokenAsync(
         string clientId, DeviceAuthorization device, CancellationToken cancellationToken = default)
@@ -269,6 +365,42 @@ public sealed class OauthApi
         throw new WireException("the authorization server refused the request", status, body, headers, null);
     }
 
+    private static string Required(string value, string name)
+    {
+        ArgumentNullException.ThrowIfNull(value, name);
+        return value.Length > 0 ? value : throw new ArgumentException($"{name} must not be empty", name);
+    }
+
+    // Every byte of the value's UTF-8 as %XX but A-Z a-z 0-9 - . _ ~, so a space is %20 and never +.
+    private static void AppendParameter(StringBuilder query, string name, string value)
+    {
+        byte[] bytes;
+        try
+        {
+            bytes = StrictUtf8.GetBytes(value);
+        }
+        catch (EncoderFallbackException e)
+        {
+            throw new ArgumentException($"{name} has no UTF-8 form", name, e);
+        }
+        query.Append(query.Length == 0 ? "" : "&").Append(name).Append('=');
+        foreach (var b in bytes)
+        {
+            if (b is >= (byte)'A' and <= (byte)'Z' or >= (byte)'a' and <= (byte)'z' or >= (byte)'0' and <= (byte)'9'
+                or (byte)'-' or (byte)'.' or (byte)'_' or (byte)'~')
+            {
+                query.Append((char)b);
+            }
+            else
+            {
+                query.Append('%').Append(b.ToString("X2", CultureInfo.InvariantCulture));
+            }
+        }
+    }
+
+    private static string Base64Url(byte[] bytes)
+        => Convert.ToBase64String(bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+
     // Only a JSON object with a STRING `error` is an OAuth refusal; any other 4xx body is not one.
     private static OauthException? RefusalOf(string body, int status)
     {
@@ -322,4 +454,30 @@ public sealed class OauthApi
     }
 
     private readonly record struct Answer(int Status, string Body);
+}
+
+/// <summary>
+/// One sign-in's PKCE pair, from <see cref="OauthApi.CreatePkce"/>: <see cref="Challenge"/> goes into
+/// the authorization URL, <see cref="Verifier"/> only to the exchange. <see cref="ToString"/> leaves
+/// the verifier out.
+/// </summary>
+public sealed class Pkce
+{
+    internal Pkce(string verifier, string challenge)
+    {
+        Verifier = verifier;
+        Challenge = challenge;
+    }
+
+    /// <summary>32 random bytes as 43 characters of unpadded base64url.</summary>
+    public string Verifier { get; }
+
+    /// <summary>The verifier's SHA-256, as unpadded base64url.</summary>
+    public string Challenge { get; }
+
+    /// <summary><c>S256</c>, the only method the server accepts.</summary>
+    public string Method => OauthApi.PkceMethod;
+
+    /// <inheritdoc/>
+    public override string ToString() => $"Pkce {{ Challenge = {Challenge}, Method = {Method} }}";
 }

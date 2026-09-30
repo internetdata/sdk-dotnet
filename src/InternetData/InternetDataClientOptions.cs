@@ -81,3 +81,21 @@ public sealed class DeviceAuthorizationOptions
     /// <summary>How long one attempt of THIS call may take before it is abandoned.</summary>
     public TimeSpan? RequestTimeout { get; init; }
 }
+
+/// <summary>
+/// What to ask for in an authorization URL. A value left null, or empty, is left out of the URL.
+/// </summary>
+public sealed class AuthorizationUrlOptions
+{
+    /// <summary>The scopes to request, space-delimited, such as <c>apikeys.use</c>.</summary>
+    public string? Scope { get; init; }
+
+    /// <summary>
+    /// A value of your own that the redirect brings back as it was sent. Check it before exchanging
+    /// the code.
+    /// </summary>
+    public string? State { get; init; }
+
+    /// <summary>The RFC 8707 resource the token is meant for.</summary>
+    public string? Resource { get; init; }
+}

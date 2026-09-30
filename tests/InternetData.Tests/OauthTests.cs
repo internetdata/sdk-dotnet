@@ -53,8 +53,13 @@ public class OauthTests
         await Settle(() => client.Oauth.ExchangeRefreshTokenAsync("internetdata-cli", "mo_rt_x"), stub);
         await Settle(async () => { await client.Oauth.RevokeAsync("internetdata-cli", "mo_rt_x"); return 0; }, stub);
         await Settle(() => client.Oauth.PollDeviceTokenAsync("internetdata-cli", Device), stub);
+        await Settle(() => client.Oauth.ExchangeAuthorizationCodeAsync(
+            "internetdata-cli", "mo_ac_x", "verifier", "http://127.0.0.1:8765/cb"), stub);
+        var url = client.Oauth.AuthorizationUrl("internetdata-cli", "http://127.0.0.1:8765/cb", "c",
+            new AuthorizationUrlOptions { Scope = "apikeys.use", State = "s", Resource = BaseUrl });
+        Assert.False(url.Contains(key, StringComparison.Ordinal), "the key is in the authorization URL");
 
-        Assert.Equal(6, stub.Requests.Count);
+        Assert.Equal(7, stub.Requests.Count);
         var forbidden = rule.GetProperty("forbiddenHeaders").EnumerateArray().Select(h => h.GetString()!).ToArray();
         var forbiddenQuery = rule.GetProperty("forbiddenQuery").EnumerateArray().Select(q => q.GetString()!).ToArray();
         foreach (var sent in stub.Requests)
@@ -79,7 +84,8 @@ public class OauthTests
     {
         var endpoints = Oauth.GetProperty("endpoints");
         var forms = Oauth.GetProperty("forms");
-        foreach (var c in forms.GetProperty("cases").EnumerateArray())
+        var deferred = Oauth.GetProperty("deferred").GetProperty("forms").EnumerateArray();
+        foreach (var c in forms.GetProperty("cases").EnumerateArray().Concat(deferred))
         {
             var name = c.GetProperty("name").GetString()!;
             var stub = new OauthStub(new Reply(200, EveryRequiredMember));
@@ -212,7 +218,8 @@ public class OauthTests
     [Fact]
     public async Task OnlyWhatConsumesNothingIsRetriedAndNeverAnOauthRefusal()
     {
-        foreach (var c in Oauth.GetProperty("retries").GetProperty("cases").EnumerateArray())
+        var deferred = Oauth.GetProperty("deferred").GetProperty("retries").EnumerateArray();
+        foreach (var c in Oauth.GetProperty("retries").GetProperty("cases").EnumerateArray().Concat(deferred))
         {
             var name = c.GetProperty("name").GetString()!;
             var stub = new OauthStub(c.GetProperty("responses").EnumerateArray().Select(Reply.Of).ToArray());
@@ -308,6 +315,7 @@ public class OauthTests
     [InlineData("exchangeRefreshToken")]
     [InlineData("revoke")]
     [InlineData("pollDeviceToken")]
+    [InlineData("exchangeAuthorizationCode")]
     public async Task APerCallTimeoutBelowTheClientsBoundsEveryOauthRequest(string operation)
     {
         using var origin = new StallingOrigin(
@@ -326,6 +334,8 @@ public class OauthTests
             "exchangeDeviceCode" => () => client.Oauth.ExchangeDeviceCodeAsync("internetdata-cli", "mo_dc_x", options),
             "exchangeRefreshToken" => () => client.Oauth.ExchangeRefreshTokenAsync("internetdata-cli", "mo_rt_x", options),
             "revoke" => () => client.Oauth.RevokeAsync("internetdata-cli", "mo_rt_x", options),
+            "exchangeAuthorizationCode" => () => client.Oauth.ExchangeAuthorizationCodeAsync(
+                "internetdata-cli", "mo_ac_x", "v", "http://r", options),
             _ => () => client.Oauth.PollDeviceTokenAsync("internetdata-cli", Device, options),
         };
 
@@ -337,6 +347,67 @@ public class OauthTests
         Assert.Equal("the request timed out", error.Message);
         Assert.True(started.Elapsed >= TimeSpan.FromMilliseconds(200), $"failed after {started.ElapsedMilliseconds}ms");
         Assert.True(started.Elapsed < TimeSpan.FromSeconds(10), $"took {started.ElapsedMilliseconds}ms");
+    }
+
+    // RFC 7636's vector, then generated pairs: 43 characters of base64url, each its own challenge,
+    // never the same verifier twice, and a ToString that leaves the verifier out.
+    [Fact]
+    public void APkcePairMatchesTheRfcVectorAndIsNeverReused()
+    {
+        var vector = Oauth.GetProperty("deferred").GetProperty("pkce");
+        using var client = Client(new OauthStub());
+        Assert.Equal(
+            vector.GetProperty("challenge").GetString(),
+            client.Oauth.PkceChallenge(vector.GetProperty("verifier").GetString()!));
+
+        var pattern = new System.Text.RegularExpressions.Regex(vector.GetProperty("generatedVerifierPattern").GetString()!);
+        var pairs = new[] { client.Oauth.CreatePkce(), client.Oauth.CreatePkce() };
+        foreach (var pair in pairs)
+        {
+            Assert.Matches(pattern, pair.Verifier);
+            Assert.Equal(client.Oauth.PkceChallenge(pair.Verifier), pair.Challenge);
+            Assert.Equal(vector.GetProperty("method").GetString(), pair.Method);
+            Assert.DoesNotContain(pair.Verifier, pair.ToString(), StringComparison.Ordinal);
+        }
+        Assert.NotEqual(pairs[0].Verifier, pairs[1].Verifier);
+    }
+
+    [Fact]
+    public void TheAuthorizationUrlIsBuiltExactlyAndSendsNothing()
+    {
+        foreach (var c in Oauth.GetProperty("deferred").GetProperty("authorizationUrl").EnumerateArray())
+        {
+            string? Optional(string name) => c.TryGetProperty(name, out var value) ? value.GetString() : null;
+            var stub = new OauthStub(new Reply(200, EveryRequiredMember));
+            using var client = new InternetDataClient(new InternetDataClientOptions
+            {
+                BaseUrl = c.GetProperty("baseUrl").GetString()!,
+                HttpClient = new HttpClient(stub),
+            });
+
+            var url = client.Oauth.AuthorizationUrl(
+                c.GetProperty("clientId").GetString()!, c.GetProperty("redirectUri").GetString()!,
+                c.GetProperty("codeChallenge").GetString()!,
+                new AuthorizationUrlOptions { Scope = Optional("scope"), State = Optional("state"), Resource = Optional("resource") });
+
+            Assert.Equal(c.GetProperty("expect").GetString(), url);
+            Assert.Empty(stub.Requests);
+        }
+    }
+
+    [Fact]
+    public void AnEmptyOptionIsLeftOutAndAnEmptyOrUnencodableValueRefused()
+    {
+        using var client = Client(new OauthStub());
+        var bare = client.Oauth.AuthorizationUrl("c", "https://app.example/cb", "x");
+        Assert.Equal(bare, client.Oauth.AuthorizationUrl("c", "https://app.example/cb", "x",
+            new AuthorizationUrlOptions { Scope = "", State = "", Resource = "" }));
+        foreach (var (id, redirect, challenge) in new[] { ("", "r", "x"), ("c", "", "x"), ("c", "r", "") })
+        {
+            Assert.Throws<ArgumentException>(() => client.Oauth.AuthorizationUrl(id, redirect, challenge));
+        }
+        Assert.Throws<ArgumentException>(() => client.Oauth.AuthorizationUrl(
+            "c", "r", "x", new AuthorizationUrlOptions { State = "\uD800" }));
     }
 
     [Fact]
@@ -404,6 +475,8 @@ public class OauthTests
             "exchangeDeviceCode" => Boxed(client.Oauth.ExchangeDeviceCodeAsync(Arg("clientId"), Arg("deviceCode"))),
             "exchangeRefreshToken" => Boxed(client.Oauth.ExchangeRefreshTokenAsync(Arg("clientId"), Arg("refreshToken"))),
             "revoke" => Revoked(client.Oauth.RevokeAsync(Arg("clientId"), Arg("token"))),
+            "exchangeAuthorizationCode" => Boxed(client.Oauth.ExchangeAuthorizationCodeAsync(
+                Arg("clientId"), Arg("code"), Arg("codeVerifier"), Arg("redirectUri"))),
             _ => throw new InvalidOperationException($"the corpus names an operation this suite does not know: {operation}"),
         };
     }

@@ -152,6 +152,23 @@ using var keyed = new InternetDataClient(new InternetDataClientOptions { ApiKey 
 
 A denied sign-in throws `OauthAccessDeniedException` and a code that ran out `OauthExpiredTokenException`. Client IDs are issued on request from support@internetdata.io, and `client.Oauth.RevokeAsync("your-client-id", token.RefreshToken)` signs the machine out again.
 
+### Sign in with OAuth (authorization code)
+
+An app that can take a browser redirect signs the person in there instead, with a PKCE pair made for that one sign-in:
+
+```csharp
+using var client = new InternetDataClient();
+var redirectUri = "http://127.0.0.1:8765/callback";
+var pkce = client.Oauth.CreatePkce();
+
+var url = client.Oauth.AuthorizationUrl("your-client-id", redirectUri, pkce.Challenge,
+    new AuthorizationUrlOptions { Scope = "apikeys.use", State = "your-state" });
+// Open url in the browser. Its redirect to redirectUri carries code and state.
+var token = await client.Oauth.ExchangeAuthorizationCodeAsync("your-client-id", code, pkce.Verifier, redirectUri);
+```
+
+Check that `state` came back as you sent it before you exchange `code`, which works once. The client ID can also be the https URL of a client metadata document your app serves, and such an app is never handed a key, so `token.Apikey` stays `null`.
+
 ## Other Libraries
 
 There are official InternetData client libraries available for many languages including PHP, Python, Go, Java, Ruby, and many popular frameworks such as Django, Rails, and Laravel. See our GitHub at https://github.com/internetdata for more.
