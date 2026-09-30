@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.1.1 are described by their release commits.
 
+## 2.3.0 - 2026-09-30
+
+### Features
+
+- Add the authorization code sign-in, with PKCE ([`5a61dde`](https://github.com/internetdata/sdk-dotnet/commit/5a61dde9a06ff5d00e0b04df74d51165a3bebb60))
+
 ## 2.2.0 - 2026-09-27
 
 ### Features
