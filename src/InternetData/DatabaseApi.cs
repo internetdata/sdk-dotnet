@@ -16,6 +16,9 @@ public sealed class DatabaseApi
     // memory.
     private const int ChunkBytes = 64 * 1024;
 
+    // The most DownloadBytesAsync reserves from a declared length before the bytes arrive.
+    private const int FirstReservation = 64 << 20;
+
     private readonly WireClient wire;
     private readonly HttpClient transfer;
     private readonly int retries;
@@ -196,18 +199,39 @@ public sealed class DatabaseApi
         await using var _ = body.ConfigureAwait(false);
 
         var declared = response.Content.Headers.ContentLength;
-        if (declared is not (> 0 and <= int.MaxValue))
+        if (declared > Array.MaxLength)
+        {
+            // Refused before anything is reserved: `new byte[]` threw a raw OutOfMemoryException
+            // for a declared 2147483647 (measured 2026-10-01).
+            throw new IOException(
+                $"the file declares {declared} bytes, more than one array can hold; use DownloadAsync");
+        }
+        if (declared is not > 0)
         {
             using var buffer = new MemoryStream();
             await body.CopyToAsync(buffer, ChunkBytes, cancellationToken).ConfigureAwait(false);
             return buffer.ToArray();
         }
-        // Allocated once from the declared length: a MemoryStream grows by doubling, so on a large
-        // database the final grow alone costs twice the file. ReadExactlyAsync is also the
-        // short-read guard, throwing EndOfStreamException rather than handing back a part-filled
-        // array.
-        var bytes = new byte[(int)declared.Value];
-        await body.ReadExactlyAsync(bytes, cancellationToken).ConfigureAwait(false);
+        // The declared length is the server's word, so at most FirstReservation is reserved from it
+        // before a byte arrives, and the array doubles toward it as bytes do. Capped at the
+        // declared length, so the last grow is to the file's own size. A body ending short of it
+        // is an EndOfStreamException, never a part-filled array.
+        var length = (int)declared.Value;
+        var bytes = new byte[Math.Min(length, FirstReservation)];
+        var filled = 0;
+        while (filled < length)
+        {
+            if (filled == bytes.Length)
+            {
+                Array.Resize(ref bytes, (int)Math.Min(length, 2L * bytes.Length));
+            }
+            var read = await body.ReadAsync(bytes.AsMemory(filled), cancellationToken).ConfigureAwait(false);
+            if (read == 0)
+            {
+                throw new EndOfStreamException($"the transfer ended after {filled} of {length} bytes");
+            }
+            filled += read;
+        }
         return bytes;
     }
 

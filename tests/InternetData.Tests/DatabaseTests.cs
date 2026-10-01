@@ -262,6 +262,42 @@ public class DatabaseTests
         Assert.IsAssignableFrom<IOException>(failure);
     }
 
+    // A declared length is the server's word. Past what one array can hold it is refused before
+    // anything is reserved, as an IOException like any other failed transfer.
+    [Fact]
+    public async Task DownloadBytesRefusesALengthNoArrayCanHold()
+    {
+        using var origin = new RedirectingServer(Array.Empty<byte>(), truncate: true, declared: int.MaxValue);
+        using var client = new InternetDataClient(
+            new InternetDataClientOptions { BaseUrl = origin.BaseUrl, ApiKey = "k", Retries = 0 });
+
+        var before = GC.GetTotalAllocatedBytes(precise: true);
+        var failure = await Record.ExceptionAsync(
+            () => client.Database.DownloadBytesAsync("bogon_ip_v1", DatabaseFormat.Csvgz));
+        var allocated = GC.GetTotalAllocatedBytes(precise: true) - before;
+
+        Assert.IsAssignableFrom<IOException>(failure);
+        Assert.True(allocated < 32L << 20, $"{allocated} bytes allocated for a length it refused");
+    }
+
+    // Within that, only a first slice is reserved before the bytes arrive: a server declaring
+    // 2 GB and sending 10 bytes costs that slice, not 2 GB.
+    [Fact]
+    public async Task DownloadBytesReservesAsTheBytesArrive()
+    {
+        using var origin = new RedirectingServer(new byte[20], truncate: true, declared: Array.MaxLength);
+        using var client = new InternetDataClient(
+            new InternetDataClientOptions { BaseUrl = origin.BaseUrl, ApiKey = "k", Retries = 0 });
+
+        var before = GC.GetTotalAllocatedBytes(precise: true);
+        var failure = await Record.ExceptionAsync(
+            () => client.Database.DownloadBytesAsync("bogon_ip_v1", DatabaseFormat.Csvgz));
+        var allocated = GC.GetTotalAllocatedBytes(precise: true) - before;
+
+        Assert.IsAssignableFrom<IOException>(failure);
+        Assert.True(allocated < 512L << 20, $"{allocated} bytes allocated for 10 that arrived");
+    }
+
     // The other half: a 5xx on the response HEAD is as transient as the API's, and nothing has been
     // written yet, so it is retried by the same policy. The count comes first, so a failure that
     // was never retried fails here rather than on the exception.
@@ -396,6 +432,7 @@ internal sealed class RedirectingServer : IDisposable
     private readonly TcpListener storage;
     private readonly byte[]? payload;
     private readonly bool truncate;
+    private readonly long? declared;
     private readonly TimeSpan stall;
     private readonly int refusals;
     private readonly List<Socket> held = new();
@@ -413,11 +450,14 @@ internal sealed class RedirectingServer : IDisposable
     /// <summary>An origin whose storage serves <paramref name="payload"/>, whole or cut short.</summary>
     /// <param name="stall">How long storage pauses part way through the body.</param>
     /// <param name="refusals">How many requests storage answers 503 before it serves the file.</param>
-    internal RedirectingServer(byte[]? payload, bool truncate, TimeSpan stall = default, int refusals = 0)
+    /// <param name="declared">The Content-Length storage declares, when not the payload's own.</param>
+    internal RedirectingServer(
+        byte[]? payload, bool truncate, TimeSpan stall = default, int refusals = 0, long? declared = null)
     {
         this.payload = payload;
         this.truncate = truncate;
         this.stall = stall;
+        this.declared = declared;
         this.refusals = refusals;
         BaseUrl = $"http://127.0.0.1:{FreePort()}";
         storage = new TcpListener(IPAddress.Loopback, 0);
@@ -528,7 +568,7 @@ internal sealed class RedirectingServer : IDisposable
             await stream.FlushAsync();
             return;
         }
-        await WriteAsync(stream, Header(payload.Length));
+        await WriteAsync(stream, Header(declared ?? payload.Length));
         var sent = truncate ? payload.Length / 2 : payload.Length;
         if (stall > TimeSpan.Zero && sent > 1)
         {
