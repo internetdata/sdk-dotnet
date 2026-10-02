@@ -21,7 +21,7 @@
     <Authors>Mslm Dev</Authors>
     <Company>Mslm Dev</Company>
     <Product>InternetData</Product>
-    <Description>The official .NET client library for the InternetData API. Download the licensed IP, ASN and domain databases, with checksums, build metadata and download history.</Description>
+    <Description>The official .NET client library for the InternetData API. Download the licensed IP and ASN databases, with checksums, build metadata and download history.</Description>
     <PackageTags>ip;asn;domain;geolocation;database;mmdb;internetdata</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://internetdata.io</PackageProjectUrl>

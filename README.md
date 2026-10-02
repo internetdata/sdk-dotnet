@@ -5,7 +5,7 @@
 
 The official .NET client library for the [InternetData](https://internetdata.io) API.
 
-The library downloads the IP, ASN and domain databases your organization is licensed for, and gives you their build metadata, checksums and download history along the way.
+The library downloads the IP and ASN databases your organization is licensed for, and gives you their build metadata, checksums and download history along the way.
 
 ## Getting Started
 
@@ -175,7 +175,7 @@ There are official InternetData client libraries available for many languages in
 
 ## About InternetData
 
-IP, ASN and Domain data to reveal unique insights about the internet. APIs, Databases and Live Feeds available.
+Geolocation, anonymity, ownership and network databases for IP addresses and AS numbers, licensed as files you download and query yourself.
 
 [<img src="https://s3.internetdata.io/internetdata-public/brand/mark.svg" alt="InternetData" height="64"/>](https://internetdata.io/)
 
