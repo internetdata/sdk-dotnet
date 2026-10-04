@@ -305,7 +305,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<Error>("Licensed, but the current build has not been published yet.\n`rc`: `NOT_AVAILABLE`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<Error>("The current build has not been published yet.\n`rc`: `NOT_AVAILABLE`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
 
@@ -342,7 +342,8 @@ namespace InternetData
         /// <br/>`updated` and `entries` without downloading anything.
         /// <br/>
         /// <br/>No `format` parameter - one document describes every format the database
-        /// <br/>is built in.
+        /// <br/>is built in. Needs no license: it answers for every database `list`
+        /// <br/>returns, whatever its `standing`.
         /// </remarks>
         /// <param name="id">Database identifier (e.g. `vpn_ip_v1`, `resproxy_provider_v1`).</param>
         /// <returns>OK</returns>
@@ -361,7 +362,8 @@ namespace InternetData
         /// <br/>`updated` and `entries` without downloading anything.
         /// <br/>
         /// <br/>No `format` parameter - one document describes every format the database
-        /// <br/>is built in.
+        /// <br/>is built in. Needs no license: it answers for every database `list`
+        /// <br/>returns, whatever its `standing`.
         /// </remarks>
         /// <param name="id">Database identifier (e.g. `vpn_ip_v1`, `resproxy_provider_v1`).</param>
         /// <returns>OK</returns>
@@ -431,16 +433,6 @@ namespace InternetData
                             throw new WireException<Error>("Missing or invalid bearer key, the key lacks the `db.download` scope, or\nit belongs to no organization.\n`rc`: `UNAUTHORIZED`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
-                        if (status_ == 403)
-                        {
-                            var objectResponse_ = await ReadObjectResponseAsync<Error>(response_, headers_, cancellationToken).ConfigureAwait(false);
-                            if (objectResponse_.Object == null)
-                            {
-                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
-                            }
-                            throw new WireException<Error>("Your organization holds no license for this database, or its term has\nended.\n`rc`: `NOT_LICENSED`, `LICENSE_EXPIRED`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
-                        }
-                        else
                         if (status_ == 404)
                         {
                             var objectResponse_ = await ReadObjectResponseAsync<Error>(response_, headers_, cancellationToken).ConfigureAwait(false);
@@ -458,7 +450,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<Error>("Licensed, but the current build has not been published yet.\n`rc`: `NOT_AVAILABLE`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<Error>("The current build has not been published yet.\n`rc`: `NOT_AVAILABLE`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         {
@@ -612,7 +604,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<Error>("Licensed, but the current build has not been published yet.\n`rc`: `NOT_AVAILABLE`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<Error>("The current build has not been published yet.\n`rc`: `NOT_AVAILABLE`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         {
