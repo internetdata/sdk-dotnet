@@ -273,7 +273,8 @@ public sealed class OauthApi
     /// </summary>
     /// <remarks>
     /// <para>Waits <see cref="DeviceAuthorization.Interval"/> seconds before every poll, the first
-    /// included, and five more for the rest of the call after each <c>slow_down</c>. Ends with
+    /// included, and five more for the rest of the call after each <c>slow_down</c>, but never past
+    /// <see cref="DeviceAuthorization.ExpiresIn"/>: a wait that would end later ends then. Ends with
     /// <see cref="OauthAccessDeniedException"/> when the person refuses, and with
     /// <see cref="OauthExpiredTokenException"/> when the code expires; one raised without a status
     /// means the code's lifetime, counted from this call, ran out locally.</para>
@@ -294,8 +295,12 @@ public sealed class OauthApi
         while (true)
         {
             // Slept AFTER each answer rather than on a ticker: every poll restarts the server's own
-            // five second clock, early or not.
-            await Sleep(interval, cancellationToken).ConfigureAwait(false);
+            // five second clock, early or not. Never past the deadline: an interval that would end
+            // after it, served that way or widened by slow_down, sleeps only the time left, and the
+            // local expiry follows with no request sent.
+            var left = deadline - Now();
+            await SleepFor(interval < left ? interval : left > TimeSpan.Zero ? left : TimeSpan.Zero, cancellationToken)
+                .ConfigureAwait(false);
             if (Now() >= deadline)
             {
                 throw new OauthExpiredTokenException(null, null);
@@ -313,6 +318,18 @@ public sealed class OauthApi
                 interval += TimeSpan.FromSeconds(5);
             }
         }
+    }
+
+    // Task.Delay refuses a wait past about 49.7 days, and an expires_in near the top of an int asks
+    // for decades, so a wait that long is slept in parts.
+    private async Task SleepFor(TimeSpan wait, CancellationToken cancellationToken)
+    {
+        while (wait > Wire.LongestWait)
+        {
+            await Sleep(Wire.LongestWait, cancellationToken).ConfigureAwait(false);
+            wait -= Wire.LongestWait;
+        }
+        await Sleep(wait, cancellationToken).ConfigureAwait(false);
     }
 
     private Task<TokenResponse> ExchangeAsync(

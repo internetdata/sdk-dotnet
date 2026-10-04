@@ -12,7 +12,8 @@ internal static class Wire
 
     /// <summary>
     /// The longest wait this library takes: <c>HttpClient.Timeout</c>'s own ceiling, which
-    /// <c>RequestTimeout</c> shares, and the longest <c>Retry-After</c> a retry waits out.
+    /// <c>RequestTimeout</c> shares, the longest <c>Retry-After</c> a retry waits out, and the
+    /// longest part of an OAuth poll's sleep.
     /// </summary>
     internal static readonly TimeSpan LongestWait = TimeSpan.FromMilliseconds(int.MaxValue);
 
