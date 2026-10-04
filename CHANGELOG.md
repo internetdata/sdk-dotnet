@@ -2,6 +2,13 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.1.1 are described by their release commits.
 
+## 2.3.2 - 2026-10-04
+
+### Fixes
+
+- End the poll's sleep at its deadline, in parts past Task.Delay's ceiling ([`d5b6b8c`](https://github.com/internetdata/sdk-dotnet/commit/d5b6b8cec5903f352b7988dcc79ef6c6c3145f28))
+- Re-pin the spec to 2026.10.03: metadata needs no license ([`d9e8029`](https://github.com/internetdata/sdk-dotnet/commit/d9e8029531e40a571f7b5c76d77d99189cc5e4bf))
+
 ## 2.3.1 - 2026-10-01
 
 ### Fixes
