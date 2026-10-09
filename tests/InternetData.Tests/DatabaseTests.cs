@@ -16,7 +16,7 @@ public class DatabaseTests
     {
         ["/api/v2/database/list"] = new Route("""
             {"databases":[{"base":"bogon_ip","name":"Bogon IP","summary":"Reserved address space",
-            "standing":"licensed","license_type":"standard","starts":"2026-01-01T00:00:00Z",
+            "standing":"licensed","open":true,"license_type":"standard","starts":"2026-01-01T00:00:00Z",
             "expires":null,"renews_at":null,"notice_due_at":null,"versions":[{"id":"bogon_ip_v1","version":1,"summary":"v1",
             "formats":["csvgz","mmdb"]}]}]}
             """),
@@ -25,7 +25,7 @@ public class DatabaseTests
             "checksums":{"md5":"m","sha1":"s1","sha256":"s256","sha512":"s512"}}
             """),
         ["/api/v2/database/downloads"] = new Route("""
-            {"downloads":[{"dataset_id":"bogon_ip_v1","format":"csvgz","outcome":"ok","sample":true,"bytes":760,
+            {"downloads":[{"dataset_id":"bogon_ip_v1","format":"csvgz","outcome":"ok","sample":true,"open":true,"bytes":760,
             "http_status":302,"apikey_id":"ak_1","client_ip":"203.0.113.7","user_agent":"curl/8",
             "created":"2026-09-04T10:00:00Z"}]}
             """),
@@ -55,6 +55,8 @@ public class DatabaseTests
         Assert.Equal("bogon_ip", family.Base);
         Assert.Equal("Bogon IP", family.Name);
         Assert.Equal(Standing.Licensed, family.Standing);
+        // Open whatever its standing, which stays the organization's own license.
+        Assert.True(family.Open);
         Assert.Equal(DatabaseLicense_type.Standard, family.LicenseType);
         // A license with no end date is null, not a zero instant.
         Assert.Null(family.Expires);
@@ -69,6 +71,7 @@ public class DatabaseTests
         Assert.Equal("bogon_ip_v1", attempt.DatasetId);
         Assert.Equal(DownloadOutcome.Ok, attempt.Outcome);
         Assert.True(attempt.Sample);
+        Assert.True(attempt.Open);
         Assert.Equal(760, attempt.Bytes);
         Assert.Equal(302, attempt.HttpStatus);
         Assert.Equal("ak_1", attempt.ApikeyId);

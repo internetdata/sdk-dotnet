@@ -81,6 +81,7 @@ namespace InternetData
         /// The whole published catalog, with your organization's license beside
         /// <br/>each entry, so `standing` says whether a database is yours today
         /// <br/>(`licensed`), was (`expired`), or has never been bought (`unlicensed`).
+        /// <br/>An `open` database downloads whatever its `standing`.
         /// </remarks>
         /// <returns>OK</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
@@ -97,6 +98,7 @@ namespace InternetData
         /// The whole published catalog, with your organization's license beside
         /// <br/>each entry, so `standing` says whether a database is yours today
         /// <br/>(`licensed`), was (`expired`), or has never been bought (`unlicensed`).
+        /// <br/>An `open` database downloads whatever its `standing`.
         /// </remarks>
         /// <returns>OK</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
@@ -285,7 +287,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<Error>("Your organization holds no license for this database, or its term has\nended.\n`rc`: `NOT_LICENSED`, `LICENSE_EXPIRED`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<Error>("Your organization holds no license for this database, or its term has\nended. Never for an Open database.\n`rc`: `NOT_LICENSED`, `LICENSE_EXPIRED`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 404)
@@ -584,7 +586,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<Error>("Your organization holds no license for this database, or its term has\nended.\n`rc`: `NOT_LICENSED`, `LICENSE_EXPIRED`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<Error>("Your organization holds no license for this database, or its term has\nended. Never for an Open database.\n`rc`: `NOT_LICENSED`, `LICENSE_EXPIRED`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 404)
@@ -3029,7 +3031,8 @@ namespace InternetData
     /// <summary>
     /// Where your license for a database family stands today. `licensed` is a
     /// <br/>live grant, `expired` one whose term has ended, and `unlicensed` a
-    /// <br/>database published but never bought.
+    /// <br/>database published but never bought. An Open database (`open`)
+    /// <br/>downloads whatever this says.
     /// <br/>
     /// </summary>
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
@@ -3075,6 +3078,17 @@ namespace InternetData
         [System.Text.Json.Serialization.JsonPropertyName("standing")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<Standing>))]
         public Standing Standing { get; set; } = default!;
+
+        /// <summary>
+        /// An Open database: any organization downloads it, and fetches its
+        /// <br/>checksums, with no license, under CC BY-SA 4.0 (credit
+        /// <br/>InternetData, https://internetdata.io, and share what you build
+        /// <br/>from it under the same license). `standing` still reports your
+        /// <br/>own license, which grants more where you hold one.
+        /// <br/>
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("open")]
+        public bool Open { get; set; } = default!;
 
         /// <summary>
         /// What your license permits you to do with the data. Null when there
@@ -3191,6 +3205,15 @@ namespace InternetData
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("sample")]
         public bool Sample { get; set; } = default!;
+
+        /// <summary>
+        /// Taken under the Open license rather than one of your licenses: an
+        /// <br/>Open database downloaded while your organization held no license
+        /// <br/>in term for it.
+        /// <br/>
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("open")]
+        public bool Open { get; set; } = default!;
 
         /// <summary>
         /// Object size at redirect time, NOT bytes delivered: the transfer is a

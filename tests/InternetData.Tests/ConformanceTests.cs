@@ -101,7 +101,7 @@ public class ConformanceTests
         foreach (var standing in wire)
         {
             var family = Assert.Single(await Listed($$"""
-                {"base":"bogon_ip","name":"Bogon IP","summary":"s","standing":"{{standing}}",
+                {"base":"bogon_ip","name":"Bogon IP","summary":"s","standing":"{{standing}}","open":false,
                 "license_type":null,"starts":null,"expires":null,"renews_at":null,"notice_due_at":null,"versions":[]}
                 """));
             Assert.Equal(standing, family.Standing.ToString().ToLowerInvariant());
@@ -226,7 +226,7 @@ public class ConformanceTests
     private static string Family(
         string name = "bogon_ip", string license_type = "null", string versions = "[]")
         => $$"""
-            {"base":"{{name}}","name":"Bogon IP","summary":"s","standing":"licensed",
+            {"base":"{{name}}","name":"Bogon IP","summary":"s","standing":"licensed","open":false,
             "license_type":{{license_type}},"starts":null,"expires":null,"renews_at":null,"notice_due_at":null,"versions":{{versions}}}
             """;
 
