@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.1.1 are described by their release commits.
 
+## 2.4.1 - 2026-10-10
+
+### Fixes
+
+- Re-pin the spec to 2026.10.09: rotating a key needs apikeys.reveal ([`1f92821`](https://github.com/internetdata/sdk-dotnet/commit/1f9282149525338ad88911648cd30d172d1edf17))
+
 ## 2.4.0 - 2026-10-09
 
 ### Features
