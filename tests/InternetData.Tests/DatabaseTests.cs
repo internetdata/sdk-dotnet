@@ -119,6 +119,63 @@ public class DatabaseTests
         Assert.Equal(1, handler.Calls.Count);
     }
 
+    // A whitespace key passed IsNullOrEmpty and went out as `Bearer` and the blank, which reads as
+    // a wrong key rather than none. The blanks around a key, a file's newline among them, are no
+    // part of it.
+    [Theory]
+    [InlineData("   ", null)]
+    [InlineData("\t", null)]
+    [InlineData(" \r\n ", null)]
+    [InlineData(" abc123\r\n", "Bearer abc123")]
+    public async Task AKeyIsTrimmedAndABlankOneIsNoKey(string key, string? sent)
+    {
+        var handler = StubHandler.Paths(Bodies);
+        using var client = Stub.Client(handler, new InternetDataClientOptions { ApiKey = key });
+
+        await client.Database.MetadataAsync("bogon_ip_v1");
+
+        Assert.Equal(sent, Assert.Single(handler.Authorizations));
+    }
+
+    [Theory]
+    [InlineData("abc\u0001123")]
+    [InlineData("abc123\u007f")]
+    [InlineData("abc\t123")]
+    [InlineData("abc123\r\nX-Injected: 1")]
+    public void AKeyHoldingAControlCharacterIsRefusedWhereItIsSet(string key)
+    {
+        var refused = Assert.Throws<ArgumentException>(
+            () => new InternetDataClient(new InternetDataClientOptions { ApiKey = key }));
+        Assert.Contains("control character", refused.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("abc", refused.Message, StringComparison.Ordinal);
+    }
+
+    // Digits, or one of RFC 9110's three date forms in GMT. int.TryParse took `+1`, and
+    // DateTimeOffset.TryParse took `1.5` for a date and read a zone-less ISO time as local.
+    [Fact]
+    public void ARetryAfterIsDigitsOrAnHttpDateAndNothingElse()
+    {
+        var at = DateTimeOffset.UtcNow.AddSeconds(60);
+        var inv = System.Globalization.CultureInfo.InvariantCulture;
+        var imf = at.ToString("ddd, dd MMM yyyy HH:mm:ss", inv);
+        var asctime = at.ToString("ddd MMM ", inv) + at.Day.ToString(inv).PadLeft(2) + at.ToString(" HH:mm:ss yyyy", inv);
+        var next = at.Year + 1;
+        foreach (var value in new[] { "0", "120", " 7 ", imf + " GMT", at.ToString("dddd, dd-MMM-yy HH:mm:ss 'GMT'", inv), asctime })
+        {
+            Assert.True(Wire.ParseRetryAfter(value) is not null, $"'{value}' is a wait");
+        }
+        foreach (var value in new[] { imf + " +0000", imf + " +0500", imf + " PST", imf + " gmt",
+                     $"Xyz, 01 Jan {next} 08:49:37 GMT", $"Tue, 31 Nov {next} 08:49:37 GMT",
+                     $"Fri, 01 Jan {next} 25:00:00 GMT", $"{next}-01-01T08:49:37", "1.5", "+1", "-1", "0x10",
+                     "1_0", "1e3", "tomorrow" })
+        {
+            Assert.True(Wire.ParseRetryAfter(value) is null, $"'{value}' is no wait");
+        }
+        var wait = Wire.ParseRetryAfter(imf + " GMT")!.Value;
+        Assert.InRange(wait.TotalSeconds, 55, 60);
+        Assert.Equal(TimeSpan.Zero, Wire.ParseRetryAfter("Sun, 06 Nov 1994 08:49:37 GMT"));
+    }
+
     [Fact]
     public async Task TheKeyIsSentAsABearerTokenAndNeverInTheQuery()
     {

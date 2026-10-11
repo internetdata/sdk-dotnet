@@ -53,6 +53,23 @@ public sealed class InternetDataClient : IDisposable
     {
     }
 
+    // Trimmed, so a key read from a file loses its newline, and blanks alone are no key. A control
+    // character left inside would fail every call, or go out on the wire through a handler that
+    // passes it, so it is refused here, naming the cause and not the key.
+    private static string? ApiKeyOf(string? key)
+    {
+        var trimmed = key?.Trim();
+        if (string.IsNullOrEmpty(trimmed))
+        {
+            return null;
+        }
+        if (trimmed.Any(char.IsControl))
+        {
+            throw new ArgumentException("the API key holds a control character", nameof(InternetDataClientOptions.ApiKey));
+        }
+        return trimmed;
+    }
+
     private InternetDataClient(InternetDataClientOptions o, HttpClient? supplied)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(o.Retries, nameof(o.Retries));
@@ -78,7 +95,7 @@ public sealed class InternetDataClient : IDisposable
             requestTimeout = o.RequestTimeout;
         }
 
-        var wire = new WireClient(http) { BaseUrl = baseUrl, ApiKey = o.ApiKey };
+        var wire = new WireClient(http) { BaseUrl = baseUrl, ApiKey = ApiKeyOf(o.ApiKey) };
         this.Database = new DatabaseApi(wire, http, o.Retries, requestTimeout);
         this.Oauth = new OauthApi(http, baseUrl, o.Retries, requestTimeout);
     }
