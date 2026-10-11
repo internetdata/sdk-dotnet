@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.1.1 are described by their release commits.
 
+## 2.4.3 - 2026-10-11
+
+### Fixes
+
+- Retry a 200 the call cannot read, carrying its status ([`da22cf9`](https://github.com/internetdata/sdk-dotnet/commit/da22cf936b8eff477b5305816571052db7db6a76))
+
 ## 2.4.2 - 2026-10-11
 
 ### Fixes
