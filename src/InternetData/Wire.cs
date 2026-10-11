@@ -1,5 +1,7 @@
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 
 namespace InternetData;
 
@@ -16,6 +18,29 @@ internal static class Wire
     /// longest part of an OAuth poll's sleep.
     /// </summary>
     internal static readonly TimeSpan LongestWait = TimeSpan.FromMilliseconds(int.MaxValue);
+
+    // Retry-After is seconds as digits alone, or an HTTP date in one of RFC 9110's three forms,
+    // always GMT. int.TryParse alone reads `+1` as a second, and DateTimeOffset.TryParse takes `1.5`
+    // for a date and reads an ISO 8601 time in the machine's own zone.
+    private const string Month = "(?<month>Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)";
+    private const string Time = "(?<hour>[0-9]{2}):(?<minute>[0-9]{2}):(?<second>[0-9]{2})";
+    private const string Day = "(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)";
+
+    // Sun, 06 Nov 1994 08:49:37 GMT
+    private static readonly Regex ImfFixdate = new(
+        $"^{Day}, (?<day>[0-9]{{2}}) {Month} (?<year>[0-9]{{4}}) {Time} GMT$", RegexOptions.CultureInvariant);
+
+    // Sunday, 06-Nov-94 08:49:37 GMT
+    private static readonly Regex Rfc850 = new(
+        "^(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday), "
+        + $"(?<day>[0-9]{{2}})-{Month}-(?<year>[0-9]{{2}}) {Time} GMT$", RegexOptions.CultureInvariant);
+
+    // Sun Nov  6 08:49:37 1994
+    private static readonly Regex Asctime = new(
+        $"^{Day} {Month} (?<day>[ 0-9][0-9]) {Time} (?<year>[0-9]{{4}})$", RegexOptions.CultureInvariant);
+
+    private static readonly string[] Months =
+        { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
     /// <summary>
     /// Runs a generated call, retrying a transient failure up to <paramref name="retries"/> times.
@@ -209,7 +234,7 @@ internal static class Wire
                 break;
             }
         }
-        return Parse(value);
+        return ParseRetryAfter(value);
     }
 
     // The same header off a real response, where it is already parsed into its two forms. Object
@@ -232,23 +257,77 @@ internal static class Wire
         return null;
     }
 
-    private static TimeSpan? Parse(string? value)
+    /// <summary>
+    /// A <c>Retry-After</c> value as a wait, or null when it is in neither of its two forms, which
+    /// on a 429 reads as a spent allowance. Seconds past <see cref="int.MaxValue"/> are no wait
+    /// either.
+    /// </summary>
+    internal static TimeSpan? ParseRetryAfter(string? value)
     {
         if (string.IsNullOrWhiteSpace(value))
         {
             return null;
         }
-        if (int.TryParse(value.Trim(), out var seconds))
+        value = value.Trim();
+        // NumberStyles.None takes ASCII digits and nothing else: no sign, no point, no space.
+        if (int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var seconds))
         {
-            return seconds >= 0 ? TimeSpan.FromSeconds(seconds) : null;
+            return TimeSpan.FromSeconds(seconds);
         }
-        // The header also permits an HTTP date.
-        if (DateTimeOffset.TryParse(value.Trim(), out var when))
+        if (HttpDate(value) is not { } when)
         {
-            var wait = when - DateTimeOffset.UtcNow;
-            return wait > TimeSpan.Zero ? wait : TimeSpan.Zero;
+            return null;
         }
-        return null;
+        var wait = when - DateTimeOffset.UtcNow;
+        return wait > TimeSpan.Zero ? wait : TimeSpan.Zero;
+    }
+
+    // The instant an HTTP date names, or null when it is in none of the three forms or names no
+    // real time, such as 31 November. The day of the week is read but not checked against the date.
+    private static DateTimeOffset? HttpDate(string value)
+    {
+        int year;
+        var m = ImfFixdate.Match(value);
+        if (!m.Success)
+        {
+            m = Asctime.Match(value);
+        }
+        if (m.Success)
+        {
+            year = int.Parse(m.Groups["year"].Value, CultureInfo.InvariantCulture);
+        }
+        else if ((m = Rfc850.Match(value)).Success)
+        {
+            year = FullYear(int.Parse(m.Groups["year"].Value, CultureInfo.InvariantCulture));
+        }
+        else
+        {
+            return null;
+        }
+        try
+        {
+            return new DateTimeOffset(
+                year,
+                Array.IndexOf(Months, m.Groups["month"].Value) + 1,
+                int.Parse(m.Groups["day"].Value.Trim(), CultureInfo.InvariantCulture),
+                int.Parse(m.Groups["hour"].Value, CultureInfo.InvariantCulture),
+                int.Parse(m.Groups["minute"].Value, CultureInfo.InvariantCulture),
+                int.Parse(m.Groups["second"].Value, CultureInfo.InvariantCulture),
+                TimeSpan.Zero);
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            return null;
+        }
+    }
+
+    // RFC 850's two-digit year, read as RFC 9110 says: one that would land more than 50 years ahead
+    // is the most recent past year ending in those digits.
+    private static int FullYear(int twoDigits)
+    {
+        var now = DateTime.UtcNow.Year;
+        var year = now - (now % 100) + twoDigits;
+        return year > now + 50 ? year - 100 : year;
     }
 
     private static TimeSpan Backoff(int attempt)
@@ -287,7 +366,7 @@ internal partial class WireClient
 
     partial void PrepareRequest(HttpClient client, HttpRequestMessage request, string url)
     {
-        if (!string.IsNullOrEmpty(ApiKey))
+        if (!string.IsNullOrWhiteSpace(ApiKey))
         {
             request.Headers.TryAddWithoutValidation("Authorization", "Bearer " + ApiKey);
         }
