@@ -2,6 +2,13 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.1.1 are described by their release commits.
 
+## 2.4.2 - 2026-10-11
+
+### Fixes
+
+- Read Retry-After as digits or an RFC 9110 date in GMT ([`2cca22c`](https://github.com/internetdata/sdk-dotnet/commit/2cca22c00000688a14018301a144b0006c17cfb2))
+- Trim the API key, and refuse one holding a control character ([`857e676`](https://github.com/internetdata/sdk-dotnet/commit/857e6767d2217bc9e37c151b65f92ebf0b45e123))
+
 ## 2.4.1 - 2026-10-10
 
 ### Fixes
