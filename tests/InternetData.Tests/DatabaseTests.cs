@@ -176,6 +176,37 @@ public class DatabaseTests
         Assert.Equal(TimeSpan.Zero, Wire.ParseRetryAfter("Sun, 06 Nov 1994 08:49:37 GMT"));
     }
 
+    // The generated layer read an unreadable 200 as a 2xx it did not expect, which the status rule
+    // made BadRequest, sent once; a null member came back as the answer.
+    [Theory]
+    [InlineData("list", "<html>gateway</html>")]
+    [InlineData("list", "{\"databases\":")]
+    [InlineData("list", "")]
+    [InlineData("list", "null")]
+    [InlineData("list", "[]")]
+    [InlineData("list", "{\"databases\":null}")]
+    [InlineData("metadata", "{}")]
+    [InlineData("metadata", "<html>gateway</html>")]
+    [InlineData("checksums", "{\"checksums\":null}")]
+    [InlineData("downloads", "{\"downloads\":null}")]
+    public async Task A200TheCallCannotReadIsARetriedServerError(string call, string body)
+    {
+        var handler = StubHandler.Always(new Route(body));
+        using var client = Stub.Client(handler, new InternetDataClientOptions { Retries = 1 });
+
+        var failure = await Assert.ThrowsAsync<InternetDataException>(() => call switch
+        {
+            "list" => client.Database.ListAsync(),
+            "metadata" => client.Database.MetadataAsync("bogon_ip_v1"),
+            "checksums" => client.Database.ChecksumsAsync("bogon_ip_v1", DatabaseFormat.Mmdb),
+            _ => (Task)client.Database.DownloadsAsync(),
+        });
+
+        Assert.Equal(ErrorKind.ServerError, failure.Kind);
+        Assert.Equal(200, failure.StatusCode);
+        Assert.Equal(2, handler.Calls.Count);
+    }
+
     [Fact]
     public async Task TheKeyIsSentAsABearerTokenAndNeverInTheQuery()
     {

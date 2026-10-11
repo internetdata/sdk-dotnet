@@ -74,6 +74,12 @@ internal static class Wire
             {
                 failure = new InternetDataException(ErrorKind.Network, e.Message, null, null, e);
             }
+            catch (HttpIOException e)
+            {
+                // A body that ended short of its Content-Length, raised while the generated layer
+                // read it.
+                failure = new InternetDataException(ErrorKind.Network, e.Message, null, null, e);
+            }
             catch (Exception e) when (e is TimeoutException
                 || (e is OperationCanceledException && !cancellationToken.IsCancellationRequested))
             {
@@ -160,9 +166,19 @@ internal static class Wire
     internal static InternetDataException Translate(WireException e)
     {
         var retryAfter = RetryAfterOf(e.Headers);
-        return new InternetDataException(
-            KindOf(e.StatusCode, retryAfter), MessageOf(e), e.StatusCode, retryAfter, e);
+        // A 2xx reaches here only when the generated layer could not read it - a proxy's HTML page,
+        // a cut-off, empty or `null` body - which is the server's fault, retried like a 5xx.
+        var kind = e.StatusCode is >= 200 and < 300 ? ErrorKind.ServerError : KindOf(e.StatusCode, retryAfter);
+        return new InternetDataException(kind, MessageOf(e), e.StatusCode, retryAfter, e);
     }
+
+    /// <summary>
+    /// The member of a 200 a call returns. An answer without it is no answer at all: a retried
+    /// <see cref="ErrorKind.ServerError"/> carrying the status, never a null handed back.
+    /// </summary>
+    internal static T Member<T>(T? value, string name) where T : class
+        => value ?? throw new ClassifiedException(new InternetDataException(
+            ErrorKind.ServerError, "the API answered with no " + name, 200, null, null));
 
     /// <summary>
     /// What a status means, for the API and for object storage alike: both ends of a download run

@@ -48,7 +48,7 @@ public sealed class DatabaseApi
         => Wire.ExecuteAsync(
             retries,
             timeout,
-            async ct => (await wire.ListDatabasesAsync(ct).ConfigureAwait(false)).Databases,
+            async ct => Wire.Member((await wire.ListDatabasesAsync(ct).ConfigureAwait(false)).Databases, "databases"),
             cancellationToken);
 
     /// <summary>
@@ -64,7 +64,15 @@ public sealed class DatabaseApi
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
         return Wire.ExecuteAsync(
-            retries, timeout, ct => wire.DatabaseMetadataV2Async(id, ct), cancellationToken);
+            retries,
+            timeout,
+            async ct =>
+            {
+                var metadata = await wire.DatabaseMetadataV2Async(id, ct).ConfigureAwait(false);
+                Wire.Member(metadata.Id, "id");
+                return metadata;
+            },
+            cancellationToken);
     }
 
     /// <summary>
@@ -82,7 +90,8 @@ public sealed class DatabaseApi
         return Wire.ExecuteAsync(
             retries,
             timeout,
-            async ct => (await wire.DatabaseChecksumV2Async(id, format, ct).ConfigureAwait(false)).Checksums,
+            async ct => Wire.Member(
+                (await wire.DatabaseChecksumV2Async(id, format, ct).ConfigureAwait(false)).Checksums, "checksums"),
             cancellationToken);
     }
 
@@ -95,7 +104,7 @@ public sealed class DatabaseApi
         => Wire.ExecuteAsync(
             retries,
             timeout,
-            async ct => (await wire.ListDownloadsAsync(limit, ct).ConfigureAwait(false)).Downloads,
+            async ct => Wire.Member((await wire.ListDownloadsAsync(limit, ct).ConfigureAwait(false)).Downloads, "downloads"),
             cancellationToken);
 
     /// <summary>
