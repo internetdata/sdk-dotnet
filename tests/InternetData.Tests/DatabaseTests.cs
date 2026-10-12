@@ -177,7 +177,8 @@ public class DatabaseTests
     }
 
     // The generated layer read an unreadable 200 as a 2xx it did not expect, which the status rule
-    // made BadRequest, sent once; a null member came back as the answer.
+    // made BadRequest, sent once; a null member came back as the answer, and through 2.4.3 `{}`
+    // answered an empty list or empty checksums.
     [Theory]
     [InlineData("list", "<html>gateway</html>")]
     [InlineData("list", "{\"databases\":")]
@@ -189,6 +190,10 @@ public class DatabaseTests
     [InlineData("metadata", "<html>gateway</html>")]
     [InlineData("checksums", "{\"checksums\":null}")]
     [InlineData("downloads", "{\"downloads\":null}")]
+    [InlineData("list", "{}")]
+    [InlineData("downloads", "{}")]
+    [InlineData("checksums", "{}")]
+    [InlineData("checksums", "{\"id\":\"bogon_ip_v1\",\"format\":\"mmdb\"}")]
     public async Task A200TheCallCannotReadIsARetriedServerError(string call, string body)
     {
         var handler = StubHandler.Always(new Route(body));

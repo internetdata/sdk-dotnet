@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using System.Text.RegularExpressions;
 
 namespace InternetData;
@@ -377,8 +378,33 @@ internal partial class WireClient
     // which is every call to list. Registered for the one enum that appears in a list rather than
     // for all of them; scripts/normalize_generated.py refuses to emit a client where a SECOND enum
     // needs it.
+    //
+    // NSwag also starts every list and object member at an empty value, so `{}` from list,
+    // downloads or checksums answered an empty catalog, no downloads or empty checksums (2.4.3,
+    // measured 2026-10-11). The member each answer exists to carry is required on the wire
+    // instead, which a body without it fails as one this client cannot read.
     static partial void UpdateJsonSerializerSettings(JsonSerializerOptions settings)
-        => settings.Converters.Add(new JsonStringEnumConverter<DatabaseFormat>());
+    {
+        settings.Converters.Add(new JsonStringEnumConverter<DatabaseFormat>());
+        settings.TypeInfoResolver = new DefaultJsonTypeInfoResolver { Modifiers = { RequireAnswerMembers } };
+    }
+
+    private static readonly HashSet<string> AnswerMembers = ["databases", "downloads", "checksums"];
+
+    private static void RequireAnswerMembers(JsonTypeInfo info)
+    {
+        if (info.Kind != JsonTypeInfoKind.Object || info.Type.Assembly != typeof(WireClient).Assembly)
+        {
+            return;
+        }
+        foreach (var property in info.Properties)
+        {
+            if (AnswerMembers.Contains(property.Name))
+            {
+                property.IsRequired = true;
+            }
+        }
+    }
 
     partial void PrepareRequest(HttpClient client, HttpRequestMessage request, string url)
     {
