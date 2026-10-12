@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.1.1 are described by their release commits.
 
+## 2.4.4 - 2026-10-12
+
+### Fixes
+
+- Fail an empty object from list, downloads or checksums ([`33fee55`](https://github.com/internetdata/sdk-dotnet/commit/33fee5579c235c52fc25f268045a33704bd63f11))
+
 ## 2.4.3 - 2026-10-11
 
 ### Fixes
