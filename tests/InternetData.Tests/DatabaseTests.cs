@@ -55,7 +55,7 @@ public class DatabaseTests
         Assert.Equal("bogon_ip", family.Base);
         Assert.Equal("Bogon IP", family.Name);
         Assert.Equal(Standing.Licensed, family.Standing);
-        // Open whatever its standing, which stays the organization's own license.
+        // Open, with the organization's standard license reported like any other.
         Assert.True(family.Open);
         Assert.Equal(DatabaseLicense_type.Standard, family.LicenseType);
         // A license with no end date is null, not a zero instant.
