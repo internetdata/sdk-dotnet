@@ -139,8 +139,10 @@ public sealed class DatabaseApi
                 }
                 return location;
             }
-            throw new InternetDataException(
-                ErrorKind.ServerError, "expected a redirect to object storage", null, null, null);
+            // ProcessResponse refuses a 2xx from the link; anything else reaching here is no link
+            // either.
+            throw new ClassifiedException(new InternetDataException(
+                ErrorKind.ServerError, "expected a redirect to object storage", null, null, null));
         }, cancellationToken);
     }
 

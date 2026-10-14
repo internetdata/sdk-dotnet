@@ -1,7 +1,10 @@
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Text;
+using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 
 using Xunit;
 
@@ -194,23 +197,161 @@ public class DatabaseTests
     [InlineData("downloads", "{}")]
     [InlineData("checksums", "{}")]
     [InlineData("checksums", "{\"id\":\"bogon_ip_v1\",\"format\":\"mmdb\"}")]
+    // Through 2.4.5 an entry without its members came back as one of empty strings and zeros, a
+    // null entry as null, and the download link's 200 as a ServerError with no status, sent once.
+    [InlineData("list", "{\"databases\":[{}]}")]
+    [InlineData("list", "{\"databases\":[null]}")]
+    [InlineData("downloads", "{\"downloads\":[{}]}")]
+    [InlineData("downloads", "{\"downloads\":[null]}")]
+    [InlineData("checksums", "{\"id\":\"bogon_ip_v1\",\"format\":\"mmdb\",\"checksums\":{}}")]
+    [InlineData("metadata", "{\"id\":\"bogon_ip_v1\"}")]
+    [InlineData("downloadUrl", "<html>gateway</html>")]
+    [InlineData("downloadUrl", "")]
+    [InlineData("downloadUrl", "{}")]
     public async Task A200TheCallCannotReadIsARetriedServerError(string call, string body)
     {
         var handler = StubHandler.Always(new Route(body));
         using var client = Stub.Client(handler, new InternetDataClientOptions { Retries = 1 });
 
-        var failure = await Assert.ThrowsAsync<InternetDataException>(() => call switch
-        {
-            "list" => client.Database.ListAsync(),
-            "metadata" => client.Database.MetadataAsync("bogon_ip_v1"),
-            "checksums" => client.Database.ChecksumsAsync("bogon_ip_v1", DatabaseFormat.Mmdb),
-            _ => (Task)client.Database.DownloadsAsync(),
-        });
+        var failure = await Assert.ThrowsAsync<InternetDataException>(() => Call(client, call));
 
         Assert.Equal(ErrorKind.ServerError, failure.Kind);
         Assert.Equal(200, failure.StatusCode);
         Assert.Equal(2, handler.Calls.Count);
     }
+
+    // One member per case, left out and then sent as null, from an otherwise whole answer: a body
+    // missing several at once lets a decoder that defaults all but one of them pass.
+    public static TheoryData<string, string, string> RequiredMembers()
+    {
+        var data = new TheoryData<string, string, string>();
+        void Add(string call, string at, params string[] members)
+        {
+            foreach (var member in members)
+            {
+                data.Add(call, at, member);
+            }
+        }
+        Add("list", "databases.0", "base", "name", "summary", "standing", "open", "versions");
+        Add("list", "databases.0.versions.0", "id", "version", "summary", "formats");
+        Add("metadata", "", "id", "updated", "entries", "schema", "size");
+        Add("metadata", "schema.csvgz.0", "name", "type");
+        Add("checksums", "checksums", "md5", "sha1", "sha256", "sha512");
+        Add("downloads", "downloads.0", "dataset_id", "format", "outcome", "sample", "open", "created");
+        return data;
+    }
+
+    [Theory]
+    [MemberData(nameof(RequiredMembers))]
+    public async Task AnAnswerWithoutAMemberTheSpecRequiresIsARetriedServerError(string call, string at, string member)
+    {
+        var path = CallPaths[call];
+        var whole = StubHandler.Paths(Bodies);
+        using (var decodes = Stub.Client(whole))
+        {
+            await Call(decodes, call);
+        }
+
+        foreach (var drop in new[] { true, false })
+        {
+            var body = JsonNode.Parse(Bodies[path].Body)!;
+            var holder = at.Length == 0 ? body : at.Split('.').Aggregate(body, (node, step)
+                => int.TryParse(step, out var index) ? node[index]! : node[step]!);
+            if (drop)
+            {
+                Assert.True(holder.AsObject().Remove(member), $"{member} is not at {at}");
+            }
+            else
+            {
+                holder[member] = null;
+            }
+            var handler = StubHandler.Always(new Route(body.ToJsonString()));
+            using var client = Stub.Client(handler, new InternetDataClientOptions { Retries = 1 });
+
+            var failure = await Assert.ThrowsAsync<InternetDataException>(() => Call(client, call));
+
+            Assert.Equal(ErrorKind.ServerError, failure.Kind);
+            Assert.Equal(200, failure.StatusCode);
+            Assert.Equal(2, handler.Calls.Count);
+        }
+    }
+
+    // The table is the spec's `required` lists less what each marks nullable, and NSwag writes
+    // exactly those members as non-nullable properties, so a re-pin that adds one turns this red
+    // until the table has it. Every class an answer reaches must be in the table.
+    [Fact]
+    public void TheRequiredMembersAreTheGeneratedTypesNonNullableOnes()
+    {
+        var nullability = new NullabilityInfoContext();
+        var seen = new HashSet<Type>();
+        var pending = new Stack<Type>([typeof(Response), typeof(Response2), typeof(Response3), typeof(DatabaseMetadata)]);
+        while (pending.TryPop(out var type))
+        {
+            if (!seen.Add(type))
+            {
+                continue;
+            }
+            var members = new SortedSet<string>(StringComparer.Ordinal);
+            foreach (var property in type.GetProperties())
+            {
+                var name = property.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name;
+                if (name is null)
+                {
+                    continue;
+                }
+                var required = property.PropertyType.IsValueType
+                    ? Nullable.GetUnderlyingType(property.PropertyType) is null
+                    : nullability.Create(property).ReadState == NullabilityState.NotNull;
+                if (required)
+                {
+                    members.Add(name);
+                }
+                foreach (var reached in Reached(property.PropertyType))
+                {
+                    pending.Push(reached);
+                }
+            }
+            if (type.Name.StartsWith("Response", StringComparison.Ordinal))
+            {
+                continue;
+            }
+            Assert.True(WireClient.AnswerMembers.TryGetValue(type, out var table), $"{type.Name} is not in the table");
+            Assert.Equal(members, new SortedSet<string>(table, StringComparer.Ordinal));
+        }
+        Assert.Equal(WireClient.AnswerMembers.Count + 3, seen.Count);
+    }
+
+    private static IEnumerable<Type> Reached(Type type)
+    {
+        if (type.Assembly == typeof(InternetDataClient).Assembly && type.IsClass)
+        {
+            yield return type;
+        }
+        foreach (var argument in type.GetGenericArguments())
+        {
+            foreach (var reached in Reached(argument))
+            {
+                yield return reached;
+            }
+        }
+    }
+
+    private static readonly Dictionary<string, string> CallPaths = new()
+    {
+        ["list"] = "/api/v2/database/list",
+        ["metadata"] = "/api/v2/database/metadata",
+        ["checksums"] = "/api/v2/database/checksum",
+        ["downloads"] = "/api/v2/database/downloads",
+    };
+
+    private static Task Call(InternetDataClient client, string call) => call switch
+    {
+        "list" => client.Database.ListAsync(),
+        "metadata" => client.Database.MetadataAsync("bogon_ip_v1"),
+        "checksums" => client.Database.ChecksumsAsync("bogon_ip_v1", DatabaseFormat.Mmdb),
+        "downloads" => client.Database.DownloadsAsync(),
+        _ => client.Database.DownloadUrlAsync("bogon_ip_v1", DatabaseFormat.Mmdb),
+    };
 
     [Fact]
     public async Task TheKeyIsSentAsABearerTokenAndNeverInTheQuery()

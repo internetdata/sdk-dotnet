@@ -464,10 +464,12 @@ public sealed class OauthApi
         {
             // Reported below, with the status.
         }
-        throw new InternetDataException(
+        // Carried out of the attempt, so an operation that takes the client's retries retries it
+        // as it would a 5xx, while an exchange, which runs with none, fails at once.
+        throw new ClassifiedException(new InternetDataException(
             ErrorKind.ServerError,
             $"the authorization server answered {answer.Status} without a valid {typeof(T).Name}",
-            answer.Status);
+            answer.Status));
     }
 
     private readonly record struct Answer(int Status, string Body);

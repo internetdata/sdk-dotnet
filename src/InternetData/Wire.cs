@@ -379,17 +379,33 @@ internal partial class WireClient
     // for all of them; scripts/normalize_generated.py refuses to emit a client where a SECOND enum
     // needs it.
     //
-    // NSwag also starts every list and object member at an empty value, so `{}` from list,
-    // downloads or checksums answered an empty catalog, no downloads or empty checksums (2.4.3,
-    // measured 2026-10-11). The member each answer exists to carry is required on the wire
-    // instead, which a body without it fails as one this client cannot read.
+    // NSwag also starts every member at a default, so `{}` from list, downloads or checksums
+    // answered an empty catalog, no downloads or empty checksums (2.4.3, measured 2026-10-11), and
+    // an entry without its members one of empty strings, zeros and false (2.4.5, measured
+    // 2026-10-14). Every member the spec requires and never sends as null is required on the wire
+    // instead, and refused as null at any depth, which a body without one fails as an answer this
+    // client cannot read.
     static partial void UpdateJsonSerializerSettings(JsonSerializerOptions settings)
     {
         settings.Converters.Add(new JsonStringEnumConverter<DatabaseFormat>());
         settings.TypeInfoResolver = new DefaultJsonTypeInfoResolver { Modifiers = { RequireAnswerMembers } };
     }
 
-    private static readonly HashSet<string> AnswerMembers = ["databases", "downloads", "checksums"];
+    // By the generated type that carries them, from each schema's `required` list less the members
+    // it marks nullable; a test holds this to the generated types' own nullability. The three
+    // envelopes are matched by their one member, since NSwag names them Response, Response2 and
+    // Response3.
+    internal static readonly IReadOnlyDictionary<Type, string[]> AnswerMembers = new Dictionary<Type, string[]>
+    {
+        [typeof(Database)] = ["base", "name", "summary", "standing", "open", "versions"],
+        [typeof(DatabaseVersion)] = ["id", "version", "summary", "formats"],
+        [typeof(DatabaseMetadata)] = ["id", "updated", "entries", "schema", "size"],
+        [typeof(DatabaseMetadataColumn)] = ["name", "type"],
+        [typeof(DatabaseChecksums)] = ["md5", "sha1", "sha256", "sha512"],
+        [typeof(Download)] = ["dataset_id", "format", "outcome", "sample", "open", "created"],
+    };
+
+    internal static readonly HashSet<string> EnvelopeMembers = ["databases", "downloads", "checksums"];
 
     private static void RequireAnswerMembers(JsonTypeInfo info)
     {
@@ -397,13 +413,43 @@ internal partial class WireClient
         {
             return;
         }
+        var members = AnswerMembers.TryGetValue(info.Type, out var named) ? named : [];
         foreach (var property in info.Properties)
         {
-            if (AnswerMembers.Contains(property.Name))
+            if (members.Contains(property.Name) || EnvelopeMembers.Contains(property.Name))
             {
                 property.IsRequired = true;
+                if (property.Set is { } set && !property.PropertyType.IsValueType)
+                {
+                    var name = property.Name;
+                    property.Set = (target, value) => set(target, NotNull(value, name));
+                }
             }
         }
+    }
+
+    // IsRequired asks only that a member be there, and System.Text.Json sets a null into a
+    // reference-typed member, or into a list or map, without a word.
+    private static object NotNull(object? value, string name)
+    {
+        switch (value)
+        {
+            case null:
+                throw new JsonException($"`{name}` is null, or holds a null");
+            case System.Collections.IDictionary map:
+                foreach (var entry in map.Values)
+                {
+                    NotNull(entry, name);
+                }
+                break;
+            case System.Collections.IEnumerable list and not string:
+                foreach (var entry in list)
+                {
+                    NotNull(entry, name);
+                }
+                break;
+        }
+        return value;
     }
 
     partial void PrepareRequest(HttpClient client, HttpRequestMessage request, string url)
@@ -436,6 +482,15 @@ internal partial class WireClient
                 $"the API redirected to {final.Authority} and the HttpClient followed it; "
                 + "set AllowAutoRedirect = false on its handler so a database download returns a "
                 + "link instead of gigabytes of data");
+        }
+        // The download link answers 302 and nothing else, so a 2xx from it is no link: the
+        // server's fault, retried with its status like any answer this client cannot read. The
+        // generated call returns on a 200 or a 204 alone, so the status is known only here.
+        if (final.AbsolutePath.EndsWith("/api/v2/database/download", StringComparison.Ordinal))
+        {
+            throw new WireException(
+                "expected a redirect to object storage", (int)response.StatusCode, null,
+                new Dictionary<string, IEnumerable<string>>(), null);
         }
     }
 

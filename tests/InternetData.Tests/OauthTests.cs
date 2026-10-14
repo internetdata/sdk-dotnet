@@ -166,6 +166,27 @@ public class OauthTests
         Assert.Equal(200, error.StatusCode);
     }
 
+    // Discovery and device authorization take the client's retries, so a 2xx they cannot read is
+    // retried like a 5xx. Through 2.4.5 it escaped the attempt unretried, sent once.
+    [Theory]
+    [InlineData("metadata", "<html>")]
+    [InlineData("metadata", "{}")]
+    [InlineData("deviceAuthorization", "<html>")]
+    [InlineData("deviceAuthorization", "null")]
+    public async Task A2xxARetriedOperationCannotReadIsRetried(string operation, string body)
+    {
+        var args = JsonDocument.Parse("""{"clientId":"internetdata-cli","deviceCode":"mo_dc_x"}""").RootElement;
+        var stub = new OauthStub(new Reply(200, body));
+        using var client = Client(stub, retries: 2);
+
+        var error = await Failure(() => Call(client, operation, args), stub);
+
+        Assert.Equal(3, stub.Requests.Count);
+        Assert.False(error is OauthException, $"a malformed 2xx surfaced as {error.GetType().Name}");
+        Assert.Equal(ErrorKind.ServerError, error.Kind);
+        Assert.Equal(200, error.StatusCode);
+    }
+
     // No corpus case: every response there decodes. One member left out per case, since a body
     // missing two at once let a defaulting decoder survive elsewhere.
     [Theory]
