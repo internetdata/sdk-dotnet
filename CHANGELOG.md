@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.1.1 are described by their release commits.
 
+## 2.4.6 - 2026-10-14
+
+### Fixes
+
+- Retry an entry missing a member, the link's 200 and an OAuth 2xx ([`201c446`](https://github.com/internetdata/sdk-dotnet/commit/201c446ba6598db5c9dcfb08716b66c9a1ca2d2e))
+
 ## 2.4.5 - 2026-10-13
 
 ### Fixes
