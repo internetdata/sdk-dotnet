@@ -145,11 +145,16 @@ public class DatabaseTests
     [InlineData("abc123\u007f")]
     [InlineData("abc\t123")]
     [InlineData("abc123\r\nX-Injected: 1")]
-    public void AKeyHoldingAControlCharacterIsRefusedWhereItIsSet(string key)
+    [InlineData("abc\u0085123")]
+    // Accepted through 2.4.7, and every call failed as a retried Network error with nothing sent:
+    // SocketsHttpHandler sends a header value as ASCII alone.
+    [InlineData("abc\u00e9123")]
+    [InlineData("abc\u4e2d123")]
+    public void AKeyHoldingAControlCharacterOrOneOutsideAsciiIsRefusedWhereItIsSet(string key)
     {
         var refused = Assert.Throws<ArgumentException>(
             () => new InternetDataClient(new InternetDataClientOptions { ApiKey = key }));
-        Assert.Contains("control character", refused.Message, StringComparison.Ordinal);
+        Assert.Contains("control character or one outside ASCII", refused.Message, StringComparison.Ordinal);
         Assert.DoesNotContain("abc", refused.Message, StringComparison.Ordinal);
     }
 

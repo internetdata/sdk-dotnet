@@ -55,7 +55,9 @@ public sealed class InternetDataClient : IDisposable
 
     // Trimmed, so a key read from a file loses its newline, and blanks alone are no key. A control
     // character left inside would fail every call, or go out on the wire through a handler that
-    // passes it, so it is refused here, naming the cause and not the key.
+    // passes it, and SocketsHttpHandler sends a header value as ASCII alone, so a key holding `é`
+    // failed every call as a retried Network error with nothing sent (2.4.7, measured 2026-10-16).
+    // Either is refused here, naming the cause and not the key.
     private static string? ApiKeyOf(string? key)
     {
         var trimmed = key?.Trim();
@@ -63,9 +65,10 @@ public sealed class InternetDataClient : IDisposable
         {
             return null;
         }
-        if (trimmed.Any(char.IsControl))
+        if (trimmed.Any(c => c < '\u0020' || c >= '\u007f'))
         {
-            throw new ArgumentException("the API key holds a control character", nameof(InternetDataClientOptions.ApiKey));
+            throw new ArgumentException(
+                "the API key holds a control character or one outside ASCII", nameof(InternetDataClientOptions.ApiKey));
         }
         return trimmed;
     }
