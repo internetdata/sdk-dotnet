@@ -1427,7 +1427,7 @@ namespace InternetData
         /// </summary>
         /// <remarks>
         /// Read-only. Adding or removing a member is an invitation flow with email
-        /// <br/>in the middle rather than a POST, and modelling it as one here would
+        /// <br/>in the middle rather than a POST, and modeling it as one here would
         /// <br/>promise something this API does not do.
         /// </remarks>
         /// <returns>The members.</returns>
@@ -1443,7 +1443,7 @@ namespace InternetData
         /// </summary>
         /// <remarks>
         /// Read-only. Adding or removing a member is an invitation flow with email
-        /// <br/>in the middle rather than a POST, and modelling it as one here would
+        /// <br/>in the middle rather than a POST, and modeling it as one here would
         /// <br/>promise something this API does not do.
         /// </remarks>
         /// <returns>The members.</returns>
@@ -3729,7 +3729,7 @@ namespace InternetData
         public string Name { get; set; } = default!;
 
         /// <summary>
-        /// The leading, non-secret part, so a key is recognisable without storing it.
+        /// The leading, non-secret part, so a key is recognizable without storing it.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("key_prefix")]
         public string KeyPrefix { get; set; } = default!;
@@ -3777,7 +3777,7 @@ namespace InternetData
     {
 
         /// <summary>
-        /// A label you will recognise later. Shown wherever the key is listed.
+        /// A label you will recognize later. Shown wherever the key is listed.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("name")]
         public string Name { get; set; } = default!;
