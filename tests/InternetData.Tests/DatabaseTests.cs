@@ -119,7 +119,7 @@ public class DatabaseTests
         var url = await client.Database.DownloadUrlAsync("bogon_ip_v1", DatabaseFormat.Csvgz);
 
         Assert.Equal("https://s3.example.test/bogon_ip_v1.csv.gz?sig=abc", url);
-        Assert.Equal(1, handler.Calls.Count);
+        Assert.Single(handler.Calls);
     }
 
     // A whitespace key passed IsNullOrEmpty and went out as `Bearer` and the blank, which reads as
@@ -593,7 +593,7 @@ public class DatabaseTests
         Assert.Equal(403, error.StatusCode);
         Assert.Equal("NOT_LICENSED", error.Message);
         Assert.False(error.Retryable);
-        Assert.Equal(1, handler.Calls.Count);
+        Assert.Single(handler.Calls);
         Assert.False(File.Exists(path + ".part"), "a refused download still created a file");
     }
 

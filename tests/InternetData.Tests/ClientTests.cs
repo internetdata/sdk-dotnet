@@ -44,7 +44,7 @@ public class ClientTests
         await Assert.ThrowsAsync<InternetDataException>(() => bare.Database.ListAsync());
 
         Assert.Equal(3, byDefault.Calls.Count);
-        Assert.Equal(1, none.Calls.Count);
+        Assert.Single(none.Calls);
     }
 
     [Fact]

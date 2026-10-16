@@ -58,7 +58,7 @@ public class ConformanceTests
 
             await Assert.ThrowsAsync<InternetDataException>(() => client.Database.MetadataAsync("bogon_ip_v1"));
 
-            Assert.Equal(1, handler.Calls.Count);
+            Assert.Single(handler.Calls);
         }
     }
 
