@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.1.1 are described by their release commits.
 
+## 2.4.8 - 2026-10-16
+
+### Fixes
+
+- Refuse an API key holding a character outside ASCII where it is set ([`db83014`](https://github.com/internetdata/sdk-dotnet/commit/db83014b4572e56ef69f3cbf31a6936ebb8854b2))
+
 ## 2.4.7 - 2026-10-16
 
 ### Fixes
