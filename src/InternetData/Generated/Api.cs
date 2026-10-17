@@ -2430,6 +2430,149 @@ namespace InternetData
         }
 
         /// <summary>
+        /// Register
+        /// </summary>
+        /// <remarks>
+        /// RFC 7591 dynamic client registration, for a client that cannot use a
+        /// <br/>Client ID Metadata Document. Post your client's metadata as JSON, then
+        /// <br/>use the `client_id` in the answer at `/oauth/authorize` and
+        /// <br/>`/oauth/token`. Nothing is kept until a person approves your client, so
+        /// <br/>registering again costs nothing and leaves nothing to clean up.
+        /// <br/>
+        /// <br/>Each redirect URI must be https on a public host name, or http on a
+        /// <br/>loopback address (`127.0.0.1`, `[::1]`, `localhost`), which then
+        /// <br/>matches on any port. A custom URI scheme is refused: use a loopback
+        /// <br/>redirect instead. So is a host on one of our own domains.
+        /// <br/>
+        /// <br/>`client_name` is shown to the person as your client's own claim, with
+        /// <br/>where its redirect goes beside it. A name that renders blank, or mixes
+        /// <br/>Latin letters with Cyrillic or Greek ones, is shown as an unnamed
+        /// <br/>application.
+        /// <br/>
+        /// <br/>The client is public whatever you ask for: `token_endpoint_auth_method`
+        /// <br/>comes back `none`, there is no client secret, and every authorization
+        /// <br/>proves itself with PKCE. It may be granted `apikeys.use` at most.
+        /// </remarks>
+        /// <returns>The client, as registered.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task<ClientRegistration> OauthRegisterAsync(ClientRegistrationRequest body)
+        {
+            return OauthRegisterAsync(body, System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Register
+        /// </summary>
+        /// <remarks>
+        /// RFC 7591 dynamic client registration, for a client that cannot use a
+        /// <br/>Client ID Metadata Document. Post your client's metadata as JSON, then
+        /// <br/>use the `client_id` in the answer at `/oauth/authorize` and
+        /// <br/>`/oauth/token`. Nothing is kept until a person approves your client, so
+        /// <br/>registering again costs nothing and leaves nothing to clean up.
+        /// <br/>
+        /// <br/>Each redirect URI must be https on a public host name, or http on a
+        /// <br/>loopback address (`127.0.0.1`, `[::1]`, `localhost`), which then
+        /// <br/>matches on any port. A custom URI scheme is refused: use a loopback
+        /// <br/>redirect instead. So is a host on one of our own domains.
+        /// <br/>
+        /// <br/>`client_name` is shown to the person as your client's own claim, with
+        /// <br/>where its redirect goes beside it. A name that renders blank, or mixes
+        /// <br/>Latin letters with Cyrillic or Greek ones, is shown as an unnamed
+        /// <br/>application.
+        /// <br/>
+        /// <br/>The client is public whatever you ask for: `token_endpoint_auth_method`
+        /// <br/>comes back `none`, there is no client secret, and every authorization
+        /// <br/>proves itself with PKCE. It may be granted `apikeys.use` at most.
+        /// </remarks>
+        /// <returns>The client, as registered.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<ClientRegistration> OauthRegisterAsync(ClientRegistrationRequest body, System.Threading.CancellationToken cancellationToken)
+        {
+            if (body == null)
+                throw new System.ArgumentNullException("body");
+
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    var json_ = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(body, JsonSerializerSettings);
+                    var content_ = new System.Net.Http.ByteArrayContent(json_);
+                    content_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
+                    request_.Content = content_;
+                    request_.Method = new System.Net.Http.HttpMethod("POST");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "oauth/register"
+                    urlBuilder_.Append("oauth/register");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 201)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<ClientRegistration>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        if (status_ == 400)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<OauthError>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<OauthError>("`invalid_redirect_uri` names the redirect URI refused and why, and\n`invalid_client_metadata` anything else, such as a client that\ndoes not use the authorization code flow. `slow_down` means this\naddress registered too many clients in the last minute.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new WireException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <summary>
         /// Authorize
         /// </summary>
         /// <remarks>
@@ -2442,13 +2585,18 @@ namespace InternetData
         /// <br/>with `token_endpoint_auth_method` `none` and your `redirect_uris`. An
         /// <br/>https redirect URI must be on the same origin as the `client_id`; a
         /// <br/>loopback one (`http://127.0.0.1`, `http://[::1]`, `http://localhost`)
-        /// <br/>matches on any port. Such a client is granted `apikeys.use` at most.
+        /// <br/>matches on any port. Such a client is granted `apikeys.use` at most. A
+        /// <br/>client registered at `/oauth/register` uses the `client_id` it was
+        /// <br/>given and one of the `redirect_uris` it registered.
         /// <br/>
         /// <br/>An unknown `client_id` or an unregistered `redirect_uri` is shown to the
-        /// <br/>USER and never redirected, because sending an error to an address we
-        /// <br/>have not verified belongs to you is how an open redirector works.
-        /// <br/>Everything else comes back to your `redirect_uri` with `error`, your
-        /// <br/>`state`, and `iss`.
+        /// <br/>person and never redirected, because sending an error to an address we
+        /// <br/>have not verified belongs to you is how an open redirector works. Any
+        /// <br/>other error in the request is shown to the person too: anyone can make a
+        /// <br/>client, so its `redirect_uri` is verified only as its own (RFC 9700
+        /// <br/>section 4.11.2). Only the person's answer comes back to your
+        /// <br/>`redirect_uri`: a `code`, or `error` `access_denied`, each with your
+        /// <br/>`state` and `iss`.
         /// </remarks>
         /// <param name="code_challenge_method">S256, named explicitly. `plain`, or no method at all, is refused rather than downgraded.</param>
         /// <param name="state">Returned unchanged. Use it to bind the response to your request.</param>
@@ -2476,13 +2624,18 @@ namespace InternetData
         /// <br/>with `token_endpoint_auth_method` `none` and your `redirect_uris`. An
         /// <br/>https redirect URI must be on the same origin as the `client_id`; a
         /// <br/>loopback one (`http://127.0.0.1`, `http://[::1]`, `http://localhost`)
-        /// <br/>matches on any port. Such a client is granted `apikeys.use` at most.
+        /// <br/>matches on any port. Such a client is granted `apikeys.use` at most. A
+        /// <br/>client registered at `/oauth/register` uses the `client_id` it was
+        /// <br/>given and one of the `redirect_uris` it registered.
         /// <br/>
         /// <br/>An unknown `client_id` or an unregistered `redirect_uri` is shown to the
-        /// <br/>USER and never redirected, because sending an error to an address we
-        /// <br/>have not verified belongs to you is how an open redirector works.
-        /// <br/>Everything else comes back to your `redirect_uri` with `error`, your
-        /// <br/>`state`, and `iss`.
+        /// <br/>person and never redirected, because sending an error to an address we
+        /// <br/>have not verified belongs to you is how an open redirector works. Any
+        /// <br/>other error in the request is shown to the person too: anyone can make a
+        /// <br/>client, so its `redirect_uri` is verified only as its own (RFC 9700
+        /// <br/>section 4.11.2). Only the person's answer comes back to your
+        /// <br/>`redirect_uri`: a `code`, or `error` `access_denied`, each with your
+        /// <br/>`state` and `iss`.
         /// </remarks>
         /// <param name="code_challenge_method">S256, named explicitly. `plain`, or no method at all, is refused rather than downgraded.</param>
         /// <param name="state">Returned unchanged. Use it to bind the response to your request.</param>
@@ -2566,13 +2719,13 @@ namespace InternetData
                         if (status_ == 302)
                         {
                             string responseText_ = ( response_.Content == null ) ? string.Empty : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
-                            throw new WireException("A redirect to the consent screen, or back to your redirect_uri with an error.", status_, responseText_, headers_, null);
+                            throw new WireException("A redirect to the consent screen.", status_, responseText_, headers_, null);
                         }
                         else
                         if (status_ == 400)
                         {
                             string responseText_ = ( response_.Content == null ) ? string.Empty : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
-                            throw new WireException("Shown to the user. An unverified redirect target is never sent an error.", status_, responseText_, headers_, null);
+                            throw new WireException("Shown to the person. No error in the request is sent to your redirect_uri.", status_, responseText_, headers_, null);
                         }
                         else
                         if (status_ == 429)
@@ -3900,6 +4053,12 @@ namespace InternetData
         public bool? ClientIdMetadataDocumentSupported { get; set; } = default!;
 
         /// <summary>
+        /// RFC 7591 dynamic client registration, for a client that cannot serve its own metadata.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("registration_endpoint")]
+        public string? RegistrationEndpoint { get; set; } = default!;
+
+        /// <summary>
         /// Always `none`. Every client is public and has no secret.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("token_endpoint_auth_methods_supported")]
@@ -4107,7 +4266,8 @@ namespace InternetData
 
         /// <summary>
         /// Not part of OAuth, and only for our own clients: a client that signed
-        /// <br/>in with a Client ID Metadata Document never receives a key. The API
+        /// <br/>in with a Client ID Metadata Document or registered itself never
+        /// <br/>receives a key. The API
         /// <br/>key itself, so a device ends up holding an ordinary key. Returned by
         /// <br/>the device code and authorization code grants only, never by a
         /// <br/>refresh, and only alongside
@@ -4118,6 +4278,105 @@ namespace InternetData
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("mslm:apikey")]
         public string? Apikey { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ClientRegistrationRequest
+    {
+
+        /// <summary>
+        /// One to ten, each matched exactly, apart from a loopback one's port.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("redirect_uris")]
+        public System.Collections.Generic.IReadOnlyList<string> RedirectUris { get; set; } = new System.Collections.Generic.List<string>();
+
+        /// <summary>
+        /// Shown to the person as your client's own claim, marked unverified, beside where its redirect goes.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("client_name")]
+        public string? ClientName { get; set; } = default!;
+
+        /// <summary>
+        /// Must include `authorization_code` when given.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("grant_types")]
+        public System.Collections.Generic.IReadOnlyList<string>? GrantTypes { get; set; } = default!;
+
+        /// <summary>
+        /// Must include `code` when given.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("response_types")]
+        public System.Collections.Generic.IReadOnlyList<string>? ResponseTypes { get; set; } = default!;
+
+        /// <summary>
+        /// Read as `none`, whatever is sent.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("token_endpoint_auth_method")]
+        public string? TokenEndpointAuthMethod { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ClientRegistration
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("client_id")]
+        public string ClientId { get; set; } = default!;
+
+        /// <summary>
+        /// Unix seconds.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("client_id_issued_at")]
+        public int ClientIdIssuedAt { get; set; } = default!;
+
+        /// <summary>
+        /// As the person will see it.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("client_name")]
+        public string ClientName { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("redirect_uris")]
+        public System.Collections.Generic.IReadOnlyList<string> RedirectUris { get; set; } = new System.Collections.Generic.List<string>();
+
+        /// <summary>
+        /// `authorization_code` and `refresh_token`.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("grant_types")]
+        public System.Collections.Generic.IReadOnlyList<string>? GrantTypes { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("response_types")]
+        public System.Collections.Generic.IReadOnlyList<string>? ResponseTypes { get; set; } = default!;
+
+        /// <summary>
+        /// Always `none`.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("token_endpoint_auth_method")]
+        public string TokenEndpointAuthMethod { get; set; } = default!;
+
+        /// <summary>
+        /// The most this client may be granted: `apikeys.use`.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("scope")]
+        public string? Scope { get; set; } = default!;
 
         private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
