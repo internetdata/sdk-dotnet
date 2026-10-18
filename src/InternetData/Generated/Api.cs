@@ -4343,10 +4343,10 @@ namespace InternetData
         public string ClientId { get; set; } = default!;
 
         /// <summary>
-        /// Unix seconds.
+        /// Unix seconds. 64-bit, since 32 bits run out on 2038-01-19.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("client_id_issued_at")]
-        public int ClientIdIssuedAt { get; set; } = default!;
+        public long ClientIdIssuedAt { get; set; } = default!;
 
         /// <summary>
         /// As the person will see it.
