@@ -2,6 +2,16 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.1.1 are described by their release commits.
 
+## 2.6.0 - 2026-10-18
+
+### Features
+
+- Add Oauth.RegisterAsync, dynamic client registration ([`4cde9b0`](https://github.com/internetdata/sdk-dotnet/commit/4cde9b00dc11ced0d59a60bf4e933693ae0e2754))
+
+### Fixes
+
+- Re-pin the spec to 2026.10.18: client_id_issued_at is int64 ([`4547996`](https://github.com/internetdata/sdk-dotnet/commit/454799645b283639dbfaa4215976864d83774d68))
+
 ## 2.5.0 - 2026-10-17
 
 ### Features
