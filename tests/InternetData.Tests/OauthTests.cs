@@ -534,18 +534,24 @@ public class OauthTests
     [Fact]
     public async Task RegisterRefusesAnEmptyValueBeforeSending()
     {
+        // Through Outcome, so a refusal that went missing fails within its bound rather than waiting
+        // on a stub that never answers.
         foreach (var c in Register.GetProperty("refusals").GetProperty("cases").EnumerateArray())
         {
             var stub = new OauthStub();
             using var client = Client(stub);
-            await Assert.ThrowsAsync<ArgumentException>(() => RegisterWith(client, c.GetProperty("args")));
+            var error = await Outcome(async () => await RegisterWith(client, c.GetProperty("args")), stub);
+            Assert.IsType<ArgumentException>(error);
             Assert.Empty(stub.Requests);
         }
         var unencodable = new OauthStub();
         using var other = Client(unencodable);
-        await Assert.ThrowsAsync<ArgumentException>(() => other.Oauth.RegisterAsync(new[] { "http://127.0.0.1/cb\ud800" }));
-        await Assert.ThrowsAsync<ArgumentException>(() => other.Oauth.RegisterAsync(
-            new[] { "http://127.0.0.1/cb" }, new RegisterOptions { ClientName = "Example \ud800" }));
+        Assert.IsType<ArgumentException>(await Outcome(
+            async () => await other.Oauth.RegisterAsync(new[] { "http://127.0.0.1/cb\ud800" }), unencodable));
+        Assert.IsType<ArgumentException>(await Outcome(
+            async () => await other.Oauth.RegisterAsync(
+                new[] { "http://127.0.0.1/cb" }, new RegisterOptions { ClientName = "Example \ud800" }),
+            unencodable));
         Assert.Empty(unencodable.Requests);
     }
 
