@@ -399,6 +399,7 @@ public class OauthTests
     [InlineData("revoke")]
     [InlineData("pollDeviceToken")]
     [InlineData("exchangeAuthorizationCode")]
+    [InlineData("register")]
     public async Task APerCallTimeoutBelowTheClientsBoundsEveryOauthRequest(string operation)
     {
         using var origin = new StallingOrigin(
@@ -419,6 +420,8 @@ public class OauthTests
             "revoke" => () => client.Oauth.RevokeAsync("internetdata-cli", "mo_rt_x", options),
             "exchangeAuthorizationCode" => () => client.Oauth.ExchangeAuthorizationCodeAsync(
                 "internetdata-cli", "mo_ac_x", "v", "http://r", options),
+            "register" => () => client.Oauth.RegisterAsync(
+                new[] { "http://127.0.0.1/cb" }, new RegisterOptions { RequestTimeout = timeout }),
             _ => () => client.Oauth.PollDeviceTokenAsync("internetdata-cli", Device, options),
         };
 
@@ -504,6 +507,128 @@ public class OauthTests
 
         Assert.Equal(ErrorKind.Network, error.Kind);
         Assert.Equal("the request timed out", error.Message);
+    }
+
+    private static readonly JsonElement Register = Oauth.GetProperty("register");
+
+    [Fact]
+    public async Task RegisterPostsExactlyItsJsonBodyWithNoCredential()
+    {
+        var success = Reply.Of(Register.GetProperty("responses").GetProperty("cases")[0]);
+        foreach (var c in Register.GetProperty("bodies").GetProperty("cases").EnumerateArray())
+        {
+            var label = c.GetProperty("name").GetString()!;
+            var stub = new OauthStub(success);
+            using var client = Client(stub, apiKey: "idk_register_key");
+            await Settle(() => RegisterWith(client, c.GetProperty("args")), stub);
+            var sent = Assert.Single(stub.Requests);
+            AssertEndpoint(sent, Register.GetProperty("endpoint"), label);
+            Assert.StartsWith(Register.GetProperty("contentType").GetString()!, sent.ContentType);
+            Assert.DoesNotContain(sent.Headers, h => h.Name.Equals("Authorization", StringComparison.OrdinalIgnoreCase));
+            Assert.True(string.IsNullOrEmpty(sent.Query), $"{label}: no query");
+            Assert.True(JsonNode.DeepEquals(JsonNode.Parse(c.GetProperty("body").GetRawText()), JsonNode.Parse(sent.Body)),
+                $"{label}: sent {sent.Body}");
+        }
+    }
+
+    [Fact]
+    public async Task RegisterRefusesAnEmptyValueBeforeSending()
+    {
+        foreach (var c in Register.GetProperty("refusals").GetProperty("cases").EnumerateArray())
+        {
+            var stub = new OauthStub();
+            using var client = Client(stub);
+            await Assert.ThrowsAsync<ArgumentException>(() => RegisterWith(client, c.GetProperty("args")));
+            Assert.Empty(stub.Requests);
+        }
+        var unencodable = new OauthStub();
+        using var other = Client(unencodable);
+        await Assert.ThrowsAsync<ArgumentException>(() => other.Oauth.RegisterAsync(new[] { "http://127.0.0.1/cb\ud800" }));
+        await Assert.ThrowsAsync<ArgumentException>(() => other.Oauth.RegisterAsync(
+            new[] { "http://127.0.0.1/cb" }, new RegisterOptions { ClientName = "Example \ud800" }));
+        Assert.Empty(unencodable.Requests);
+    }
+
+    [Fact]
+    public async Task RegisterReadsEveryServedMember()
+    {
+        foreach (var c in Register.GetProperty("responses").GetProperty("cases").EnumerateArray())
+        {
+            var label = c.GetProperty("name").GetString()!;
+            var stub = new OauthStub(Reply.Of(c));
+            using var client = Client(stub);
+            var got = await Settle(() => client.Oauth.RegisterAsync(new[] { "http://127.0.0.1:8765/callback" }), stub);
+            var expect = c.GetProperty("expect");
+            foreach (var member in expect.GetProperty("present").EnumerateObject())
+            {
+                Assert.True(
+                    JsonNode.DeepEquals(JsonNode.Parse(member.Value.GetRawText()), JsonSerializer.SerializeToNode(MemberOf(got, member.Name))),
+                    $"{label}: {member.Name}");
+            }
+            foreach (var member in expect.GetProperty("absent").EnumerateArray())
+            {
+                Assert.True(MemberOf(got, member.GetString()!) is null, $"{label}: {member.GetString()} is absent");
+            }
+        }
+        var late = new OauthStub(Reply.Of(Register.GetProperty("responses").GetProperty("cases")[2]));
+        using var lateClient = Client(late);
+        var registration = await Settle(() => lateClient.Oauth.RegisterAsync(new[] { "http://127.0.0.1:8765/callback" }), late);
+        Assert.Equal(4102444800L, registration.ClientIdIssuedAt);
+    }
+
+    [Fact]
+    public async Task RegisterReadsAnUnreadable2xxAsAServerErrorWithItsStatus()
+    {
+        foreach (var c in Register.GetProperty("unreadable").GetProperty("cases").EnumerateArray())
+        {
+            var label = c.GetProperty("name").GetString()!;
+            var stub = new OauthStub(Reply.Of(c));
+            using var client = Client(stub, retries: 0);
+            var error = await Failure(() => client.Oauth.RegisterAsync(new[] { "http://127.0.0.1:8765/callback" }), stub);
+            Assert.True(error.GetType() == typeof(InternetDataException), $"{label}: {error.GetType().Name}");
+            Assert.True(error.Kind == ErrorKind.ServerError, $"{label}: {error.Kind}");
+            Assert.True(error.StatusCode == c.GetProperty("status").GetInt32(), $"{label}: {error.StatusCode}");
+            Assert.True(stub.Requests.Count == 1, $"{label}: {stub.Requests.Count} requests");
+        }
+    }
+
+    [Fact]
+    public async Task RegisterTakesTheClientsRetriesButNeverRetriesARefusal()
+    {
+        foreach (var c in Register.GetProperty("retries").EnumerateArray())
+        {
+            var label = c.GetProperty("name").GetString()!;
+            var expect = c.GetProperty("expect");
+            var stub = new OauthStub(c.GetProperty("responses").EnumerateArray().Select(Reply.Of).ToArray());
+            using var client = Client(stub);
+            var error = await Outcome(() => RegisterWith(client, c.GetProperty("args")), stub);
+            Assert.True(expect.GetProperty("requests").GetInt32() == stub.Requests.Count, $"{label}: {stub.Requests.Count} requests");
+            var outcome = expect.GetProperty("outcome").GetString()!;
+            if (outcome == "ok")
+            {
+                Assert.True(error is null, $"{label}: {error}");
+            }
+            else
+            {
+                AssertOutcome(error, expect, outcome, label);
+            }
+        }
+        foreach (var c in Register.GetProperty("errors").EnumerateArray())
+        {
+            var label = c.GetProperty("name").GetString()!;
+            var stub = new OauthStub(Reply.Of(c));
+            using var client = Client(stub);
+            var error = await Outcome(() => client.Oauth.RegisterAsync(new[] { "http://127.0.0.1:8765/callback" }), stub);
+            AssertOutcome(error, c.GetProperty("expect"), c.GetProperty("expect").GetProperty("type").GetString()!, label);
+            Assert.Single(stub.Requests);
+        }
+    }
+
+    private static Task<ClientRegistration> RegisterWith(InternetDataClient client, JsonElement args)
+    {
+        var uris = args.GetProperty("redirectUris").EnumerateArray().Select(u => u.GetString()!).ToArray();
+        var options = args.TryGetProperty("clientName", out var name) ? new RegisterOptions { ClientName = name.GetString() } : null;
+        return client.Oauth.RegisterAsync(uris, options);
     }
 
     // Not Stub.Client, which gives a keyless client a key: every case here but one runs with none.

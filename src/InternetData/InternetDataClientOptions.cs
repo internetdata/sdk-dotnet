@@ -82,6 +82,16 @@ public sealed class DeviceAuthorizationOptions
     public TimeSpan? RequestTimeout { get; init; }
 }
 
+/// <summary>What a registration asks for beyond its redirect URIs. A name left null, or empty, is left out.</summary>
+public sealed class RegisterOptions
+{
+    /// <summary>The name a person sees when asked to approve the client, such as <c>Example CLI</c>.</summary>
+    public string? ClientName { get; init; }
+
+    /// <summary>How long one attempt of THIS call may take before it is abandoned.</summary>
+    public TimeSpan? RequestTimeout { get; init; }
+}
+
 /// <summary>
 /// What to ask for in an authorization URL. A value left null, or empty, is left out of the URL.
 /// </summary>

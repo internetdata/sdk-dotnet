@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace InternetData;
 
@@ -18,7 +19,9 @@ namespace InternetData;
 /// they approve it in a browser. An app that can take a browser redirect sends them to
 /// <see cref="AuthorizationUrl(string, string, string, AuthorizationUrlOptions?)"/> instead, with a pair
 /// from <see cref="CreatePkce"/>, and trades the code the redirect brings back in
-/// <see cref="ExchangeAuthorizationCodeAsync(string, string, string, string, CancellationToken)"/>.</para>
+/// <see cref="ExchangeAuthorizationCodeAsync(string, string, string, string, CancellationToken)"/>. An app that
+/// cannot serve a client metadata document gets a client ID from
+/// <see cref="RegisterAsync(IReadOnlyList{string}, RegisterOptions?, CancellationToken)"/>.</para>
 /// <para>No request here carries the client's API key, and none needs one: build the client without
 /// a key to sign someone in. A client ID is issued on request through support@internetdata.io, or for
 /// the authorization code flow is the https URL of a client metadata document the app serves.</para>
@@ -39,6 +42,9 @@ public sealed class OauthApi
         { "device_code", "user_code", "verification_uri", "expires_in", "interval" };
 
     private static readonly string[] TokenRequired = { "access_token", "token_type", "expires_in" };
+
+    private static readonly string[] RegisterRequired =
+        { "client_id", "client_id_issued_at", "client_name", "redirect_uris", "token_endpoint_auth_method" };
 
     private readonly HttpClient http;
     private readonly string baseUrl;
@@ -178,6 +184,51 @@ public sealed class OauthApi
                 await SendAsync(HttpMethod.Post, "/oauth/revoke", form, ct, readBody: false).ConfigureAwait(false);
                 return true;
             },
+            cancellationToken);
+    }
+
+    /// <summary>Register a client for the authorization code flow, with no name of its own.</summary>
+    public Task<ClientRegistration> RegisterAsync(
+        IReadOnlyList<string> redirectUris, CancellationToken cancellationToken = default)
+        => RegisterAsync(redirectUris, null, cancellationToken);
+
+    /// <summary>
+    /// Register a client for the authorization code flow, for an app that cannot serve a Client ID
+    /// Metadata Document, and get its <c>client_id</c>.
+    /// </summary>
+    /// <remarks>
+    /// Each redirect URI must be https on a public host name, or http on a loopback address, which then
+    /// matches on any port; the server refuses any other with an <see cref="OauthException"/> coded
+    /// <c>invalid_redirect_uri</c>. Nothing is kept until a person approves the client, so registering
+    /// again costs nothing, and a transient failure is retried like any other call.
+    /// </remarks>
+    /// <exception cref="ArgumentException">No redirect URI, an empty one, or a value with no UTF-8 form.</exception>
+    public Task<ClientRegistration> RegisterAsync(
+        IReadOnlyList<string> redirectUris, RegisterOptions? options, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(redirectUris);
+        if (redirectUris.Count == 0)
+        {
+            throw new ArgumentException("redirectUris must list at least one URI", nameof(redirectUris));
+        }
+        var uris = new JsonArray();
+        for (var i = 0; i < redirectUris.Count; i++)
+        {
+            var name = $"redirectUris[{i}]";
+            uris.Add(Utf8(Required(redirectUris[i], name), name));
+        }
+        var body = new JsonObject { ["redirect_uris"] = uris };
+        if (options?.ClientName is { Length: > 0 } clientName)
+        {
+            body["client_name"] = Utf8(clientName, "clientName");
+        }
+        var json = body.ToJsonString();
+        return Wire.ExecuteAsync(
+            retries,
+            Wire.TimeoutFor(options?.RequestTimeout, timeout),
+            async ct => Decode<ClientRegistration>(
+                await SendAsync(HttpMethod.Post, "/oauth/register", null, ct, json: json).ConfigureAwait(false),
+                RegisterRequired),
             cancellationToken);
     }
 
@@ -347,7 +398,7 @@ public sealed class OauthApi
     // it cannot read an OAuth error whose description is not a string, nor a revoke with no body.
     private async Task<Answer> SendAsync(
         HttpMethod method, string path, List<KeyValuePair<string, string>>? form, CancellationToken cancellationToken,
-        bool readBody = true)
+        bool readBody = true, string? json = null)
     {
         using var request = new HttpRequestMessage(method, baseUrl + path);
         request.Headers.Accept.ParseAdd("application/json");
@@ -355,6 +406,10 @@ public sealed class OauthApi
         {
             // Values are escaped with Uri.EscapeDataString, so a `+` travels as %2B.
             request.Content = new FormUrlEncodedContent(form);
+        }
+        else if (json is not null)
+        {
+            request.Content = new StringContent(json, Encoding.UTF8, "application/json");
         }
         using var response = await http
             .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
@@ -386,6 +441,19 @@ public sealed class OauthApi
     {
         ArgumentNullException.ThrowIfNull(value, name);
         return value.Length > 0 ? value : throw new ArgumentException($"{name} must not be empty", name);
+    }
+
+    private static string Utf8(string value, string name)
+    {
+        try
+        {
+            StrictUtf8.GetByteCount(value);
+        }
+        catch (EncoderFallbackException e)
+        {
+            throw new ArgumentException($"{name} has no UTF-8 form", name, e);
+        }
+        return value;
     }
 
     // Every byte of the value's UTF-8 as %XX but A-Z a-z 0-9 - . _ ~, so a space is %20 and never +.

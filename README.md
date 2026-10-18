@@ -169,6 +169,18 @@ var token = await client.Oauth.ExchangeAuthorizationCodeAsync("your-client-id", 
 
 Check that `state` came back as you sent it before you exchange `code`, which works once. The client ID can also be the https URL of a client metadata document your app serves, and such an app is never handed a key, so `token.Apikey` stays `null`.
 
+### Register a client
+
+An app with no client ID, and no client metadata document to use as one, registers itself, then signs in with the `ClientId` it gets back as the client ID for `AuthorizationUrl` and `ExchangeAuthorizationCodeAsync`:
+
+```csharp
+using var client = new InternetDataClient();
+var registration = await client.Oauth.RegisterAsync(new[] { "http://127.0.0.1:8765/callback" },
+    new RegisterOptions { ClientName = "Your App" });
+```
+
+Each redirect URI must be https on a public host name, or http on a loopback address, which then matches any port. Nothing is kept until a person approves the client, so an app with no client ID saved can simply register again.
+
 ## Other Libraries
 
 There are official InternetData client libraries available for many languages including PHP, Python, Go, Java, and Ruby. See our GitHub at https://github.com/internetdata for more.
