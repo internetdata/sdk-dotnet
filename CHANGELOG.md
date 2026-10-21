@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.1.1 are described by their release commits.
 
+## 2.6.1 - 2026-10-21
+
+### Fixes
+
+- Re-pin the spec to 2026.10.21: a 403 for a refused address ([`3c8a9f5`](https://github.com/internetdata/sdk-dotnet/commit/3c8a9f577b0f44772d8389661abaae7121a1a3a6))
+
 ## 2.6.0 - 2026-10-18
 
 ### Features
