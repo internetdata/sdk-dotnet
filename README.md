@@ -35,7 +35,7 @@ The database calls hang off `client.Database`, which is where the sibling VPNDet
 A license covers a database FAMILY, while a download names one of its versions, so the ids you pass to the other calls come from `Versions`:
 
 ```csharp
-var family = (await client.Database.ListAsync()).First(db => db.Standing == DatabaseStanding.Licensed);
+var family = (await client.Database.ListAsync()).First(db => db.Standing == Standing.Licensed);
 var id = family.Versions[^1].Id;              // "bogon_ip_v1"
 var formats = family.Versions[^1].Formats;    // [Csvgz, Mmdb]
 ```
