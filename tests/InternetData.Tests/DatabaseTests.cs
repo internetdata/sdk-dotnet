@@ -316,14 +316,15 @@ public class DatabaseTests
                     pending.Push(reached);
                 }
             }
-            if (type.Name.StartsWith("Response", StringComparison.Ordinal))
+            if (type == typeof(Response) || type == typeof(Response3))
             {
+                Assert.Subset(WireClient.EnvelopeMembers, members.ToHashSet());
                 continue;
             }
             Assert.True(WireClient.AnswerMembers.TryGetValue(type, out var table), $"{type.Name} is not in the table");
             Assert.Equal(members, new SortedSet<string>(table, StringComparer.Ordinal));
         }
-        Assert.Equal(WireClient.AnswerMembers.Count + 3, seen.Count);
+        Assert.Equal(WireClient.AnswerMembers.Count + 2, seen.Count);
     }
 
     private static IEnumerable<Type> Reached(Type type)
