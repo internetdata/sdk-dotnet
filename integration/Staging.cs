@@ -25,7 +25,7 @@ internal static class Staging
     /// </remarks>
     internal static readonly string[] LicensedBases = { "bogon_asn", "bogon_ip" };
 
-    /// <summary>A real catalog id the CI organization holds no license for.</summary>
+    /// <summary>A real catalog ID the CI organization holds no license for.</summary>
     internal const string UnlicensedId = "vpn_ip_v1";
 
     internal static string Key

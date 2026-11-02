@@ -196,7 +196,7 @@ internal static class Wire
         // response separates the two.
         429 => retryAfter is null ? ErrorKind.QuotaExceeded : ErrorKind.RateLimited,
         // Any other 4xx is a CLIENT error. Falling through to ServerError would make it retryable,
-        // so an unknown database id would be retried twice before failing. Only 5xx and transport
+        // so an unknown database ID would be retried twice before failing. Only 5xx and transport
         // failures are worth a retry. Classified on the RANGE, never on an enumerated list.
         _ => status < 500 ? ErrorKind.BadRequest : ErrorKind.ServerError,
     };

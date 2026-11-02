@@ -7,7 +7,7 @@ namespace InternetData.Integration;
 // The whole API surface, against a real deployment on a real license.
 //
 // The transfer is budgeted before it starts. Metadata publishes a size per format, and that size
-// is checked against the ceiling below FIRST, so a mistaken database id can never quietly pull one
+// is checked against the ceiling below FIRST, so a mistaken database ID can never quietly pull one
 // of the multi-gigabyte databases through CI.
 public class DatabaseTests
 {
@@ -58,7 +58,7 @@ public class DatabaseTests
                 Assert.True(
                     family.LicenseType is null || Enum.IsDefined(family.LicenseType.Value),
                     $"{family.Base} carries an undocumented license_type term");
-                // A license covers the family, and these are the ids the download and checksum
+                // A license covers the family, and these are the IDs the download and checksum
                 // calls take.
                 Assert.True(family.Versions.Count > 0, $"{family.Base} carries no versions");
                 foreach (var version in family.Versions)
@@ -175,7 +175,7 @@ public class DatabaseTests
             Assert.NotEmpty(attempts);
             Assert.All(attempts, a => Assert.True(
                 Enum.IsDefined(a.Outcome), $"{a.DatasetId} carries an undocumented outcome"));
-            // Projected before asserting, so a failure prints ids and outcomes rather than every
+            // Projected before asserting, so a failure prints IDs and outcomes rather than every
             // field of every attempt into a public log.
             var seen = attempts.Select(a => $"{a.DatasetId}:{a.Outcome}").ToArray();
             Assert.Contains($"{DatabaseId}:{DownloadOutcome.Ok}", seen, StringComparer.Ordinal);

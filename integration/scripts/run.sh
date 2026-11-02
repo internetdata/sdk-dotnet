@@ -28,7 +28,7 @@ cd "$(dirname "$0")/.."
 
 PACKAGE="InternetData"
 PROJECT="InternetData.Integration.Tests.csproj"
-# The lowercase id is the path the flat container serves under; this is the resolver `dotnet
+# The lowercase ID is the path the flat container serves under; this is the resolver `dotnet
 # restore` itself reads, so the answer is exactly what an install would see.
 INDEX="https://api.nuget.org/v3-flatcontainer/internetdata/index.json"
 

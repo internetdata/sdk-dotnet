@@ -38,7 +38,7 @@ public sealed class DatabaseApi
     /// <remarks>
     /// <para><see cref="Database.Standing"/> says whether a database is yours today
     /// (<c>licensed</c>), was (<c>expired</c>), or has never been bought (<c>unlicensed</c>). A
-    /// license covers a FAMILY while a download names one of its versions, so the ids
+    /// license covers a FAMILY while a download names one of its versions, so the IDs
     /// <see cref="DownloadAsync"/> and <see cref="ChecksumsAsync"/> take come from
     /// <see cref="Database.Versions"/>.</para>
     /// <para>This is the server's answer for this key, so a listing held from one key is not an

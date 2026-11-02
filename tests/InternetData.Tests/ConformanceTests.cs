@@ -43,7 +43,7 @@ public class ConformanceTests
 
     // Mapping 400/401/403/429 and letting the rest fall through to a retryable server_error is the
     // easy mistake, and three of four vpndetection SDKs shipped it: a 404 from an unknown database
-    // id was retried twice before failing. Every non-retryable case is asked exactly once.
+    // ID was retried twice before failing. Every non-retryable case is asked exactly once.
     [Fact]
     public async Task NoClientErrorIsEverRetried()
     {
