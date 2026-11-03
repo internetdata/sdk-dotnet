@@ -2,6 +2,13 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.1.1 are described by their release commits.
 
+## 2.6.3 - 2026-11-03
+
+### Fixes
+
+- Re-pin the spec to 2026.11.02: ID and IDs in its descriptions ([`d95d976`](https://github.com/internetdata/sdk-dotnet/commit/d95d976e923cbf10b0a0c00369d66260fe04f1cd))
+- Write ID and IDs in prose, never id or ids ([`77994dd`](https://github.com/internetdata/sdk-dotnet/commit/77994dd4de5d7f641ef999bfc4dc9ed2af2cd647))
+
 ## 2.6.2 - 2026-10-29
 
 ### Fixes
