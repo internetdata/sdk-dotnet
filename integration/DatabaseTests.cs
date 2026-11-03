@@ -63,7 +63,7 @@ public class DatabaseTests
                 Assert.True(family.Versions.Count > 0, $"{family.Base} carries no versions");
                 foreach (var version in family.Versions)
                 {
-                    Assert.False(string.IsNullOrEmpty(version.Id), $"{family.Base} has a version with no id");
+                    Assert.False(string.IsNullOrEmpty(version.Id), $"{family.Base} has a version with no ID");
                     Assert.True(version.Formats.Count > 0, $"{version.Id} carries no formats");
                 }
             }

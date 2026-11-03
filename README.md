@@ -32,7 +32,7 @@ foreach (var db in await client.Database.ListAsync())
 
 The database calls hang off `client.Database`, which is where the sibling VPNDetection library keeps the same seven.
 
-A license covers a database FAMILY, while a download names one of its versions, so the ids you pass to the other calls come from `Versions`:
+A license covers a database FAMILY, while a download names one of its versions, so the IDs you pass to the other calls come from `Versions`:
 
 ```csharp
 var family = (await client.Database.ListAsync()).First(db => db.Standing == Standing.Licensed);

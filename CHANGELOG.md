@@ -6,7 +6,7 @@ What each release changed for you, newest first. Each line is a commit's summary
 
 ### Fixes
 
-- Read dates as RFC 3339, enums by name, and require a checksum's id ([`56e70bb`](https://github.com/internetdata/sdk-dotnet/commit/56e70bbef5c65dd801806675781347b91ee87617))
+- Read dates as RFC 3339, enums by name, and require a checksum's ID ([`56e70bb`](https://github.com/internetdata/sdk-dotnet/commit/56e70bbef5c65dd801806675781347b91ee87617))
 
 ## 2.6.1 - 2026-10-21
 
