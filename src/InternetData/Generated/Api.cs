@@ -880,7 +880,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<DbUnauthorizedIdError>("The `apikey` is valid but is not authorized for the requested database id.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<DbUnauthorizedIdError>("The `apikey` is valid but is not authorized for the requested database ID.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 404)
@@ -1026,7 +1026,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<DbUnauthorizedIdError>("The `apikey` is valid but is not authorized for the requested database id.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<DbUnauthorizedIdError>("The `apikey` is valid but is not authorized for the requested database ID.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 404)
@@ -1168,7 +1168,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<DbUnauthorizedIdError>("The `apikey` is valid but is not authorized for the requested database id.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<DbUnauthorizedIdError>("The `apikey` is valid but is not authorized for the requested database ID.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 404)
@@ -1827,12 +1827,12 @@ namespace InternetData
         /// Rotate
         /// </summary>
         /// <remarks>
-        /// Replaces the secret behind a key, keeping its id, name and settings.
+        /// Replaces the secret behind a key, keeping its ID, name and settings.
         /// <br/>The previous secret stops working immediately. The new secret comes
         /// <br/>back in the answer, so this needs `apikeys.reveal` as well as
         /// <br/>`apikeys.manage`.
         /// </remarks>
-        /// <param name="id">The key's id, as returned by the list endpoint. Never the key itself.</param>
+        /// <param name="id">The key's ID, as returned by the list endpoint. Never the key itself.</param>
         /// <returns>The key, with its new secret.</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
         public virtual System.Threading.Tasks.Task<AccountCreatedApikey> AccountRotateApikeyAsync(System.Guid id)
@@ -1845,12 +1845,12 @@ namespace InternetData
         /// Rotate
         /// </summary>
         /// <remarks>
-        /// Replaces the secret behind a key, keeping its id, name and settings.
+        /// Replaces the secret behind a key, keeping its ID, name and settings.
         /// <br/>The previous secret stops working immediately. The new secret comes
         /// <br/>back in the answer, so this needs `apikeys.reveal` as well as
         /// <br/>`apikeys.manage`.
         /// </remarks>
-        /// <param name="id">The key's id, as returned by the list endpoint. Never the key itself.</param>
+        /// <param name="id">The key's ID, as returned by the list endpoint. Never the key itself.</param>
         /// <returns>The key, with its new secret.</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
         public virtual async System.Threading.Tasks.Task<AccountCreatedApikey> AccountRotateApikeyAsync(System.Guid id, System.Threading.CancellationToken cancellationToken)
@@ -1965,7 +1965,7 @@ namespace InternetData
         /// <br/>`revoked_at`, because the organization still owns whatever it did while
         /// <br/>it was alive.
         /// </remarks>
-        /// <param name="id">The key's id, as returned by the list endpoint. Never the key itself.</param>
+        /// <param name="id">The key's ID, as returned by the list endpoint. Never the key itself.</param>
         /// <returns>Revoked.</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
         public virtual System.Threading.Tasks.Task<AccountRc> AccountRevokeApikeyAsync(System.Guid id)
@@ -1982,7 +1982,7 @@ namespace InternetData
         /// <br/>`revoked_at`, because the organization still owns whatever it did while
         /// <br/>it was alive.
         /// </remarks>
-        /// <param name="id">The key's id, as returned by the list endpoint. Never the key itself.</param>
+        /// <param name="id">The key's ID, as returned by the list endpoint. Never the key itself.</param>
         /// <returns>Revoked.</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
         public virtual async System.Threading.Tasks.Task<AccountRc> AccountRevokeApikeyAsync(System.Guid id, System.Threading.CancellationToken cancellationToken)
@@ -2103,7 +2103,7 @@ namespace InternetData
         /// <br/>stored secrets recoverably - that secret was never kept, so no retry
         /// <br/>will ever produce it. Rotate the key instead.
         /// </remarks>
-        /// <param name="id">The key's id, as returned by the list endpoint. Never the key itself.</param>
+        /// <param name="id">The key's ID, as returned by the list endpoint. Never the key itself.</param>
         /// <returns>The key's secret.</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
         public virtual System.Threading.Tasks.Task<AccountRevealedApikey> AccountRevealApikeyAsync(System.Guid id)
@@ -2126,7 +2126,7 @@ namespace InternetData
         /// <br/>stored secrets recoverably - that secret was never kept, so no retry
         /// <br/>will ever produce it. Rotate the key instead.
         /// </remarks>
-        /// <param name="id">The key's id, as returned by the list endpoint. Never the key itself.</param>
+        /// <param name="id">The key's ID, as returned by the list endpoint. Never the key itself.</param>
         /// <returns>The key's secret.</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
         public virtual async System.Threading.Tasks.Task<AccountRevealedApikey> AccountRevealApikeyAsync(System.Guid id, System.Threading.CancellationToken cancellationToken)
@@ -3237,7 +3237,7 @@ namespace InternetData
     /// <summary>
     /// One database FAMILY, with your organization's license beside it. A
     /// <br/>license covers the family, while a download names a specific version,
-    /// <br/>so the ids passed to `download` and `checksum` come from `versions`.
+    /// <br/>so the IDs passed to `download` and `checksum` come from `versions`.
     /// <br/>
     /// </summary>
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
@@ -3328,7 +3328,7 @@ namespace InternetData
     {
 
         /// <summary>
-        /// The versioned id. Pass this to `download`, `checksum` and `metadata`.
+        /// The versioned ID. Pass this to `download`, `checksum` and `metadata`.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("id")]
         public string Id { get; set; } = default!;
@@ -3341,7 +3341,7 @@ namespace InternetData
 
         /// <summary>
         /// The formats this version is BUILT in. Asking for another is a 400,
-        /// <br/>not a gap - the `_provider` catalogs are keyed by provider id, so no
+        /// <br/>not a gap - the `_provider` catalogs are keyed by provider ID, so no
         /// <br/>MMDB exists for them.
         /// <br/>
         /// </summary>
