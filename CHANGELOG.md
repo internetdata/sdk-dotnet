@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.1.1 are described by their release commits.
 
+## 2.6.4 - 2026-11-06
+
+### Fixes
+
+- Re-pin the spec to 2026.11.05: the download's build parameter ([`a1cf324`](https://github.com/internetdata/sdk-dotnet/commit/a1cf324f778d3ebff7b1a5e8311d770ef0241475))
+
 ## 2.6.3 - 2026-11-03
 
 ### Fixes
