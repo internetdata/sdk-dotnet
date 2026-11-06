@@ -197,10 +197,13 @@ namespace InternetData
         /// </remarks>
         /// <param name="id">Database identifier (e.g. `vpn_ip_v1`, `resproxy_provider_v1`).</param>
         /// <param name="format">Database file format.</param>
+        /// <param name="build">One build of the database, by the name a `database.updated` webhook gives
+        /// <br/>it, so the file is the one whose `sha256` the webhook carries. Without
+        /// <br/>it, the build that is live.</param>
         /// <exception cref="WireException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task DownloadDatabaseV2Async(string id, DatabaseFormat format)
+        public virtual System.Threading.Tasks.Task DownloadDatabaseV2Async(string id, DatabaseFormat format, string? build)
         {
-            return DownloadDatabaseV2Async(id, format, System.Threading.CancellationToken.None);
+            return DownloadDatabaseV2Async(id, format, build, System.Threading.CancellationToken.None);
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
@@ -213,8 +216,11 @@ namespace InternetData
         /// </remarks>
         /// <param name="id">Database identifier (e.g. `vpn_ip_v1`, `resproxy_provider_v1`).</param>
         /// <param name="format">Database file format.</param>
+        /// <param name="build">One build of the database, by the name a `database.updated` webhook gives
+        /// <br/>it, so the file is the one whose `sha256` the webhook carries. Without
+        /// <br/>it, the build that is live.</param>
         /// <exception cref="WireException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task DownloadDatabaseV2Async(string id, DatabaseFormat format, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task DownloadDatabaseV2Async(string id, DatabaseFormat format, string? build, System.Threading.CancellationToken cancellationToken)
         {
             if (id == null)
                 throw new System.ArgumentNullException("id");
@@ -237,6 +243,10 @@ namespace InternetData
                     urlBuilder_.Append('?');
                     urlBuilder_.Append(System.Uri.EscapeDataString("id")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(id, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
                     urlBuilder_.Append(System.Uri.EscapeDataString("format")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(format, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+                    if (build != null)
+                    {
+                        urlBuilder_.Append(System.Uri.EscapeDataString("build")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(build, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+                    }
                     urlBuilder_.Length--;
 
                     PrepareRequest(client_, request_, urlBuilder_);
@@ -275,7 +285,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<Error>("The database is not built in the requested format.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<Error>("The database is not built in the requested format (`INVALID_FORMAT`),\nor `build` is not a build\'s name (`INVALID_BUILD`).\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 401)
@@ -306,6 +316,16 @@ namespace InternetData
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
                             throw new WireException<Error>("No such database.\n`rc`: `UNKNOWN_DATASET`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 410)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<Error>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<Error>("The build named in `build` is no longer kept (`BUILD_GONE`): builds are\nkept 7 days. Download without `build` for the live one.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 503)
