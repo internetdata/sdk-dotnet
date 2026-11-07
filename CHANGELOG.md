@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.1.1 are described by their release commits.
 
+## 2.6.5 - 2026-11-07
+
+### Fixes
+
+- End the device poll at its deadline without asking again ([`7736502`](https://github.com/internetdata/sdk-dotnet/commit/7736502a47fa5e3a4bbdf08a1e60d50ee2b14a8e))
+
 ## 2.6.4 - 2026-11-06
 
 ### Fixes
