@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.1.1 are described by their release commits.
 
+## 2.7.0 - 2026-11-07
+
+### Features
+
+- Download a named build: DownloadUrlAsync, DownloadAsync and DownloadBytesAsync take a build ([`298cf19`](https://github.com/internetdata/sdk-dotnet/commit/298cf19287d9023c9f94d4ab6d3bbc39312a53ce))
+
 ## 2.6.5 - 2026-11-07
 
 ### Fixes
