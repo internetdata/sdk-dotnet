@@ -350,9 +350,13 @@ public sealed class OauthApi
             // after it, served that way or widened by slow_down, sleeps only the time left, and the
             // local expiry follows with no request sent.
             var left = deadline - Now();
-            await SleepFor(interval < left ? interval : left > TimeSpan.Zero ? left : TimeSpan.Zero, cancellationToken)
+            var toDeadline = left <= interval;
+            await SleepFor(toDeadline ? (left > TimeSpan.Zero ? left : TimeSpan.Zero) : interval, cancellationToken)
                 .ConfigureAwait(false);
-            if (Now() >= deadline)
+            // A wait that ran to the deadline ends the poll without reading the clock again:
+            // Task.Delay wakes before the Stopwatch has moved its delay, so through 2.6.4 the poll
+            // often asked once more at its deadline (measured 2026-11-07).
+            if (toDeadline || Now() >= deadline)
             {
                 throw new OauthExpiredTokenException(null, null);
             }

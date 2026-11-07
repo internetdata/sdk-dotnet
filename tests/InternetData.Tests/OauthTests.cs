@@ -350,6 +350,31 @@ public class OauthTests
         Assert.Equal(60 * 86400, waits.Sum(), 6);
     }
 
+    // No corpus case, whose clock spends exactly what each wait asks: Task.Delay wakes before the
+    // Stopwatch has moved its delay, so through 2.6.4 a wait cut to the deadline, or ending at it,
+    // was often followed by one more request.
+    [Theory]
+    [InlineData(5)]
+    [InlineData(3)]
+    public async Task AWaitThatRunsToTheDeadlineIsFollowedByNoRequestWheneverTheTimerWakes(int interval)
+    {
+        var stub = new OauthStub(new Reply(400, """{"error":"authorization_pending"}"""));
+        using var client = Client(stub);
+        var waits = FakeClock(client.Oauth, stub, TimeSpan.FromMilliseconds(0.5));
+        var device = new DeviceAuthorization
+        {
+            DeviceCode = "mo_dc_poll", UserCode = "BCDF-GHJK", VerificationUri = "https://app.internetdata.io/device",
+            ExpiresIn = 3, Interval = interval,
+        };
+
+        var error = await Outcome(() => client.Oauth.PollDeviceTokenAsync("internetdata-cli", device), stub);
+
+        var expired = Assert.IsType<OauthExpiredTokenException>(error);
+        Assert.Null(expired.StatusCode);
+        Assert.Empty(stub.Requests);
+        Assert.Equal(new[] { 3.0 }, waits);
+    }
+
     // No corpus case: a deadline already behind the clock leaves a negative remainder, which
     // Task.Delay refuses, so the wait is zero.
     [Fact]
@@ -649,8 +674,9 @@ public class OauthTests
 
     // Replaces the poll's wait and clock together. Past the bound the wait never completes, and the
     // clock reads far past any deadline, so a loop that does not end fails its test instead of
-    // spinning.
-    private static List<double> FakeClock(OauthApi oauth, OauthStub stub)
+    // spinning. A non-zero `shortBy` wakes each wait of at least a millisecond that much early, as
+    // Task.Delay does against the Stopwatch.
+    private static List<double> FakeClock(OauthApi oauth, OauthStub stub, TimeSpan shortBy = default)
     {
         var waits = new List<double>();
         var elapsed = TimeSpan.Zero;
@@ -662,7 +688,7 @@ public class OauthTests
                 return stub.Trip($"waited {waits.Count} times");
             }
             waits.Add(wait.TotalSeconds);
-            elapsed += wait;
+            elapsed += wait >= TimeSpan.FromMilliseconds(1) ? wait - shortBy : wait;
             return Task.CompletedTask;
         };
         oauth.Now = () =>
