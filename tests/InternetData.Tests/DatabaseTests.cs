@@ -122,6 +122,53 @@ public class DatabaseTests
         Assert.Single(handler.Calls);
     }
 
+    [Fact]
+    public async Task ABuildGoesOnTheDownloadRequestAndNoneWithoutOne()
+    {
+        var handler = new StubHandler(request =>
+        {
+            if (request.RequestUri!.AbsolutePath != "/api/v2/database/download")
+            {
+                return new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent([1, 2, 3]) };
+            }
+            var response = new HttpResponseMessage(HttpStatusCode.Redirect);
+            response.Headers.Location = new Uri("https://s3.example.test/blob?sig=abc");
+            return response;
+        });
+        using var client = Stub.Client(handler);
+        const string named = "20261105.0t53s5";
+
+        await client.Database.DownloadUrlAsync("bogon_ip_v1", DatabaseFormat.Csvgz, named);
+        await client.Database.DownloadBytesAsync("bogon_ip_v1", DatabaseFormat.Csvgz, named);
+        await client.Database.DownloadAsync(
+            "bogon_ip_v1", DatabaseFormat.Csvgz, Path.Combine(TempDir(), "built.csv.gz"), named);
+        await client.Database.DownloadUrlAsync("bogon_ip_v1", DatabaseFormat.Csvgz, "");
+        await client.Database.DownloadBytesAsync("bogon_ip_v1", DatabaseFormat.Csvgz);
+
+        var asked = handler.Calls.Where(c => c.StartsWith("/api/v2/database/download", StringComparison.Ordinal)).ToList();
+        Assert.Equal(5, asked.Count);
+        Assert.All(asked.Take(3), c => Assert.Contains("build=" + named, c, StringComparison.Ordinal));
+        Assert.All(asked.Skip(3), c => Assert.DoesNotContain("build", c, StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task AGoneBuildIsABadRequestAskedOnce()
+    {
+        var handler = new StubHandler(_ => new HttpResponseMessage(HttpStatusCode.Gone)
+        {
+            Content = new StringContent("{\"rc\":\"BUILD_GONE\"}", System.Text.Encoding.UTF8, "application/json"),
+        });
+        using var client = Stub.Client(handler);
+
+        var e = await Assert.ThrowsAsync<InternetDataException>(
+            () => client.Database.DownloadUrlAsync("bogon_ip_v1", DatabaseFormat.Csvgz, "20261029.aaaaaa"));
+
+        Assert.Equal(ErrorKind.BadRequest, e.Kind);
+        Assert.False(e.Retryable);
+        Assert.Equal("BUILD_GONE", e.Message);
+        Assert.Single(handler.Calls);
+    }
+
     // A whitespace key passed IsNullOrEmpty and went out as `Bearer` and the blank, which reads as
     // a wrong key rather than none. The blanks around a key, a file's newline among them, are no
     // part of it.

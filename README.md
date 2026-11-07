@@ -70,6 +70,16 @@ The library follows nothing: you get the link, not the file. The link authorizes
 
 Because a `302` is the answer, an `HttpClient` you supply yourself must not follow redirects, or it would fetch the whole database in place of the link. A client that does follow them is refused with a clear error rather than quietly downloading gigabytes.
 
+### Downloading a named build
+
+Each download call fetches the build that is live unless you name one. A `database.updated` webhook names the build it announces and carries its `sha256`, so a receiver that downloads after the next publish asks for that build to get the file the hash is of:
+
+```csharp
+await client.Database.DownloadAsync("vpn_ip_v1", DatabaseFormat.Mmdb, "./vpn_ip_v1.mmdb", build);
+```
+
+A build is kept 7 days. Past that the call throws `BadRequest` with the message `BUILD_GONE`, and downloading without a build fetches the live one.
+
 ### Is today's build worth fetching?
 
 `MetadataAsync` carries the build date, the row count and a size per format, without downloading anything:

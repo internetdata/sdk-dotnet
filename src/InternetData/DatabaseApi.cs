@@ -118,14 +118,28 @@ public sealed class DatabaseApi
     /// </remarks>
     public Task<string> DownloadUrlAsync(
         string id, DatabaseFormat format, CancellationToken cancellationToken = default)
+        => DownloadUrlAsync(id, format, null, cancellationToken);
+
+    /// <summary>
+    /// The time-limited URL for one build of a database file.
+    /// </summary>
+    /// <remarks>
+    /// <paramref name="build"/> names the build as a <c>database.updated</c> webhook gives it
+    /// (<c>20261105.0t53s5</c>), so the file is the one whose <c>sha256</c> the webhook carries.
+    /// Null or empty is the build that is live. A build is kept 7 days; past that the call throws
+    /// <see cref="ErrorKind.BadRequest"/> with the message <c>BUILD_GONE</c>.
+    /// </remarks>
+    public Task<string> DownloadUrlAsync(
+        string id, DatabaseFormat format, string? build, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
         CheckFormat(format);
+        var named = string.IsNullOrEmpty(build) ? null : build;
         return Wire.ExecuteAsync(retries, timeout, async ct =>
         {
             try
             {
-                await wire.DownloadDatabaseV2Async(id, format, null, ct).ConfigureAwait(false);
+                await wire.DownloadDatabaseV2Async(id, format, named, ct).ConfigureAwait(false);
             }
             catch (WireException e) when (e.StatusCode == 302)
             {
@@ -157,13 +171,22 @@ public sealed class DatabaseApi
     /// rather than an <see cref="InternetDataException"/>: a reset socket and a full disk are
     /// different problems, and only one of them is ours.</para>
     /// </remarks>
-    public async Task<long> DownloadAsync(
+    public Task<long> DownloadAsync(
         string id, DatabaseFormat format, string path, CancellationToken cancellationToken = default)
+        => DownloadAsync(id, format, path, null, cancellationToken);
+
+    /// <summary>
+    /// Download one build of a database file to <paramref name="path"/>, as
+    /// <see cref="DownloadUrlAsync(string, DatabaseFormat, string?, CancellationToken)"/> names it.
+    /// </summary>
+    public async Task<long> DownloadAsync(
+        string id, DatabaseFormat format, string path, string? build,
+        CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
         ArgumentException.ThrowIfNullOrEmpty(path);
 
-        using var response = await FetchAsync(id, format, cancellationToken).ConfigureAwait(false);
+        using var response = await FetchAsync(id, format, build, cancellationToken).ConfigureAwait(false);
         var partial = path + ".part";
         try
         {
@@ -200,12 +223,20 @@ public sealed class DatabaseApi
     /// end, where the bytes go straight into a parser; use <see cref="DownloadAsync"/> for anything
     /// you have not checked against <see cref="MetadataAsync"/>.
     /// </remarks>
-    public async Task<byte[]> DownloadBytesAsync(
+    public Task<byte[]> DownloadBytesAsync(
         string id, DatabaseFormat format, CancellationToken cancellationToken = default)
+        => DownloadBytesAsync(id, format, null, cancellationToken);
+
+    /// <summary>
+    /// Download one build of a database file and hand back its bytes, as
+    /// <see cref="DownloadUrlAsync(string, DatabaseFormat, string?, CancellationToken)"/> names it.
+    /// </summary>
+    public async Task<byte[]> DownloadBytesAsync(
+        string id, DatabaseFormat format, string? build, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
 
-        using var response = await FetchAsync(id, format, cancellationToken).ConfigureAwait(false);
+        using var response = await FetchAsync(id, format, build, cancellationToken).ConfigureAwait(false);
         var body = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
         await using var _ = body.ConfigureAwait(false);
 
@@ -252,9 +283,9 @@ public sealed class DatabaseApi
     // not go through. .NET drops Authorization across a cross-host redirect too, so this is belt
     // and braces rather than the only thing standing between the key and object storage.
     private async Task<HttpResponseMessage> FetchAsync(
-        string id, DatabaseFormat format, CancellationToken cancellationToken)
+        string id, DatabaseFormat format, string? build, CancellationToken cancellationToken)
     {
-        var url = await DownloadUrlAsync(id, format, cancellationToken).ConfigureAwait(false);
+        var url = await DownloadUrlAsync(id, format, build, cancellationToken).ConfigureAwait(false);
         return await Wire.ExecuteAsync(retries, timeout, async ct =>
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, url);
