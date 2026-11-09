@@ -2814,7 +2814,8 @@ namespace InternetData
         /// Token
         /// </summary>
         /// <remarks>
-        /// Three grant types.
+        /// Issues tokens for three grant types: a device code, an authorization
+        /// <br/>code and a refresh token.
         /// <br/>
         /// <br/>`urn:ietf:params:oauth:grant-type:device_code` polls a device
         /// <br/>authorization. Until the person approves it answers
@@ -2843,7 +2844,8 @@ namespace InternetData
         /// Token
         /// </summary>
         /// <remarks>
-        /// Three grant types.
+        /// Issues tokens for three grant types: a device code, an authorization
+        /// <br/>code and a refresh token.
         /// <br/>
         /// <br/>`urn:ietf:params:oauth:grant-type:device_code` polls a device
         /// <br/>authorization. Until the person approves it answers
@@ -2962,11 +2964,10 @@ namespace InternetData
         /// Revoke
         /// </summary>
         /// <remarks>
-        /// RFC 7009. Always answers 200, including for a token that was never
-        /// <br/>valid - an endpoint that distinguished the two would be a way to test
-        /// <br/>whether a stolen string is a live credential.
+        /// RFC 7009. Always answers 200, even for a token that was never valid, so
+        /// <br/>it can't be used to test whether a token is live.
         /// <br/>
-        /// <br/>Revoking a REFRESH token ends the whole authorization and takes its
+        /// <br/>Revoking a refresh token ends the whole authorization and takes its
         /// <br/>access tokens with it. Revoking an access token affects only that token.
         /// </remarks>
         /// <returns>Always, whatever was presented.</returns>
@@ -2981,11 +2982,10 @@ namespace InternetData
         /// Revoke
         /// </summary>
         /// <remarks>
-        /// RFC 7009. Always answers 200, including for a token that was never
-        /// <br/>valid - an endpoint that distinguished the two would be a way to test
-        /// <br/>whether a stolen string is a live credential.
+        /// RFC 7009. Always answers 200, even for a token that was never valid, so
+        /// <br/>it can't be used to test whether a token is live.
         /// <br/>
-        /// <br/>Revoking a REFRESH token ends the whole authorization and takes its
+        /// <br/>Revoking a refresh token ends the whole authorization and takes its
         /// <br/>access tokens with it. Revoking an access token affects only that token.
         /// </remarks>
         /// <returns>Always, whatever was presented.</returns>
