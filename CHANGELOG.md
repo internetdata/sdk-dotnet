@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.1.1 are described by their release commits.
 
+## 2.7.1 - 2026-11-09
+
+### Fixes
+
+- Re-pin the spec to 2026.11.08: the token and revoke descriptions ([`08bf4ff`](https://github.com/internetdata/sdk-dotnet/commit/08bf4ff9b00a9db5616246e727832dfe2d293848))
+
 ## 2.7.0 - 2026-11-07
 
 ### Features
