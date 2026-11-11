@@ -39,7 +39,8 @@ public sealed class DatabaseApi
     /// <para><see cref="Database.Standing"/> says whether a database is yours today
     /// (<c>licensed</c>), was (<c>expired</c>), or has never been bought (<c>unlicensed</c>). A
     /// license covers a FAMILY while a download names one of its versions, so the IDs
-    /// <see cref="DownloadAsync"/> and <see cref="ChecksumsAsync"/> take come from
+    /// <see cref="DownloadAsync(string, DatabaseFormat, string, CancellationToken)"/> and
+    /// <see cref="ChecksumsAsync"/> take come from
     /// <see cref="Database.Versions"/>.</para>
     /// <para>This is the server's answer for this key, so a listing held from one key is not an
     /// answer for another.</para>
@@ -220,8 +221,9 @@ public sealed class DatabaseApi
     /// <b>This holds the entire file in memory</b>, and the catalog spans seven orders of
     /// magnitude: <c>bogon_asn_v1</c> is 264 bytes while the largest published database is several
     /// gigabytes, past which a single array is not even allocatable. Reach for this at the small
-    /// end, where the bytes go straight into a parser; use <see cref="DownloadAsync"/> for anything
-    /// you have not checked against <see cref="MetadataAsync"/>.
+    /// end, where the bytes go straight into a parser; use
+    /// <see cref="DownloadAsync(string, DatabaseFormat, string, CancellationToken)"/> for anything you
+    /// have not checked against <see cref="MetadataAsync"/>.
     /// </remarks>
     public Task<byte[]> DownloadBytesAsync(
         string id, DatabaseFormat format, CancellationToken cancellationToken = default)

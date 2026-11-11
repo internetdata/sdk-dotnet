@@ -41,7 +41,8 @@ public sealed class InternetDataClient : IDisposable
     /// </summary>
     /// <remarks>
     /// The supplied client MUST NOT follow redirects, or
-    /// <see cref="DatabaseApi.DownloadUrlAsync"/> would fetch a database that routinely runs to
+    /// <see cref="DatabaseApi.DownloadUrlAsync(string, DatabaseFormat, CancellationToken)"/> would
+    /// fetch a database that routinely runs to
     /// gigabytes instead of returning its link. Register it with
     /// <c>.ConfigurePrimaryHttpMessageHandler(() =&gt; new HttpClientHandler { AllowAutoRedirect = false })</c>.
     /// A borrowed client is never disposed by this one, and its timeout and default headers are
