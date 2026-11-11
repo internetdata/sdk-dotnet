@@ -221,6 +221,47 @@ public class OauthTests
         Assert.Equal(200, error.StatusCode);
     }
 
+    // No OAuth answer's list may hold a null. Through 2.7.1 each of these came back with the null in
+    // it: the decoder checked the required members alone, and System.Text.Json reads the rest.
+    [Theory]
+    [InlineData("metadata", "scopes_supported")]
+    [InlineData("metadata", "response_types_supported")]
+    [InlineData("metadata", "grant_types_supported")]
+    [InlineData("metadata", "code_challenge_methods_supported")]
+    [InlineData("metadata", "token_endpoint_auth_methods_supported")]
+    [InlineData("register", "redirect_uris")]
+    [InlineData("register", "grant_types")]
+    [InlineData("register", "response_types")]
+    public async Task AListHoldingANullIsAnAnswerThatCannotBeRead(string operation, string member)
+    {
+        var body = JsonNode.Parse(operation == "metadata" ? EveryRequiredMember : Registration)!.AsObject();
+        body[member] = new JsonArray("a");
+        var whole = new OauthStub(new Reply(200, body.ToJsonString()));
+        using var decodes = Client(whole, retries: 0);
+        await Settle(() => ListAnswer(decodes, operation), whole);
+
+        body[member] = new JsonArray("a", null);
+        var stub = new OauthStub(new Reply(200, body.ToJsonString()));
+        using var client = Client(stub, retries: 2);
+
+        var error = await Failure(() => ListAnswer(client, operation), stub);
+
+        Assert.Equal(3, stub.Requests.Count);
+        Assert.False(error is OauthException, $"a null in {member} surfaced as {error.GetType().Name}");
+        Assert.Equal(ErrorKind.ServerError, error.Kind);
+        Assert.Equal(200, error.StatusCode);
+    }
+
+    private const string Registration = """
+        {"client_id":"mo_client_x","client_id_issued_at":1792304178,"client_name":"x",
+         "redirect_uris":["http://127.0.0.1:8765/callback"],"token_endpoint_auth_method":"none"}
+        """;
+
+    private static Task<object> ListAnswer(InternetDataClient client, string operation)
+        => operation == "metadata"
+            ? Boxed(client.Oauth.MetadataAsync())
+            : Boxed(client.Oauth.RegisterAsync(new[] { "http://127.0.0.1:8765/callback" }));
+
     [Fact]
     public async Task AFailedAnswerIsAnOauthRefusalOnlyWhenItIsOne()
     {

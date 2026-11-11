@@ -527,6 +527,7 @@ public sealed class OauthApi
             if (root.ValueKind == JsonValueKind.Object
                 && required.All(name => root.TryGetProperty(name, out var value)
                     && value.ValueKind != JsonValueKind.Null)
+                && !HoldsNullEntry(root)
                 && root.Deserialize<T>() is { } decoded)
             {
                 return decoded;
@@ -543,6 +544,17 @@ public sealed class OauthApi
             $"the authorization server answered {answer.Status} without a valid {typeof(T).Name}",
             answer.Status));
     }
+
+    // No OAuth answer's list may hold a null, and System.Text.Json sets one into a list of strings
+    // without a word: through 2.7.1 `redirect_uris: [null]` came back from RegisterAsync, and a null
+    // in any of the metadata's five lists from MetadataAsync (measured 2026-11-11).
+    private static bool HoldsNullEntry(JsonElement element) => element.ValueKind switch
+    {
+        JsonValueKind.Array => element.EnumerateArray()
+            .Any(entry => entry.ValueKind == JsonValueKind.Null || HoldsNullEntry(entry)),
+        JsonValueKind.Object => element.EnumerateObject().Any(member => HoldsNullEntry(member.Value)),
+        _ => false,
+    };
 
     private readonly record struct Answer(int Status, string Body);
 }
