@@ -256,25 +256,14 @@ internal static class Wire
         return ParseRetryAfter(value);
     }
 
-    // The same header off a real response, where it is already parsed into its two forms. Object
-    // storage answers this way, the generated client does not.
+    // The same header off object storage's response, read as it arrived. The typed
+    // headers.RetryAfter goes through .NET's own HTTP date reader, which takes an offset, `UTC`, no
+    // zone, a two-digit year and one-digit fields, so through 2.7.1 a 429 dated any of those ways
+    // was waited out rather than read as a spent quota (measured 2026-11-11).
     internal static TimeSpan? RetryAfterOf(System.Net.Http.Headers.HttpResponseHeaders headers)
-    {
-        if (headers.RetryAfter is not { } value)
-        {
-            return null;
-        }
-        if (value.Delta is { } delta)
-        {
-            return delta >= TimeSpan.Zero ? delta : null;
-        }
-        if (value.Date is { } date)
-        {
-            var wait = date - DateTimeOffset.UtcNow;
-            return wait > TimeSpan.Zero ? wait : TimeSpan.Zero;
-        }
-        return null;
-    }
+        => headers.NonValidated.TryGetValues("Retry-After", out var values)
+            ? ParseRetryAfter(values.FirstOrDefault())
+            : null;
 
     /// <summary>
     /// A <c>Retry-After</c> value as a wait, or null when it is in neither of its two forms, which

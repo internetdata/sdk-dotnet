@@ -128,7 +128,7 @@ namespace InternetData
                     try
                     {
                         var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
-                        foreach (var item_ in response_.Headers)
+                        foreach (var item_ in response_.Headers.NonValidated)
                             headers_[item_.Key] = item_.Value;
                         if (response_.Content != null && response_.Content.Headers != null)
                         {
@@ -261,7 +261,7 @@ namespace InternetData
                     try
                     {
                         var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
-                        foreach (var item_ in response_.Headers)
+                        foreach (var item_ in response_.Headers.NonValidated)
                             headers_[item_.Key] = item_.Value;
                         if (response_.Content != null && response_.Content.Headers != null)
                         {
@@ -432,7 +432,7 @@ namespace InternetData
                     try
                     {
                         var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
-                        foreach (var item_ in response_.Headers)
+                        foreach (var item_ in response_.Headers.NonValidated)
                             headers_[item_.Key] = item_.Value;
                         if (response_.Content != null && response_.Content.Headers != null)
                         {
@@ -576,7 +576,7 @@ namespace InternetData
                     try
                     {
                         var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
-                        foreach (var item_ in response_.Headers)
+                        foreach (var item_ in response_.Headers.NonValidated)
                             headers_[item_.Key] = item_.Value;
                         if (response_.Content != null && response_.Content.Headers != null)
                         {
@@ -726,7 +726,7 @@ namespace InternetData
                     try
                     {
                         var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
-                        foreach (var item_ in response_.Headers)
+                        foreach (var item_ in response_.Headers.NonValidated)
                             headers_[item_.Key] = item_.Value;
                         if (response_.Content != null && response_.Content.Headers != null)
                         {
@@ -854,7 +854,7 @@ namespace InternetData
                     try
                     {
                         var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
-                        foreach (var item_ in response_.Headers)
+                        foreach (var item_ in response_.Headers.NonValidated)
                             headers_[item_.Key] = item_.Value;
                         if (response_.Content != null && response_.Content.Headers != null)
                         {
@@ -998,7 +998,7 @@ namespace InternetData
                     try
                     {
                         var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
-                        foreach (var item_ in response_.Headers)
+                        foreach (var item_ in response_.Headers.NonValidated)
                             headers_[item_.Key] = item_.Value;
                         if (response_.Content != null && response_.Content.Headers != null)
                         {
@@ -1140,7 +1140,7 @@ namespace InternetData
                     try
                     {
                         var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
-                        foreach (var item_ in response_.Headers)
+                        foreach (var item_ in response_.Headers.NonValidated)
                             headers_[item_.Key] = item_.Value;
                         if (response_.Content != null && response_.Content.Headers != null)
                         {
@@ -1294,7 +1294,7 @@ namespace InternetData
                     try
                     {
                         var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
-                        foreach (var item_ in response_.Headers)
+                        foreach (var item_ in response_.Headers.NonValidated)
                             headers_[item_.Key] = item_.Value;
                         if (response_.Content != null && response_.Content.Headers != null)
                         {
@@ -1412,7 +1412,7 @@ namespace InternetData
                     try
                     {
                         var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
-                        foreach (var item_ in response_.Headers)
+                        foreach (var item_ in response_.Headers.NonValidated)
                             headers_[item_.Key] = item_.Value;
                         if (response_.Content != null && response_.Content.Headers != null)
                         {
@@ -1526,7 +1526,7 @@ namespace InternetData
                     try
                     {
                         var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
-                        foreach (var item_ in response_.Headers)
+                        foreach (var item_ in response_.Headers.NonValidated)
                             headers_[item_.Key] = item_.Value;
                         if (response_.Content != null && response_.Content.Headers != null)
                         {
@@ -1650,7 +1650,7 @@ namespace InternetData
                     try
                     {
                         var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
-                        foreach (var item_ in response_.Headers)
+                        foreach (var item_ in response_.Headers.NonValidated)
                             headers_[item_.Key] = item_.Value;
                         if (response_.Content != null && response_.Content.Headers != null)
                         {
@@ -1773,7 +1773,7 @@ namespace InternetData
                     try
                     {
                         var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
-                        foreach (var item_ in response_.Headers)
+                        foreach (var item_ in response_.Headers.NonValidated)
                             headers_[item_.Key] = item_.Value;
                         if (response_.Content != null && response_.Content.Headers != null)
                         {
@@ -1907,7 +1907,7 @@ namespace InternetData
                     try
                     {
                         var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
-                        foreach (var item_ in response_.Headers)
+                        foreach (var item_ in response_.Headers.NonValidated)
                             headers_[item_.Key] = item_.Value;
                         if (response_.Content != null && response_.Content.Headers != null)
                         {
@@ -2039,7 +2039,7 @@ namespace InternetData
                     try
                     {
                         var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
-                        foreach (var item_ in response_.Headers)
+                        foreach (var item_ in response_.Headers.NonValidated)
                             headers_[item_.Key] = item_.Value;
                         if (response_.Content != null && response_.Content.Headers != null)
                         {
@@ -2183,7 +2183,7 @@ namespace InternetData
                     try
                     {
                         var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
-                        foreach (var item_ in response_.Headers)
+                        foreach (var item_ in response_.Headers.NonValidated)
                             headers_[item_.Key] = item_.Value;
                         if (response_.Content != null && response_.Content.Headers != null)
                         {
@@ -2313,7 +2313,7 @@ namespace InternetData
                     try
                     {
                         var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
-                        foreach (var item_ in response_.Headers)
+                        foreach (var item_ in response_.Headers.NonValidated)
                             headers_[item_.Key] = item_.Value;
                         if (response_.Content != null && response_.Content.Headers != null)
                         {
@@ -2419,7 +2419,7 @@ namespace InternetData
                     try
                     {
                         var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
-                        foreach (var item_ in response_.Headers)
+                        foreach (var item_ in response_.Headers.NonValidated)
                             headers_[item_.Key] = item_.Value;
                         if (response_.Content != null && response_.Content.Headers != null)
                         {
@@ -2572,7 +2572,7 @@ namespace InternetData
                     try
                     {
                         var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
-                        foreach (var item_ in response_.Headers)
+                        foreach (var item_ in response_.Headers.NonValidated)
                             headers_[item_.Key] = item_.Value;
                         if (response_.Content != null && response_.Content.Headers != null)
                         {
@@ -2755,7 +2755,7 @@ namespace InternetData
                     try
                     {
                         var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
-                        foreach (var item_ in response_.Headers)
+                        foreach (var item_ in response_.Headers.NonValidated)
                             headers_[item_.Key] = item_.Value;
                         if (response_.Content != null && response_.Content.Headers != null)
                         {
@@ -2900,7 +2900,7 @@ namespace InternetData
                     try
                     {
                         var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
-                        foreach (var item_ in response_.Headers)
+                        foreach (var item_ in response_.Headers.NonValidated)
                             headers_[item_.Key] = item_.Value;
                         if (response_.Content != null && response_.Content.Headers != null)
                         {
@@ -3026,7 +3026,7 @@ namespace InternetData
                     try
                     {
                         var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
-                        foreach (var item_ in response_.Headers)
+                        foreach (var item_ in response_.Headers.NonValidated)
                             headers_[item_.Key] = item_.Value;
                         if (response_.Content != null && response_.Content.Headers != null)
                         {

@@ -118,6 +118,15 @@ ITEM_CONVERTER_TODO = re.compile(
 )
 
 
+# NSwag copies each response's headers through HttpHeaders' validating enumerator, which parses
+# every header .NET knows and hands back the parsed value re-formatted. Retry-After goes through
+# .NET's own HTTP date reader, which takes an offset, `UTC`, no zone, a two-digit year and
+# one-digit fields, and comes back as an IMF-fixdate in GMT, so Wire's strict read never saw what
+# the server sent: through 2.7.1 a 429 dated `+0500` was waited out rather than read as a spent
+# quota (measured 2026-11-11). NonValidated hands each header back as it arrived.
+RESPONSE_HEADERS = re.compile(r"foreach \(var item_ in response_\.Headers\)\n")
+
+
 def main() -> int:
     path = sys.argv[1]
     with open(path, encoding="utf-8") as f:
@@ -130,6 +139,7 @@ def main() -> int:
     src, renamed = pascal_case_properties(src)
     src, hidden = hide_wire_types(src)
     src, members = fix_enum_member_names(src)
+    src, raw = RESPONSE_HEADERS.subn("foreach (var item_ in response_.Headers.NonValidated)\n", src)
 
     with open(path, "w", encoding="utf-8") as f:
         f.write(src)
@@ -141,7 +151,8 @@ def main() -> int:
     for name in hidden:
         print(f"  internal {name}")
     print(f"  {len(renamed)} properties, {len(retyped)} types renamed, "
-          f"{folded} duplicate enums folded, {len(hidden)} hidden, {members} enum members retagged")
+          f"{folded} duplicate enums folded, {len(hidden)} hidden, {members} enum members retagged, "
+          f"{raw} header copies left unparsed")
 
     return check(src)
 
@@ -269,6 +280,8 @@ def check(src) -> int:
     for m in ITEM_CONVERTER_TODO.finditer(src):
         if m.group("item") != "DatabaseFormat":
             bad.append(f"a list of {m.group('item')} has no item converter; only DatabaseFormat has one")
+    if RESPONSE_HEADERS.search(src):
+        bad.append("a response's headers are copied through the validating enumerator")
     for line in bad:
         print(f"NORMALIZE FAILED: {line}", file=sys.stderr)
     return 1 if bad else 0
