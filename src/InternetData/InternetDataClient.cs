@@ -232,7 +232,7 @@ public sealed class InternetDataClient : IDisposable
         {
             throw new InternetDataException(
                 ErrorKind.BadRequest,
-                "not an IP address: look an AS up with LookupAsnAsync, and a domain with LookupDomainAsync");
+                $"'{ip}' is not an IP address: look up an AS with LookupAsnAsync, and a domain with LookupDomainAsync");
         }
         // Judged, cached and sent as the IPv4 address it carries, if it is mapped.
         ip = Bogon.Unmapped(ip);

@@ -471,8 +471,10 @@ public class ClientTests
 
         Assert.Equal(ErrorKind.BadRequest, error.Kind);
         Assert.False(error.Retryable);
-        Assert.Contains("LookupAsnAsync", error.Message, StringComparison.Ordinal);
-        Assert.Contains("LookupDomainAsync", error.Message, StringComparison.Ordinal);
+        // Every InternetData SDK words it alike, in its own spelling of the two calls.
+        Assert.Equal(
+            $"'{target}' is not an IP address: look up an AS with LookupAsnAsync, and a domain with LookupDomainAsync",
+            error.Message);
         Assert.Empty(handler.Calls);
     }
 
