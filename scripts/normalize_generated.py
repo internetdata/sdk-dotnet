@@ -28,6 +28,11 @@ import sys
 # nobody should call.
 INTERNAL_TYPES = [
     "WireException",
+    "LookupError",
+    "EntitlementError",
+    "BatchLookupRequest",
+    "BatchLookupResponse",
+    "BatchLookupError",
     "Error",
     "Response",
     "Response2",
@@ -109,6 +114,17 @@ PROPERTY = re.compile(
     r"\s*public\s+[^\n]*?\s)(?P<name>[A-Za-z_][A-Za-z0-9_]*)(?=\s*\{ get; set; \})"
 )
 
+# An AS number is 32 bits UNSIGNED, and the spec types every one as a bare `integer`, which NSwag
+# writes as a 32-bit int: GET /asn/4200000000 answers `"asn": 4200000000`, a private AS (measured on
+# prod 2026-11-13), which an int cannot hold, so the whole answer failed to decode. Every member
+# carrying one is a long, what `format: int64` generates, so the spec taking that fix changes no
+# public type.
+AS_NUMBER = re.compile(
+    r'(\[System\.Text\.Json\.Serialization\.JsonPropertyName\("(?:asn|other_origins)"\)\]\n'
+    r"\s*public\s+(?:System\.Collections\.Generic\.IReadOnlyList<)?)int(\??>?\s+\w+\s*\{ get; set; \})"
+    r"( = new System\.Collections\.Generic\.List<)?(?(3)int>\(\);|)"
+)
+
 # NSwag writes a per-property converter for a scalar enum and this comment for an enum inside a
 # LIST, where System.Text.Json's default is to read a NUMBER. Wire.cs registers a converter for
 # DatabaseFormat to cover it, so a list of any OTHER enum would deserialize no healthy answer.
@@ -139,6 +155,7 @@ def main() -> int:
     src, renamed = pascal_case_properties(src)
     src, hidden = hide_wire_types(src)
     src, members = fix_enum_member_names(src)
+    src, widened = AS_NUMBER.subn(lambda m: m.group(1) + "long" + m.group(2) + (m.group(3) + "long>();" if m.group(3) else ""), src)
     src, raw = RESPONSE_HEADERS.subn("foreach (var item_ in response_.Headers.NonValidated)\n", src)
 
     with open(path, "w", encoding="utf-8") as f:
@@ -152,7 +169,7 @@ def main() -> int:
         print(f"  internal {name}")
     print(f"  {len(renamed)} properties, {len(retyped)} types renamed, "
           f"{folded} duplicate enums folded, {len(hidden)} hidden, {members} enum members retagged, "
-          f"{raw} header copies left unparsed")
+          f"{raw} header copies left unparsed, {widened} AS numbers widened")
 
     return check(src)
 
@@ -166,8 +183,10 @@ def pascal_case_properties(src):
     """
     renamed = []
 
+    classes = class_starts(src)
+
     def fix(m):
-        want = pascal_of(m.group("wire"))
+        want = wanted_name(m, classes)
         have = m.group("name")
         if want == have:
             return m.group(0)
@@ -175,6 +194,24 @@ def pascal_case_properties(src):
         return m.group(1) + want
 
     return PROPERTY.sub(fix, src), renamed
+
+
+# C# forbids a member named like the type that holds it (CS0542), so the one wire name the PascalCase
+# rule would turn into its own type's name takes the name here: asn.asn, the AS number.
+SELF_NAMED = {("Asn", "asn"): "Number"}
+
+
+def class_starts(src):
+    """Where each generated class begins, by name. The DTOs are never nested, so the last class
+    declared before a property is the one holding it."""
+    return [(m.start(), m.group(1)) for m in re.finditer(r"^\s*(?:public|internal) partial class (\w+)", src, re.M)]
+
+
+def wanted_name(m, classes):
+    """The name a property should carry: the PascalCase of its wire name, unless that is its own
+    type's name."""
+    owner = next((name for start, name in reversed(classes) if start < m.start()), None)
+    return SELF_NAMED.get((owner, m.group("wire")), pascal_of(m.group("wire")))
 
 
 def pascal_of(wire):
@@ -268,8 +305,9 @@ def hide_wire_types(src):
 def check(src) -> int:
     """Refuses to leave behind the defects this script exists to remove."""
     bad = []
+    classes = class_starts(src)
     for m in PROPERTY.finditer(src):
-        want = pascal_of(m.group("wire"))
+        want = wanted_name(m, classes)
         if m.group("name") != want:
             bad.append(f"property {m.group('name')} should be {want}, from the wire name")
     for name in INTERNAL_TYPES:
@@ -280,6 +318,8 @@ def check(src) -> int:
     for m in ITEM_CONVERTER_TODO.finditer(src):
         if m.group("item") != "DatabaseFormat":
             bad.append(f"a list of {m.group('item')} has no item converter; only DatabaseFormat has one")
+    if AS_NUMBER.search(src):
+        bad.append("an AS number is still a 32-bit int")
     if RESPONSE_HEADERS.search(src):
         bad.append("a response's headers are copied through the validating enumerator")
     for line in bad:

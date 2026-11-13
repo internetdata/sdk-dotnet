@@ -3066,6 +3066,878 @@ namespace InternetData
             }
         }
 
+        /// <summary>
+        /// IP lookup
+        /// </summary>
+        /// <remarks>
+        /// Answers what every database says about one IPv4 or IPv6 address. Which fields come back is
+        /// <br/>decided by the presented key; with no key, on Unlimited, the free plan, the answer carries the fields in
+        /// <br/>the address table's unlimited column. The path also takes `AS15169` or a domain, as internetdata.io's
+        /// <br/>pages do, and then answers as `GET /asn/{asn}` or `GET /domain/{domain}` would.
+        /// </remarks>
+        /// <param name="ip">The IPv4 or IPv6 address to look up.</param>
+        /// <returns>What each database says about the address, as much as your plan shows.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task<LookupResponse> LookupIpAsync(string ip)
+        {
+            return LookupIpAsync(ip, System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// IP lookup
+        /// </summary>
+        /// <remarks>
+        /// Answers what every database says about one IPv4 or IPv6 address. Which fields come back is
+        /// <br/>decided by the presented key; with no key, on Unlimited, the free plan, the answer carries the fields in
+        /// <br/>the address table's unlimited column. The path also takes `AS15169` or a domain, as internetdata.io's
+        /// <br/>pages do, and then answers as `GET /asn/{asn}` or `GET /domain/{domain}` would.
+        /// </remarks>
+        /// <param name="ip">The IPv4 or IPv6 address to look up.</param>
+        /// <returns>What each database says about the address, as much as your plan shows.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<LookupResponse> LookupIpAsync(string ip, System.Threading.CancellationToken cancellationToken)
+        {
+            if (ip == null)
+                throw new System.ArgumentNullException("ip");
+
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    request_.Method = new System.Net.Http.HttpMethod("GET");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "{ip}"
+                    urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(ip, System.Globalization.CultureInfo.InvariantCulture)));
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers.NonValidated)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<LookupResponse>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        if (status_ == 400)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<LookupError>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<LookupError>("Not an address, an AS number or a domain.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 401)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<LookupError>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<LookupError>("The key is not one, or no longer works.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 403)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<LookupError>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<LookupError>("The key may not be used from this address, or was sent over plain HTTP.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 429)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<LookupError>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<LookupError>("A rate limit, with `Retry-After` (this API protecting itself, or Unlimited\'s per-minute\nlimit), or, with none, a paid plan\'s overage cap.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 500)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<LookupError>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<LookupError>("Our data could not be read. Retry; nothing was charged.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new WireException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// My IP
+        /// </summary>
+        /// <remarks>
+        /// The address you are calling from, answered as `GET /{ip}` would answer it, and charged as
+        /// <br/>that lookup is.
+        /// </remarks>
+        /// <returns>The lookup of your own address.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task<LookupResponse> LookupMyIpAsync()
+        {
+            return LookupMyIpAsync(System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// My IP
+        /// </summary>
+        /// <remarks>
+        /// The address you are calling from, answered as `GET /{ip}` would answer it, and charged as
+        /// <br/>that lookup is.
+        /// </remarks>
+        /// <returns>The lookup of your own address.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<LookupResponse> LookupMyIpAsync(System.Threading.CancellationToken cancellationToken)
+        {
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    request_.Method = new System.Net.Http.HttpMethod("GET");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "myip"
+                    urlBuilder_.Append("myip");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers.NonValidated)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<LookupResponse>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        if (status_ == 401)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<LookupError>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<LookupError>("The key is not one, or no longer works.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 403)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<LookupError>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<LookupError>("The key may not be used from this address, or was sent over plain HTTP.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 429)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<LookupError>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<LookupError>("A rate limit, with `Retry-After` (this API protecting itself, or Unlimited\'s per-minute\nlimit), or, with none, a paid plan\'s overage cap.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 500)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<LookupError>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<LookupError>("Our data could not be read. Retry; nothing was charged.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new WireException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// ASN lookup
+        /// </summary>
+        /// <remarks>
+        /// Answers what InternetData knows about one autonomous system: its registration on every plan,
+        /// <br/>and on a paid one its ASN Whois record and every prefix it announces in global BGP, with RPKI status,
+        /// <br/>up to 20000 per address family (the counts beside them are always whole). An AS no database knows answers
+        /// <br/>its number with empty values.
+        /// </remarks>
+        /// <param name="asn">The AS number, as `AS15169` in any case, or the bare number.</param>
+        /// <returns>What each database says about the AS, as much as your plan shows.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task<AsnLookupResponse> LookupAsnAsync(string asn)
+        {
+            return LookupAsnAsync(asn, System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// ASN lookup
+        /// </summary>
+        /// <remarks>
+        /// Answers what InternetData knows about one autonomous system: its registration on every plan,
+        /// <br/>and on a paid one its ASN Whois record and every prefix it announces in global BGP, with RPKI status,
+        /// <br/>up to 20000 per address family (the counts beside them are always whole). An AS no database knows answers
+        /// <br/>its number with empty values.
+        /// </remarks>
+        /// <param name="asn">The AS number, as `AS15169` in any case, or the bare number.</param>
+        /// <returns>What each database says about the AS, as much as your plan shows.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<AsnLookupResponse> LookupAsnAsync(string asn, System.Threading.CancellationToken cancellationToken)
+        {
+            if (asn == null)
+                throw new System.ArgumentNullException("asn");
+
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    request_.Method = new System.Net.Http.HttpMethod("GET");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "asn/{asn}"
+                    urlBuilder_.Append("asn/");
+                    urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(asn, System.Globalization.CultureInfo.InvariantCulture)));
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers.NonValidated)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<AsnLookupResponse>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        if (status_ == 400)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<LookupError>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<LookupError>("Not an address, an AS number or a domain.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 401)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<LookupError>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<LookupError>("The key is not one, or no longer works.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 403)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<LookupError>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<LookupError>("The key may not be used from this address, or was sent over plain HTTP.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 429)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<LookupError>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<LookupError>("A rate limit, with `Retry-After` (this API protecting itself, or Unlimited\'s per-minute\nlimit), or, with none, a paid plan\'s overage cap.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 500)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<LookupError>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<LookupError>("Our data could not be read. Retry; nothing was charged.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new WireException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Domain lookup
+        /// </summary>
+        /// <remarks>
+        /// Answers what InternetData knows about one domain from its latest snapshots: on every plan
+        /// <br/>whether it is registered and which DNS record types it has; on a paid one the records themselves, up to
+        /// <br/>100 a type, the organization's IP ranges and whether it is a disposable email domain. An internationalized
+        /// <br/>name is answered under its punycode spelling.
+        /// </remarks>
+        /// <param name="domain">The domain to look up.</param>
+        /// <returns>What each database says about the domain, as much as your plan shows.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task<DomainLookupResponse> LookupDomainAsync(string domain)
+        {
+            return LookupDomainAsync(domain, System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Domain lookup
+        /// </summary>
+        /// <remarks>
+        /// Answers what InternetData knows about one domain from its latest snapshots: on every plan
+        /// <br/>whether it is registered and which DNS record types it has; on a paid one the records themselves, up to
+        /// <br/>100 a type, the organization's IP ranges and whether it is a disposable email domain. An internationalized
+        /// <br/>name is answered under its punycode spelling.
+        /// </remarks>
+        /// <param name="domain">The domain to look up.</param>
+        /// <returns>What each database says about the domain, as much as your plan shows.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<DomainLookupResponse> LookupDomainAsync(string domain, System.Threading.CancellationToken cancellationToken)
+        {
+            if (domain == null)
+                throw new System.ArgumentNullException("domain");
+
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    request_.Method = new System.Net.Http.HttpMethod("GET");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "domain/{domain}"
+                    urlBuilder_.Append("domain/");
+                    urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(domain, System.Globalization.CultureInfo.InvariantCulture)));
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers.NonValidated)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<DomainLookupResponse>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        if (status_ == 400)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<LookupError>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<LookupError>("Not an address, an AS number or a domain.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 401)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<LookupError>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<LookupError>("The key is not one, or no longer works.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 403)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<LookupError>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<LookupError>("The key may not be used from this address, or was sent over plain HTTP.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 429)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<LookupError>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<LookupError>("A rate limit, with `Retry-After` (this API protecting itself, or Unlimited\'s per-minute\nlimit), or, with none, a paid plan\'s overage cap.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 500)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<LookupError>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<LookupError>("Our data could not be read. Retry; nothing was charged.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new WireException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Batch
+        /// </summary>
+        /// <remarks>
+        /// Up to 1000 addresses, AS numbers and domains in one call, each answered exactly as its own
+        /// <br/>lookup would be and each counted as one lookup. Answers and failures are keyed by the string you sent, in
+        /// <br/>the order you sent them; duplicates collapse. Needs a paid plan: a batch of one item is answered as the
+        /// <br/>lookup it is on any plan.
+        /// </remarks>
+        /// <returns>Every item, under `results` or `errors`.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task<BatchLookupResponse> LookupBatchAsync(BatchLookupRequest body)
+        {
+            return LookupBatchAsync(body, System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Batch
+        /// </summary>
+        /// <remarks>
+        /// Up to 1000 addresses, AS numbers and domains in one call, each answered exactly as its own
+        /// <br/>lookup would be and each counted as one lookup. Answers and failures are keyed by the string you sent, in
+        /// <br/>the order you sent them; duplicates collapse. Needs a paid plan: a batch of one item is answered as the
+        /// <br/>lookup it is on any plan.
+        /// </remarks>
+        /// <returns>Every item, under `results` or `errors`.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<BatchLookupResponse> LookupBatchAsync(BatchLookupRequest body, System.Threading.CancellationToken cancellationToken)
+        {
+            if (body == null)
+                throw new System.ArgumentNullException("body");
+
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    var json_ = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(body, JsonSerializerSettings);
+                    var content_ = new System.Net.Http.ByteArrayContent(json_);
+                    content_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
+                    request_.Content = content_;
+                    request_.Method = new System.Net.Http.HttpMethod("POST");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "batch"
+                    urlBuilder_.Append("batch");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers.NonValidated)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<BatchLookupResponse>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        if (status_ == 400)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<LookupError>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<LookupError>("The body is not a batch, or holds no items or more than 1000.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 401)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<LookupError>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<LookupError>("No key, or a key that does not work.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 402)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<LookupError>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<LookupError>("A key on the free plan.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 403)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<LookupError>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<LookupError>("The key may not be used from this address, or was sent over plain HTTP.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 413)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<LookupError>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<LookupError>("The body is larger than 512 KB.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 429)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<LookupError>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<LookupError>("A rate limit; retry after `Retry-After`.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new WireException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Plan and usage
+        /// </summary>
+        /// <remarks>
+        /// Answers what the presented key is, what plan is behind it, and what has
+        /// <br/>been spent against that plan's allowance in the current window.
+        /// </remarks>
+        /// <returns>The key's entitlements and consumption.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task<Entitlement> MyEntitlementAsync()
+        {
+            return MyEntitlementAsync(System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Plan and usage
+        /// </summary>
+        /// <remarks>
+        /// Answers what the presented key is, what plan is behind it, and what has
+        /// <br/>been spent against that plan's allowance in the current window.
+        /// </remarks>
+        /// <returns>The key's entitlements and consumption.</returns>
+        /// <exception cref="WireException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<Entitlement> MyEntitlementAsync(System.Threading.CancellationToken cancellationToken)
+        {
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    request_.Method = new System.Net.Http.HttpMethod("GET");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "api/v1/entitlement"
+                    urlBuilder_.Append("api/v1/entitlement");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers.NonValidated)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<Entitlement>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        if (status_ == 401)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<EntitlementError>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<EntitlementError>("No key was presented, or it is unknown, revoked or expired.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 403)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<EntitlementError>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<EntitlementError>("The key restricts which source addresses may use it, and this\nrequest did not come from one of them.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 503)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<EntitlementError>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new WireException<EntitlementError>("The usage counters could not be read. Reported rather than guessed\nat: the whole answer is the number, and a confident zero would read\nas \"you have used nothing\".\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new WireException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
         protected struct ObjectResponseResult<T>
         {
             public ObjectResponseResult(T responseObject, string responseText)
@@ -4487,6 +5359,2102 @@ namespace InternetData
 
     }
 
+    /// <summary>
+    /// What every database says about one address.
+    /// </summary>
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class LookupResponse
+    {
+
+        /// <summary>
+        /// The address looked up, as parsed: `::ffff:a.b.c.d` answers as `a.b.c.d`.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("ip")]
+        public string Ip { get; set; } = default!;
+
+        /// <summary>
+        /// Reserved space, answered from the address alone.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("is_bogon")]
+        public bool IsBogon { get; set; } = default!;
+
+        /// <summary>
+        /// In VPN IP: a VPN service's server. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("is_vpn")]
+        public bool? IsVpn { get; set; } = default!;
+
+        /// <summary>
+        /// In Tor IP: a Tor exit.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("is_tor")]
+        public bool IsTor { get; set; } = default!;
+
+        /// <summary>
+        /// In Relay IP: an anonymizing relay such as iCloud Private Relay.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("is_relay")]
+        public bool IsRelay { get; set; } = default!;
+
+        /// <summary>
+        /// In Residential Proxy IP's 90-day window: a residential proxy exit. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("is_resproxy")]
+        public bool? IsResproxy { get; set; } = default!;
+
+        /// <summary>
+        /// In Datacenter Proxy IP's 90-day window. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("is_dcproxy")]
+        public bool? IsDcproxy { get; set; } = default!;
+
+        /// <summary>
+        /// In Mobile Proxy IP's 90-day window. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("is_mobproxy")]
+        public bool? IsMobproxy { get; set; } = default!;
+
+        /// <summary>
+        /// In Public Proxy IP: a public proxy listens here, or its traffic left from here. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("is_pubproxy")]
+        public bool? IsPubproxy { get; set; } = default!;
+
+        /// <summary>
+        /// In Hosting IP: a hosting or cloud network. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("is_hosting")]
+        public bool? IsHosting { get; set; } = default!;
+
+        /// <summary>
+        /// In CDN IP: a content delivery network. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("is_cdn")]
+        public bool? IsCdn { get; set; } = default!;
+
+        /// <summary>
+        /// In Anycast IP: announced from many places at once.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("is_anycast")]
+        public bool IsAnycast { get; set; } = default!;
+
+        /// <summary>
+        /// In Carrier IP: a mobile carrier's address space.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("is_carrier")]
+        public bool IsCarrier { get; set; } = default!;
+
+        /// <summary>
+        /// In Satellite IP: a satellite operator's address space.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("is_satellite")]
+        public bool IsSatellite { get; set; } = default!;
+
+        /// <summary>
+        /// In SSH IP: an SSH server answered here.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("is_ssh")]
+        public bool IsSsh { get; set; } = default!;
+
+        /// <summary>
+        /// In SMTP IP: a mail server answered here.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("is_smtp")]
+        public bool IsSmtp { get; set; } = default!;
+
+        /// <summary>
+        /// In Web IP: a web server answered here on port 80 or 443.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("is_web")]
+        public bool IsWeb { get; set; } = default!;
+
+        /// <summary>
+        /// In DNS Resolver IP: an open DNS resolver answered here.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("is_dns_resolver")]
+        public bool IsDnsResolver { get; set; } = default!;
+
+        /// <summary>
+        /// In BitTorrent IP: a BitTorrent client was seen here in the last 90 days.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("is_bittorrent")]
+        public bool IsBittorrent { get; set; } = default!;
+
+        /// <summary>
+        /// VPN IP's row, `{}` when `is_vpn` is false. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("vpn")]
+        public ClassDetail? Vpn { get; set; } = default!;
+
+        /// <summary>
+        /// Tor IP's row, `{}` when `is_tor` is false.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("tor")]
+        public ClassDetail Tor { get; set; } = new ClassDetail();
+
+        /// <summary>
+        /// Relay IP's row, `{}` when `is_relay` is false.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("relay")]
+        public ClassDetail Relay { get; set; } = new ClassDetail();
+
+        /// <summary>
+        /// `{}` when `is_resproxy` is false. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("resproxy")]
+        public ProxyDetail? Resproxy { get; set; } = default!;
+
+        /// <summary>
+        /// `{}` when `is_dcproxy` is false. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("dcproxy")]
+        public ProxyDetail? Dcproxy { get; set; } = default!;
+
+        /// <summary>
+        /// `{}` when `is_mobproxy` is false. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("mobproxy")]
+        public ProxyDetail? Mobproxy { get; set; } = default!;
+
+        /// <summary>
+        /// `{}` when `is_pubproxy` is false. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("pubproxy")]
+        public PubproxyDetail? Pubproxy { get; set; } = default!;
+
+        /// <summary>
+        /// `{}` when `is_hosting` is false. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("hosting")]
+        public ClassDetail? Hosting { get; set; } = default!;
+
+        /// <summary>
+        /// `{}` when `is_cdn` is false. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("cdn")]
+        public ClassDetail? Cdn { get; set; } = default!;
+
+        /// <summary>
+        /// `{}` when `is_carrier` is false. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("carrier")]
+        public CarrierDetail? Carrier { get; set; } = default!;
+
+        /// <summary>
+        /// `{}` when `is_satellite` is false. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("satellite")]
+        public SatelliteDetail? Satellite { get; set; } = default!;
+
+        /// <summary>
+        /// `{}` when `is_ssh` is false. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("ssh")]
+        public SshDetail? Ssh { get; set; } = default!;
+
+        /// <summary>
+        /// `{}` when `is_smtp` is false. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("smtp")]
+        public SmtpDetail? Smtp { get; set; } = default!;
+
+        /// <summary>
+        /// A row per port that answered, lowest first; `[]` when `is_web` is false. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("web")]
+        public System.Collections.Generic.IReadOnlyList<WebDetail>? Web { get; set; } = default!;
+
+        /// <summary>
+        /// `{}` when `is_dns_resolver` is false. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("dns_resolver")]
+        public DnsResolverDetail? DnsResolver { get; set; } = default!;
+
+        /// <summary>
+        /// `{}` when `is_bittorrent` is false. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("bittorrent")]
+        public BitTorrentDetail? Bittorrent { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("location")]
+        public Location Location { get; set; } = new Location();
+
+        [System.Text.Json.Serialization.JsonPropertyName("asn")]
+        public Asn Asn { get; set; } = new Asn();
+
+        [System.Text.Json.Serialization.JsonPropertyName("company")]
+        public Company Company { get; set; } = new Company();
+
+        /// <summary>
+        /// The name the address's reverse DNS (PTR) record points to in IP RDNS, empty when it has none.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("hostname")]
+        public string Hostname { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("abuse")]
+        public AbuseContact Abuse { get; set; } = new AbuseContact();
+
+        [System.Text.Json.Serialization.JsonPropertyName("whois")]
+        public Whois? Whois { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("rwhois")]
+        public Rwhois? Rwhois { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("hosted_domains")]
+        public HostedDomains? HostedDomains { get; set; } = default!;
+
+        /// <summary>
+        /// On every answer to a key on the free plan, and on no other: `false` while the day's trial of every field lasts, `true` once the answer has Unlimited's fields.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("trial_expired")]
+        public bool? TrialExpired { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ClassDetail
+    {
+
+        /// <summary>
+        /// The provider's ID in its catalog; empty for an unattributed range, and on Tor.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("provider")]
+        public string Provider { get; set; } = default!;
+
+        /// <summary>
+        /// The name the catalog gives the provider, empty where it names none.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("provider_name")]
+        public string ProviderName { get; set; } = default!;
+
+        /// <summary>
+        /// `high`, `medium` or `low`: how sure we are the range is what the flag says.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("confidence")]
+        public string Confidence { get; set; } = default!;
+
+        /// <summary>
+        /// The last day the range was seen as such.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("last_seen")]
+        public string LastSeen { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ProxyDetail
+    {
+
+        /// <summary>
+        /// The proxy pool's ID in its catalog, empty where unattributed.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("provider")]
+        public string Provider { get; set; } = default!;
+
+        /// <summary>
+        /// The name the catalog gives it.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("provider_name")]
+        public string ProviderName { get; set; } = default!;
+
+        /// <summary>
+        /// The first day of the window the address was seen as an exit.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("first_seen")]
+        public string FirstSeen { get; set; } = default!;
+
+        /// <summary>
+        /// The last day it was.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("last_seen")]
+        public string LastSeen { get; set; } = default!;
+
+        /// <summary>
+        /// How many times it was seen in the window.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("hits")]
+        public int Hits { get; set; } = default!;
+
+        /// <summary>
+        /// On what share of the window's days, in percent.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("hits_days_pct")]
+        public int HitsDaysPct { get; set; } = default!;
+
+        /// <summary>
+        /// How many pools it was seen in.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("providers_num")]
+        public int ProvidersNum { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class PubproxyDetail
+    {
+
+        /// <summary>
+        /// A public proxy listens here.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("entry")]
+        public bool Entry { get; set; } = default!;
+
+        /// <summary>
+        /// Public proxies' traffic leaves from here.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("exit")]
+        public bool Exit { get; set; } = default!;
+
+        /// <summary>
+        /// The protocols at either end, `[]` when unknown.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("protocols")]
+        public System.Collections.Generic.IReadOnlyList<string> Protocols { get; set; } = new System.Collections.Generic.List<string>();
+
+        /// <summary>
+        /// How many ports a proxy listens on here.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("num_ports")]
+        public int NumPorts { get; set; } = default!;
+
+        /// <summary>
+        /// How many proxies' traffic left from here.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("num_proxies")]
+        public int NumProxies { get; set; } = default!;
+
+        /// <summary>
+        /// The last day one was seen.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("last_seen")]
+        public string LastSeen { get; set; } = default!;
+
+        /// <summary>
+        /// The last day one answered a request, empty when none did.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("last_usable")]
+        public string LastUsable { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class CarrierDetail
+    {
+
+        /// <summary>
+        /// The mobile carrier.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("name")]
+        public string Name { get; set; } = default!;
+
+        /// <summary>
+        /// Its mobile country code.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("mcc")]
+        public string Mcc { get; set; } = default!;
+
+        /// <summary>
+        /// Its mobile network code.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("mnc")]
+        public string Mnc { get; set; } = default!;
+
+        /// <summary>
+        /// ISO 3166 country code.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("country")]
+        public string Country { get; set; } = default!;
+
+        /// <summary>
+        /// `high`, `medium` or `low`.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("confidence")]
+        public string Confidence { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class SatelliteDetail
+    {
+
+        /// <summary>
+        /// The operator's ID in Satellite IP Provider.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("provider")]
+        public string Provider { get; set; } = default!;
+
+        /// <summary>
+        /// The operator's name.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("provider_name")]
+        public string ProviderName { get; set; } = default!;
+
+        /// <summary>
+        /// The orbit: `leo`, `meo` or `geo`.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("orbit")]
+        public string Orbit { get; set; } = default!;
+
+        /// <summary>
+        /// Who the space serves, such as consumer or maritime.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("segment")]
+        public string Segment { get; set; } = default!;
+
+        /// <summary>
+        /// ISO 3166 country code.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("country")]
+        public string Country { get; set; } = default!;
+
+        /// <summary>
+        /// The AS the operator announces it from.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("asn")]
+        public long Asn { get; set; } = default!;
+
+        /// <summary>
+        /// `high`, `medium` or `low`.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("confidence")]
+        public string Confidence { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class SshDetail
+    {
+
+        /// <summary>
+        /// The port the server answered on.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("port")]
+        public int Port { get; set; } = default!;
+
+        /// <summary>
+        /// Its banner.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("banner")]
+        public string Banner { get; set; } = default!;
+
+        /// <summary>
+        /// Its host key's fingerprint.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("host_key_fp")]
+        public string HostKeyFp { get; set; } = default!;
+
+        /// <summary>
+        /// A session was set up.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("session_ok")]
+        public bool SessionOk { get; set; } = default!;
+
+        /// <summary>
+        /// The first day it answered.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("first_seen")]
+        public string FirstSeen { get; set; } = default!;
+
+        /// <summary>
+        /// The last day it did.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("last_seen")]
+        public string LastSeen { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class SmtpDetail
+    {
+
+        /// <summary>
+        /// The port the server answered on.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("port")]
+        public int Port { get; set; } = default!;
+
+        /// <summary>
+        /// Its banner.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("banner")]
+        public string Banner { get; set; } = default!;
+
+        /// <summary>
+        /// A session was set up.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("session_ok")]
+        public bool SessionOk { get; set; } = default!;
+
+        /// <summary>
+        /// The first day it answered.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("first_seen")]
+        public string FirstSeen { get; set; } = default!;
+
+        /// <summary>
+        /// The last day it did.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("last_seen")]
+        public string LastSeen { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class WebDetail
+    {
+
+        /// <summary>
+        /// 80 or 443.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("port")]
+        public int Port { get; set; } = default!;
+
+        /// <summary>
+        /// A TLS handshake completed.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("tls_ok")]
+        public bool TlsOk { get; set; } = default!;
+
+        /// <summary>
+        /// An HTTP response came back.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("session_ok")]
+        public bool SessionOk { get; set; } = default!;
+
+        /// <summary>
+        /// Its status, 0 where none came.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("status_code")]
+        public int StatusCode { get; set; } = default!;
+
+        /// <summary>
+        /// Its `Server` header.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("server")]
+        public string Server { get; set; } = default!;
+
+        /// <summary>
+        /// Where it redirected.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("location")]
+        public string Location { get; set; } = default!;
+
+        /// <summary>
+        /// The page's title.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("title")]
+        public string Title { get; set; } = default!;
+
+        /// <summary>
+        /// The certificate's subject common name.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("cert_subject_cn")]
+        public string CertSubjectCn { get; set; } = default!;
+
+        /// <summary>
+        /// Its subject organization.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("cert_subject_o")]
+        public string CertSubjectO { get; set; } = default!;
+
+        /// <summary>
+        /// Its issuer.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("cert_issuer_dn")]
+        public string CertIssuerDn { get; set; } = default!;
+
+        /// <summary>
+        /// Browsers trust it.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("cert_browser_trusted")]
+        public bool CertBrowserTrusted { get; set; } = default!;
+
+        /// <summary>
+        /// The TLS version negotiated, empty without TLS.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("tls_version")]
+        public string TlsVersion { get; set; } = default!;
+
+        /// <summary>
+        /// The first day the port was open.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("first_seen")]
+        public string FirstSeen { get; set; } = default!;
+
+        /// <summary>
+        /// The last day it was.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("last_seen")]
+        public string LastSeen { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class DnsResolverDetail
+    {
+
+        /// <summary>
+        /// The port it answered on.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("port")]
+        public int Port { get; set; } = default!;
+
+        /// <summary>
+        /// It offered recursion.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("recursion_available")]
+        public bool RecursionAvailable { get; set; } = default!;
+
+        /// <summary>
+        /// Its answer's response code.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("rcode")]
+        public int Rcode { get; set; } = default!;
+
+        /// <summary>
+        /// Its answer was right.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("answer_correct")]
+        public bool AnswerCorrect { get; set; } = default!;
+
+        /// <summary>
+        /// The first day it answered.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("first_seen")]
+        public string FirstSeen { get; set; } = default!;
+
+        /// <summary>
+        /// The last day it did.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("last_seen")]
+        public string LastSeen { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class BitTorrentDetail
+    {
+
+        /// <summary>
+        /// A client here answered, or two or more reported it at once.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("verified")]
+        public bool Verified { get; set; } = default!;
+
+        /// <summary>
+        /// A client here derived its node ID from the address (BEP 42).
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("id_matches_ip")]
+        public bool IdMatchesIp { get; set; } = default!;
+
+        /// <summary>
+        /// The first day a client was seen here.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("first_seen")]
+        public string FirstSeen { get; set; } = default!;
+
+        /// <summary>
+        /// The last day.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("last_seen")]
+        public string LastSeen { get; set; } = default!;
+
+        /// <summary>
+        /// The last day one answered, empty when none did.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("last_reachable")]
+        public string LastReachable { get; set; } = default!;
+
+        /// <summary>
+        /// On how many days.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("days_seen")]
+        public int DaysSeen { get; set; } = default!;
+
+        /// <summary>
+        /// Distinct ports over the window.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("num_ports")]
+        public int NumPorts { get; set; } = default!;
+
+        /// <summary>
+        /// The most on one day.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("peak_num_ports")]
+        public int PeakNumPorts { get; set; } = default!;
+
+        /// <summary>
+        /// A DHT indexer rather than people.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("indexer")]
+        public bool Indexer { get; set; } = default!;
+
+        /// <summary>
+        /// The two-letter codes its clients name themselves by.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("clients")]
+        public System.Collections.Generic.IReadOnlyList<string> Clients { get; set; } = new System.Collections.Generic.List<string>();
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    /// <summary>
+    /// Where the address is.
+    /// </summary>
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class Location
+    {
+
+        /// <summary>
+        /// Continent code.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("continent")]
+        public string Continent { get; set; } = default!;
+
+        /// <summary>
+        /// Continent name.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("continent_name")]
+        public string ContinentName { get; set; } = default!;
+
+        /// <summary>
+        /// ISO 3166-1 alpha-2 country code.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("country")]
+        public string Country { get; set; } = default!;
+
+        /// <summary>
+        /// Country name.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("country_name")]
+        public string CountryName { get; set; } = default!;
+
+        /// <summary>
+        /// IANA timezone.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("timezone")]
+        public string Timezone { get; set; } = default!;
+
+        /// <summary>
+        /// ISO 4217 code.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("currency_code")]
+        public string CurrencyCode { get; set; } = default!;
+
+        /// <summary>
+        /// Currency name.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("currency_name")]
+        public string CurrencyName { get; set; } = default!;
+
+        /// <summary>
+        /// Currency symbol.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("currency_symbol")]
+        public string CurrencySymbol { get; set; } = default!;
+
+        /// <summary>
+        /// The country's flag.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("flag_emoji")]
+        public string FlagEmoji { get; set; } = default!;
+
+        /// <summary>
+        /// Its code points, `U+1F1E6 U+1F1F9`.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("flag_unicode")]
+        public string FlagUnicode { get; set; } = default!;
+
+        /// <summary>
+        /// Region (state or province). Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("region")]
+        public string? Region { get; set; } = default!;
+
+        /// <summary>
+        /// ISO 3166-2 region code. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("region_code")]
+        public string? RegionCode { get; set; } = default!;
+
+        /// <summary>
+        /// City. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("city")]
+        public string? City { get; set; } = default!;
+
+        /// <summary>
+        /// Postal code. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("postal_code")]
+        public string? PostalCode { get; set; } = default!;
+
+        /// <summary>
+        /// Latitude of the city. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("latitude")]
+        public double? Latitude { get; set; } = default!;
+
+        /// <summary>
+        /// Longitude of the city. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("longitude")]
+        public double? Longitude { get; set; } = default!;
+
+        /// <summary>
+        /// Radius in km holding the true location with 67% confidence. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("accuracy_radius")]
+        public int? AccuracyRadius { get; set; } = default!;
+
+        /// <summary>
+        /// GeoNames ID of the city. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("geoname_id")]
+        public string? GeonameId { get; set; } = default!;
+
+        /// <summary>
+        /// US TV market (DMA) code. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("dma_code")]
+        public string? DmaCode { get; set; } = default!;
+
+        /// <summary>
+        /// The day the range's location last changed. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("last_changed")]
+        public string? LastChanged { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    /// <summary>
+    /// The network announcing the address, from IP ASN.
+    /// </summary>
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class Asn
+    {
+
+        /// <summary>
+        /// The AS announcing the address, 0 where none does.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("asn")]
+        public long Number { get; set; } = default!;
+
+        /// <summary>
+        /// Its operator.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("name")]
+        public string Name { get; set; } = default!;
+
+        /// <summary>
+        /// Its operator's domain.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("domain")]
+        public string Domain { get; set; } = default!;
+
+        /// <summary>
+        /// The kind of network it runs.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("type")]
+        public string Type { get; set; } = default!;
+
+        /// <summary>
+        /// The announced prefix covering the address.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("prefix")]
+        public string Prefix { get; set; } = default!;
+
+        /// <summary>
+        /// The country its registry assigned it to. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("country")]
+        public string? Country { get; set; } = default!;
+
+        /// <summary>
+        /// The announcement's RPKI status. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("rpki_status")]
+        public string? RpkiStatus { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    /// <summary>
+    /// Who uses the address, from IP Company.
+    /// </summary>
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class Company
+    {
+
+        /// <summary>
+        /// Who uses the address.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("name")]
+        public string Name { get; set; } = default!;
+
+        /// <summary>
+        /// Their domain.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("domain")]
+        public string Domain { get; set; } = default!;
+
+        /// <summary>
+        /// What kind of organization: hosting, isp, business, education, government. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("type")]
+        public string? Type { get; set; } = default!;
+
+        /// <summary>
+        /// ISO 3166 country code. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("country")]
+        public string? Country { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    /// <summary>
+    /// Where to report abuse, from IP Abuse Contact.
+    /// </summary>
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class AbuseContact
+    {
+
+        /// <summary>
+        /// Where to report abuse from the address.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("email")]
+        public string Email { get; set; } = default!;
+
+        /// <summary>
+        /// The contact. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("name")]
+        public string? Name { get; set; } = default!;
+
+        /// <summary>
+        /// Its phone number. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("phone")]
+        public string? Phone { get; set; } = default!;
+
+        /// <summary>
+        /// Its postal address. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("address")]
+        public string? Address { get; set; } = default!;
+
+        /// <summary>
+        /// ISO 3166 country code. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("country")]
+        public string? Country { get; set; } = default!;
+
+        /// <summary>
+        /// The registry block it was derived from. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("network")]
+        public string? Network { get; set; } = default!;
+
+        /// <summary>
+        /// ARIN reports the contact answered its yearly validation. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("validated")]
+        public bool? Validated { get; set; } = default!;
+
+        /// <summary>
+        /// Since when it has not. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("unvalidated_since")]
+        public string? UnvalidatedSince { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    /// <summary>
+    /// IP Whois's most specific record covering the address. Paid plans and the trial.
+    /// </summary>
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class Whois
+    {
+
+        /// <summary>
+        /// Network name of the most specific record covering the address.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("id")]
+        public string Id { get; set; } = default!;
+
+        /// <summary>
+        /// Its holder.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("name")]
+        public string Name { get; set; } = default!;
+
+        /// <summary>
+        /// The registry's handle for the holder.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("org")]
+        public string Org { get; set; } = default!;
+
+        /// <summary>
+        /// ISO 3166 country code.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("country")]
+        public string Country { get; set; } = default!;
+
+        /// <summary>
+        /// The registry's assignment status.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("status")]
+        public string Status { get; set; } = default!;
+
+        /// <summary>
+        /// The registry, or rwhois.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("source")]
+        public string Source { get; set; } = default!;
+
+        /// <summary>
+        /// The holder's domain.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("domain")]
+        public string Domain { get; set; } = default!;
+
+        /// <summary>
+        /// The record's abuse contact.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("abuse_email")]
+        public string AbuseEmail { get; set; } = default!;
+
+        /// <summary>
+        /// The AS announcing the record's start address.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("asn")]
+        public long Asn { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    /// <summary>
+    /// IP RWHOIS's most specific network covering the address. Paid plans and the trial.
+    /// </summary>
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class Rwhois
+    {
+
+        /// <summary>
+        /// The network's identifier on the operator's RWHOIS server.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("id")]
+        public string Id { get; set; } = default!;
+
+        /// <summary>
+        /// Its assignee.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("name")]
+        public string Name { get; set; } = default!;
+
+        /// <summary>
+        /// ISO 3166 country code.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("country")]
+        public string Country { get; set; } = default!;
+
+        /// <summary>
+        /// The operator that published it.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("source")]
+        public string Source { get; set; } = default!;
+
+        /// <summary>
+        /// The contact emails' domain.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("domain")]
+        public string Domain { get; set; } = default!;
+
+        /// <summary>
+        /// Its abuse contact.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("abuse_email")]
+        public string AbuseEmail { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    /// <summary>
+    /// From IP Hosted Domains: a count, never the list. Paid plans and the trial.
+    /// </summary>
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class HostedDomains
+    {
+
+        /// <summary>
+        /// How many registered domains resolve to the address.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("total")]
+        public int Total { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    /// <summary>
+    /// What every database says about one AS.
+    /// </summary>
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class AsnLookupResponse
+    {
+
+        /// <summary>
+        /// The AS number.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("asn")]
+        public long Asn { get; set; } = default!;
+
+        /// <summary>
+        /// Its operator.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("name")]
+        public string Name { get; set; } = default!;
+
+        /// <summary>
+        /// The country its registry assigned it to.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("country")]
+        public string Country { get; set; } = default!;
+
+        /// <summary>
+        /// The registry that allocated it.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("registry")]
+        public string Registry { get; set; } = default!;
+
+        /// <summary>
+        /// When.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("allocated")]
+        public string Allocated { get; set; } = default!;
+
+        /// <summary>
+        /// Its operator's domain.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("domain")]
+        public string Domain { get; set; } = default!;
+
+        /// <summary>
+        /// The kind of network it runs. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("type")]
+        public string? Type { get; set; } = default!;
+
+        /// <summary>
+        /// IPv4 addresses it announces. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("num_ips")]
+        public int? NumIps { get; set; } = default!;
+
+        /// <summary>
+        /// IPv4 prefixes it announces. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("num_prefixes4")]
+        public int? NumPrefixes4 { get; set; } = default!;
+
+        /// <summary>
+        /// IPv6 prefixes it announces. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("num_prefixes6")]
+        public int? NumPrefixes6 { get; set; } = default!;
+
+        /// <summary>
+        /// Its announcements RPKI calls valid. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("rpki_valid")]
+        public int? RpkiValid { get; set; } = default!;
+
+        /// <summary>
+        /// Invalid. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("rpki_invalid")]
+        public int? RpkiInvalid { get; set; } = default!;
+
+        /// <summary>
+        /// With no RPKI record. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("rpki_not_found")]
+        public int? RpkiNotFound { get; set; } = default!;
+
+        /// <summary>
+        /// Its ASN Whois record, every column, empty where the registry states nothing. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("whois")]
+        public System.Collections.Generic.IDictionary<string, string>? Whois { get; set; } = default!;
+
+        /// <summary>
+        /// What it announces, IPv4 then IPv6, up to 20000 a family. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("prefixes")]
+        public System.Collections.Generic.IReadOnlyList<AsnPrefix>? Prefixes { get; set; } = default!;
+
+        /// <summary>
+        /// On every answer to a key on the free plan, and on no other: `false` while the day's trial of every field lasts, `true` once the answer has Unlimited's fields.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("trial_expired")]
+        public bool? TrialExpired { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class AsnPrefix
+    {
+
+        /// <summary>
+        /// The announced prefix.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("prefix")]
+        public string Prefix { get; set; } = default!;
+
+        /// <summary>
+        /// How many peers saw it.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("peer_count")]
+        public int PeerCount { get; set; } = default!;
+
+        /// <summary>
+        /// Its RPKI status.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("rpki_status")]
+        public string RpkiStatus { get; set; } = default!;
+
+        /// <summary>
+        /// The first day BGP Route saw it.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("first_seen")]
+        public string FirstSeen { get; set; } = default!;
+
+        /// <summary>
+        /// Where its first address is.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("country")]
+        public string Country { get; set; } = default!;
+
+        /// <summary>
+        /// IPv4 addresses it covers; 0 for IPv6.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("size")]
+        public int Size { get; set; } = default!;
+
+        /// <summary>
+        /// Every other AS announcing it.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("other_origins")]
+        public System.Collections.Generic.IReadOnlyList<long> OtherOrigins { get; set; } = new System.Collections.Generic.List<long>();
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    /// <summary>
+    /// What every database says about one domain.
+    /// </summary>
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class DomainLookupResponse
+    {
+
+        /// <summary>
+        /// The domain, lowercase and in punycode.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("domain")]
+        public string Domain { get; set; } = default!;
+
+        /// <summary>
+        /// In Domain List: a registered domain.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("is_registered")]
+        public bool IsRegistered { get; set; } = default!;
+
+        /// <summary>
+        /// In Disposable Domain. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("is_disposable")]
+        public bool? IsDisposable { get; set; } = default!;
+
+        /// <summary>
+        /// It has A records.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("has_a")]
+        public bool HasA { get; set; } = default!;
+
+        /// <summary>
+        /// AAAA records.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("has_aaaa")]
+        public bool HasAaaa { get; set; } = default!;
+
+        /// <summary>
+        /// MX records.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("has_mx")]
+        public bool HasMx { get; set; } = default!;
+
+        /// <summary>
+        /// NS records.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("has_ns")]
+        public bool HasNs { get; set; } = default!;
+
+        /// <summary>
+        /// A CNAME record.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("has_cname")]
+        public bool HasCname { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("dns")]
+        public DomainDns? Dns { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("ip_ranges")]
+        public DomainIpRanges? IpRanges { get; set; } = default!;
+
+        /// <summary>
+        /// `{}` when `is_disposable` is false. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("disposable")]
+        public DisposableDetail? Disposable { get; set; } = default!;
+
+        /// <summary>
+        /// On every answer to a key on the free plan, and on no other: `false` while the day's trial of every field lasts, `true` once the answer has Unlimited's fields.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("trial_expired")]
+        public bool? TrialExpired { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    /// <summary>
+    /// Its records in Domain DNS, up to 100 a type. Paid plans and the trial.
+    /// </summary>
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class DomainDns
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("a")]
+        public System.Collections.Generic.IReadOnlyList<DnsAddressRecord> A { get; set; } = new System.Collections.Generic.List<DnsAddressRecord>();
+
+        [System.Text.Json.Serialization.JsonPropertyName("aaaa")]
+        public System.Collections.Generic.IReadOnlyList<DnsAddressRecord> Aaaa { get; set; } = new System.Collections.Generic.List<DnsAddressRecord>();
+
+        [System.Text.Json.Serialization.JsonPropertyName("mx")]
+        public System.Collections.Generic.IReadOnlyList<DnsMxRecord> Mx { get; set; } = new System.Collections.Generic.List<DnsMxRecord>();
+
+        [System.Text.Json.Serialization.JsonPropertyName("ns")]
+        public System.Collections.Generic.IReadOnlyList<DnsNsRecord> Ns { get; set; } = new System.Collections.Generic.List<DnsNsRecord>();
+
+        [System.Text.Json.Serialization.JsonPropertyName("cname")]
+        public System.Collections.Generic.IReadOnlyList<DnsCnameRecord> Cname { get; set; } = new System.Collections.Generic.List<DnsCnameRecord>();
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class DnsAddressRecord
+    {
+
+        /// <summary>
+        /// The address.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("ip")]
+        public string Ip { get; set; } = default!;
+
+        /// <summary>
+        /// The last day the snapshot saw it.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("last_seen")]
+        public string LastSeen { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class DnsMxRecord
+    {
+
+        /// <summary>
+        /// Its priority.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("priority")]
+        public int Priority { get; set; } = default!;
+
+        /// <summary>
+        /// The mail host.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("host")]
+        public string Host { get; set; } = default!;
+
+        /// <summary>
+        /// The last day seen.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("last_seen")]
+        public string LastSeen { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class DnsNsRecord
+    {
+
+        /// <summary>
+        /// The name server.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("host")]
+        public string Host { get; set; } = default!;
+
+        /// <summary>
+        /// The last day seen.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("last_seen")]
+        public string LastSeen { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class DnsCnameRecord
+    {
+
+        /// <summary>
+        /// Where it points.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("target")]
+        public string Target { get; set; } = default!;
+
+        /// <summary>
+        /// The last day seen.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("last_seen")]
+        public string LastSeen { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    /// <summary>
+    /// The organization's IP ranges, from Domain IP Ranges. Paid plans and the trial.
+    /// </summary>
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class DomainIpRanges
+    {
+
+        /// <summary>
+        /// The organization's domain.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("domain")]
+        public string Domain { get; set; } = default!;
+
+        /// <summary>
+        /// Where its home page redirects, when that is how it was reached.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("redirects_to")]
+        public string RedirectsTo { get; set; } = default!;
+
+        /// <summary>
+        /// How many ranges it holds.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("total")]
+        public int Total { get; set; } = default!;
+
+        /// <summary>
+        /// IPv4 addresses across them.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("ipv4")]
+        public int Ipv4 { get; set; } = default!;
+
+        /// <summary>
+        /// The first 1000, IPv4 before IPv6, the largest first.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("ranges")]
+        public System.Collections.Generic.IReadOnlyList<DomainIpRange> Ranges { get; set; } = new System.Collections.Generic.List<DomainIpRange>();
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class DomainIpRange
+    {
+
+        /// <summary>
+        /// The range.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("range")]
+        public string Range { get; set; } = default!;
+
+        /// <summary>
+        /// Its registry name.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("name")]
+        public string Name { get; set; } = default!;
+
+        /// <summary>
+        /// ISO 3166 country code.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("country")]
+        public string Country { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class DisposableDetail
+    {
+
+        /// <summary>
+        /// `high`, `medium` or `low`.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("confidence")]
+        public string Confidence { get; set; } = default!;
+
+        /// <summary>
+        /// The providers behind it.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("providers")]
+        public System.Collections.Generic.IReadOnlyList<string> Providers { get; set; } = new System.Collections.Generic.List<string>();
+
+        /// <summary>
+        /// The first day seen in use.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("first_seen")]
+        public string FirstSeen { get; set; } = default!;
+
+        /// <summary>
+        /// The last day.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("last_seen")]
+        public string LastSeen { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    /// <summary>
+    /// Up to 1000 items across the three arrays, each optional.
+    /// </summary>
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    internal partial class BatchLookupRequest
+    {
+
+        /// <summary>
+        /// Addresses.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("ips")]
+        public System.Collections.Generic.IReadOnlyList<string>? Ips { get; set; } = default!;
+
+        /// <summary>
+        /// AS numbers, `AS15169` or `15169`; a JSON number reads too.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("asns")]
+        public System.Collections.Generic.IReadOnlyList<string>? Asns { get; set; } = default!;
+
+        /// <summary>
+        /// Domains.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("domains")]
+        public System.Collections.Generic.IReadOnlyList<string>? Domains { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    internal partial class BatchLookupResponse
+    {
+
+        /// <summary>
+        /// Each answered item's lookup, keyed by the string sent.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("results")]
+        public System.Collections.Generic.IDictionary<string, LookupResponse> Results { get; set; } = new System.Collections.Generic.Dictionary<string, LookupResponse>();
+
+        /// <summary>
+        /// Each failed item, keyed by the string sent.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("errors")]
+        public System.Collections.Generic.IDictionary<string, BatchLookupError> Errors { get; set; } = new System.Collections.Generic.Dictionary<string, BatchLookupError>();
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    internal partial class BatchLookupError
+    {
+
+        /// <summary>
+        /// The status its own lookup would have answered.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("status")]
+        public int Status { get; set; } = default!;
+
+        /// <summary>
+        /// The same message.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("error")]
+        public string Error { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    internal partial class LookupError
+    {
+
+        /// <summary>
+        /// What went wrong.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("error")]
+        public string Error { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class Entitlement
+    {
+
+        /// <summary>
+        /// The organization the key belongs to.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("org_id")]
+        public System.Guid OrgId { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("apikey")]
+        public EntitlementApikey Apikey { get; set; } = new EntitlementApikey();
+
+        [System.Text.Json.Serialization.JsonPropertyName("plan")]
+        public EntitlementPlan Plan { get; set; } = new EntitlementPlan();
+
+        [System.Text.Json.Serialization.JsonPropertyName("usage")]
+        public EntitlementUsage Usage { get; set; } = new EntitlementUsage();
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    /// <summary>
+    /// The credential itself. The key is never echoed - only its ID, which is
+    /// <br/>what the console shows and what you can act on.
+    /// <br/>
+    /// </summary>
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class EntitlementApikey
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("id")]
+        public System.Guid Id { get; set; } = default!;
+
+        /// <summary>
+        /// Null for a key with no end date, which is the normal case.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("expires")]
+        public System.DateTimeOffset? Expires { get; set; } = default!;
+
+        /// <summary>
+        /// The source addresses this key may be used from. EMPTY means
+        /// <br/>unrestricted, never "deny all".
+        /// <br/>
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("allowed_cidrs")]
+        public System.Collections.Generic.IReadOnlyList<string> AllowedCidrs { get; set; } = new System.Collections.Generic.List<string>();
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class EntitlementPlan
+    {
+
+        /// <summary>
+        /// The plan the organization is on: `free` for the free plan,
+        /// <br/>Unlimited, or a paid plan's key. On `free`, usage counts the
+        /// <br/>day's lookups answered with every field, its daily trial.
+        /// <br/>
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("key")]
+        public string Key { get; set; } = default!;
+
+        /// <summary>
+        /// The field tier, which decides how much of a lookup answer comes
+        /// <br/>back; `free` is the free plan's. What each tier includes is documented
+        /// <br/>on the lookup endpoint rather than repeated here, so there is one
+        /// <br/>place it can be wrong.
+        /// <br/>
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("tier")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<EntitlementPlanTier>))]
+        public EntitlementPlanTier Tier { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class EntitlementUsage
+    {
+
+        /// <summary>
+        /// Requests counted in the current window. The same number the lookup
+        /// <br/>API gates on, and it can lag by a few seconds.
+        /// <br/>
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("requests")]
+        public long Requests { get; set; } = default!;
+
+        /// <summary>
+        /// What the plan includes. Zero on a plan that includes none.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("quota")]
+        public long Quota { get; set; } = default!;
+
+        /// <summary>
+        /// Where we stop serving. NULL means never, which is the normal state
+        /// <br/>of an uncapped paid plan and is not the same as zero. Above the
+        /// <br/>quota and below this, requests are served and billed as overage.
+        /// <br/>
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("hard_limit")]
+        public long? HardLimit { get; set; } = default!;
+
+        /// <summary>
+        /// When the current allowance period began.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("window_start")]
+        public System.DateTimeOffset WindowStart { get; set; } = default!;
+
+        /// <summary>
+        /// When the allowance next resets.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("window_end")]
+        public System.DateTimeOffset WindowEnd { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    internal partial class EntitlementError
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("error")]
+        public string Error { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
     internal enum Response_type
     {
@@ -4692,6 +7660,24 @@ namespace InternetData
 
         [System.Runtime.Serialization.EnumMember(Value = @"DB_NOT_FOUND")]
         DB_NOT_FOUND = 0,
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public enum EntitlementPlanTier
+    {
+
+        [System.Runtime.Serialization.EnumMember(Value = @"free")]
+        Free = 0,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"starter")]
+        Starter = 1,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"scale")]
+        Scale = 2,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"max")]
+        Max = 3,
 
     }
 
