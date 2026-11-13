@@ -445,6 +445,104 @@ public class ClientTests
         Assert.Null(answer.Dns);
     }
 
+    // The API answers an AS or a domain at the address path too, in a shape LookupAsync cannot read:
+    // sent, each came back as three retried ServerErrors. So anything the API would not read as an
+    // address is refused before a request, naming the calls that take the other two.
+    [Theory]
+    [InlineData("AS15169")]
+    [InlineData("15169")]
+    [InlineData("example.com")]
+    [InlineData("notanip")]
+    [InlineData("")]
+    [InlineData(" 1.1.1.1")]
+    [InlineData("1.2.3")]
+    [InlineData("1.01.1.1")]
+    [InlineData("999.1.1.1")]
+    [InlineData("0x01.1.1.1")]
+    [InlineData("[::1]")]
+    [InlineData("fe80::1%eth0")]
+    [InlineData("1.1.1.1.1")]
+    public async Task ALookupOfAnythingButAnAddressIsRefusedBeforeAnyRequest(string target)
+    {
+        var handler = StubHandler.Lookups(Stub.Route(target, Stub.LookupBody("1.1.1.1")));
+        using var client = Stub.Client(handler, new InternetDataClientOptions { Retries = 2 });
+
+        var error = await Assert.ThrowsAsync<InternetDataException>(() => client.LookupAsync(target));
+
+        Assert.Equal(ErrorKind.BadRequest, error.Kind);
+        Assert.False(error.Retryable);
+        Assert.Contains("LookupAsnAsync", error.Message, StringComparison.Ordinal);
+        Assert.Contains("LookupDomainAsync", error.Message, StringComparison.Ordinal);
+        Assert.Empty(handler.Calls);
+    }
+
+    [Theory]
+    [InlineData("1.1.1.1")]
+    [InlineData("9.1.10.255")]
+    [InlineData("2001:4860:4860::8888")]
+    [InlineData("2001:4860:4860:0:0:0:0:8888")]
+    [InlineData("::ffff:8.8.8.8")]
+    [InlineData("::FFFF:808:808")]
+    public async Task AnAddressInAnySpellingTheApiReadsIsSent(string ip)
+    {
+        var handler = new StubHandler(_ => StubHandler.Json(new Route(Stub.LookupBody(ip))));
+        using var client = Stub.Client(handler);
+
+        await client.LookupAsync(ip);
+
+        Assert.Single(handler.Calls);
+    }
+
+    // A batch's `ips` are the API's to refuse, one entry at a time.
+    [Fact]
+    public async Task ABatchSendsWhatItIsGiven()
+    {
+        var handler = StubHandler.Lookups(Stub.Route("1.1.1.1", Stub.LookupBody("1.1.1.1")));
+        using var client = Stub.Client(handler, new InternetDataClientOptions { Retries = 0 });
+
+        var got = await client.LookupBatchAsync(new[] { "1.1.1.1", "example.com" });
+
+        Assert.True(got["1.1.1.1"].IsSuccess);
+        Assert.Equal(ErrorKind.BadRequest, got["example.com"].Error!.Kind);
+        Assert.Single(handler.Calls);
+    }
+
+    // The spec gives each lookup path a server of its own, the production API: a generator that
+    // honored it would send every lookup there, whatever base URL the client was built with.
+    [Fact]
+    public async Task EveryLookupIsAskedOfTheClientsBaseUrl()
+    {
+        const string Local = "http://127.0.0.1:8099";
+        var seen = new List<string>();
+        var handler = new StubHandler(request =>
+        {
+            lock (seen)
+            {
+                seen.Add(request.RequestUri!.GetLeftPart(UriPartial.Authority));
+            }
+            var path = request.RequestUri!.AbsolutePath;
+            return StubHandler.Json(new Route(path switch
+            {
+                "/asn/9009" => Corpus.Case("lookup", "asn-unlimited-answer").GetProperty("body").GetRawText(),
+                "/domain/example.com" => Corpus.Case("lookup", "domain-unlimited-answer").GetProperty("body").GetRawText(),
+                "/api/v1/entitlement" => EntitlementBody,
+                "/batch" => BatchAnswers.Of(StubHandler.Ips(request)),
+                _ => Stub.LookupBody("1.1.1.1"),
+            }));
+        });
+        using var client = Stub.Client(handler, new InternetDataClientOptions { BaseUrl = Local, CacheEnabled = false });
+
+        await client.LookupAsync("1.1.1.1");
+        await client.LookupAsnAsync(9009);
+        await client.LookupDomainAsync("example.com");
+        await client.MyIpAsync();
+        await client.MyEntitlementAsync();
+        await client.LookupBatchAsync(new[] { "1.1.1.1", "8.8.8.8" });
+
+        Assert.Equal(6, seen.Count);
+        Assert.All(seen, authority => Assert.Equal(Local, authority));
+    }
+
     // Neither is cached: the cache is the address lookup's, and vpndetection has nothing for these
     // to port.
     [Fact]

@@ -55,7 +55,7 @@ Console.WriteLine(domain.IsRegistered); // True
 Console.WriteLine(domain.Dns?.Mx.Count); // its MX records, on a paid plan
 ```
 
-Neither is cached or batched, and both take the same per-call `LookupOptions` as `LookupAsync`.
+Neither is cached or batched, and both take the same per-call `LookupOptions` as `LookupAsync`, which takes an IP address alone: it refuses an AS or a domain as a `BadRequest` before sending anything.
 
 ### Your own address
 

@@ -1,5 +1,7 @@
 using System.Collections.Concurrent;
 using System.Globalization;
+using System.Net;
+using System.Net.Sockets;
 
 using Microsoft.Extensions.Caching.Memory;
 
@@ -119,6 +121,25 @@ public sealed class InternetDataClient : IDisposable
         return baseUrl;
     }
 
+    // The spellings the API reads as an address: four decimal octets with no leading zero, or IPv6
+    // with no zone, brackets or port. It refuses every other one, `1.2.3`, `010.0.0.1` and
+    // `fe80::1%eth0` among them, and reads `AS15169` and `example.com` as an AS and a domain.
+    private static bool IsAddress(string ip)
+    {
+        if (ip.Contains(':', StringComparison.Ordinal))
+        {
+            return ip.All(c => char.IsAsciiHexDigit(c) || c is ':' or '.')
+                && IPAddress.TryParse(ip, out var v6)
+                && v6.AddressFamily == AddressFamily.InterNetworkV6;
+        }
+        var octets = ip.Split('.');
+        return octets.Length == 4 && octets.All(octet =>
+            octet.Length is >= 1 and <= 3
+            && octet.All(char.IsAsciiDigit)
+            && (octet.Length == 1 || octet[0] != '0')
+            && int.Parse(octet, CultureInfo.InvariantCulture) <= 255);
+    }
+
     private InternetDataClient(InternetDataClientOptions o, HttpClient? supplied)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(o.Concurrency, 1, nameof(o.Concurrency));
@@ -191,10 +212,13 @@ public sealed class InternetDataClient : IDisposable
     /// </summary>
     /// <remarks>
     /// A bogon is answered locally and never reaches the network. Everything else is served, then
-    /// cached for this instance.
+    /// cached for this instance. An AS or a domain is not an address: look those up with
+    /// <see cref="LookupAsnAsync(uint, CancellationToken)"/> and
+    /// <see cref="LookupDomainAsync(string, CancellationToken)"/>.
     /// </remarks>
     /// <exception cref="InternetDataException">
-    /// The lookup failed. Read <see cref="InternetDataException.Kind"/>.
+    /// The lookup failed. Read <see cref="InternetDataException.Kind"/>. Anything but an IP address
+    /// is refused as <see cref="ErrorKind.BadRequest"/> before any request.
     /// </exception>
     public async Task<Result> LookupAsync(
         string ip, LookupOptions? options, CancellationToken cancellationToken = default)
@@ -202,6 +226,14 @@ public sealed class InternetDataClient : IDisposable
         ArgumentNullException.ThrowIfNull(ip);
         Wire.CheckRetries(options?.Retries);
         var timeout = Wire.TimeoutFor(options?.RequestTimeout, requestTimeout);
+        // The API answers an AS or a domain at this path too, in a shape this call cannot read, so
+        // one sent here came back as three retried ServerErrors.
+        if (!IsAddress(ip))
+        {
+            throw new InternetDataException(
+                ErrorKind.BadRequest,
+                "not an IP address: look an AS up with LookupAsnAsync, and a domain with LookupDomainAsync");
+        }
         // Judged, cached and sent as the IPv4 address it carries, if it is mapped.
         ip = Bogon.Unmapped(ip);
         if (Bogon.IsBogon(ip))
