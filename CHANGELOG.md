@@ -2,6 +2,13 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.1.1 are described by their release commits.
 
+## 2.8.0 - 2026-11-13
+
+### Features
+
+- Re-pin the spec to 2026.11.13: the lookups and the entitlement ([`218ab29`](https://github.com/internetdata/sdk-dotnet/commit/218ab29e5269ccd94a57d6f33fd5cd8176161d2f))
+- Look up an address, an AS and a domain, on api.internetdata.io by default ([`a31d622`](https://github.com/internetdata/sdk-dotnet/commit/a31d622e18ae7d8a01b50e7b4ade345d54a4380f))
+
 ## 2.7.2 - 2026-11-11
 
 ### Fixes
