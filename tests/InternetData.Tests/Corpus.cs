@@ -59,43 +59,12 @@ internal static class Corpus
     internal static string Pascal(string wireName)
         => string.Concat(wireName.Split('_').Select(p => p[..1].ToUpperInvariant() + p[1..]));
 
-    // A detail object present and empty: `{}`, or Web IP's `[]`. Its schema requires members a
-    // populated one carries, so the generated type holds them at their defaults, a list among them
-    // empty rather than null, which this drops.
-    internal static string AsEmptyWire(object? value)
-    {
-        if (value is null)
-        {
-            return "null";
-        }
-        var node = JsonSerializer.SerializeToNode(value, EmptyOptions);
-        if (node is JsonObject members)
-        {
-            foreach (var name in members.Where(m => m.Value is JsonArray { Count: 0 }).Select(m => m.Key).ToArray())
-            {
-                members.Remove(name);
-            }
-        }
-        return node?.ToJsonString() ?? "null";
-    }
-
-    // The bogon answer as the corpus spells it: a member that is `{}` there is compared as an
-    // empty detail, and anything else as its whole wire form.
+    // The bogon answer as the corpus spells it, member by member in its wire form.
     internal static void AssertAnswer(JsonElement expected, Result result, string because)
     {
         foreach (var member in expected.EnumerateObject())
         {
             var actual = Member(result, member.Name);
-            if (member.Value.ValueKind == JsonValueKind.Object && !member.Value.EnumerateObject().Any())
-            {
-                Assert.True(AsEmptyWire(actual) == "{}", $"{because}: {member.Name} must be present and empty");
-                continue;
-            }
-            if (member.Value.ValueKind == JsonValueKind.Array && member.Value.GetArrayLength() == 0)
-            {
-                Assert.True(AsEmptyWire(actual) == "[]", $"{because}: {member.Name} must be present and empty");
-                continue;
-            }
             AssertWire(member.Value, actual, $"{because}: {member.Name}");
         }
     }
@@ -142,12 +111,6 @@ internal static class Corpus
 
         public int GetHashCode(JsonElement obj) => 0;
     }
-
-    private static readonly JsonSerializerOptions EmptyOptions = new()
-    {
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
-        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
-    };
 
     private static readonly JsonSerializerOptions WireOptions = new()
     {

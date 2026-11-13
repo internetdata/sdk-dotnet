@@ -193,11 +193,11 @@ public class ConformanceTests
         }
         foreach (var detail in shape.GetProperty("emptyObjects").EnumerateArray())
         {
-            Assert.Equal("{}", Corpus.AsEmptyWire(Corpus.Member(result, detail.GetString()!)));
+            Assert.Equal("{}", Corpus.AsWire(Corpus.Member(result, detail.GetString()!)));
         }
         foreach (var list in shape.GetProperty("emptyLists").EnumerateArray())
         {
-            Assert.Equal("[]", Corpus.AsEmptyWire(Corpus.Member(result, list.GetString()!)));
+            Assert.Equal("[]", Corpus.AsWire(Corpus.Member(result, list.GetString()!)));
         }
         Corpus.AssertAnswer(shape.GetProperty("answer"), result, "the bogon answer");
         // Nothing beyond the corpus's answer and the address: no member it leaves out is invented.
@@ -257,7 +257,7 @@ public class ConformanceTests
             }
             foreach (var field in Strings(expect, "empty"))
             {
-                var wire = Corpus.AsEmptyWire(Read(answer, field));
+                var wire = Corpus.AsWire(Read(answer, field));
                 Assert.True(wire is "{}" or "[]", $"{name}: {field} must be present and empty, got {wire}");
             }
             foreach (var field in Strings(expect, "absent"))

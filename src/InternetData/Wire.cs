@@ -431,9 +431,7 @@ internal partial class WireClient
     // an entry without its members one of empty strings, zeros and false (2.4.5, measured
     // 2026-10-14). Every member the spec requires and never sends as null is required on the wire
     // instead and refused as null at any depth, and a list or map the spec allows to be absent still
-    // holds no null, which a body breaking either fails as an answer this client cannot read. A
-    // detail object is `{}` where its flag is false, so the members its schema requires are not
-    // required of it here: only a populated one carries them.
+    // holds no null, which a body breaking either fails as an answer this client cannot read.
     //
     // System.Text.Json reads a DateTimeOffset in more forms than the spec's `date-time`: 2.6.1 took
     // a date alone as midnight, a time with no offset in the machine's own zone, `+05` and a time

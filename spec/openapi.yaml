@@ -3569,11 +3569,6 @@ components:
         last_seen:
           type: string
           description: The last day the range was seen as such.
-      required:
-        - provider
-        - provider_name
-        - confidence
-        - last_seen
     ProxyDetail:
       type: object
       properties:
@@ -3598,14 +3593,6 @@ components:
         providers_num:
           type: integer
           description: How many pools it was seen in.
-      required:
-        - provider
-        - provider_name
-        - first_seen
-        - last_seen
-        - hits
-        - hits_days_pct
-        - providers_num
     PubproxyDetail:
       type: object
       properties:
@@ -3632,14 +3619,6 @@ components:
         last_usable:
           type: string
           description: The last day one answered a request, empty when none did.
-      required:
-        - entry
-        - exit
-        - protocols
-        - num_ports
-        - num_proxies
-        - last_seen
-        - last_usable
     CarrierDetail:
       type: object
       properties:
@@ -3658,12 +3637,6 @@ components:
         confidence:
           type: string
           description: '`high`, `medium` or `low`.'
-      required:
-        - name
-        - mcc
-        - mnc
-        - country
-        - confidence
     SatelliteDetail:
       type: object
       properties:
@@ -3688,14 +3661,6 @@ components:
         confidence:
           type: string
           description: '`high`, `medium` or `low`.'
-      required:
-        - provider
-        - provider_name
-        - orbit
-        - segment
-        - country
-        - asn
-        - confidence
     SshDetail:
       type: object
       properties:
@@ -3717,13 +3682,6 @@ components:
         last_seen:
           type: string
           description: The last day it did.
-      required:
-        - port
-        - banner
-        - host_key_fp
-        - session_ok
-        - first_seen
-        - last_seen
     SmtpDetail:
       type: object
       properties:
@@ -3742,12 +3700,6 @@ components:
         last_seen:
           type: string
           description: The last day it did.
-      required:
-        - port
-        - banner
-        - session_ok
-        - first_seen
-        - last_seen
     WebDetail:
       type: object
       properties:
@@ -3829,13 +3781,6 @@ components:
         last_seen:
           type: string
           description: The last day it did.
-      required:
-        - port
-        - recursion_available
-        - rcode
-        - answer_correct
-        - first_seen
-        - last_seen
     BitTorrentDetail:
       type: object
       properties:
@@ -3871,17 +3816,6 @@ components:
           items:
             type: string
           description: The two-letter codes its clients name themselves by.
-      required:
-        - verified
-        - id_matches_ip
-        - first_seen
-        - last_seen
-        - last_reachable
-        - days_seen
-        - num_ports
-        - peak_num_ports
-        - indexer
-        - clients
     Location:
       type: object
       properties:
@@ -4410,11 +4344,6 @@ components:
         last_seen:
           type: string
           description: The last day.
-      required:
-        - confidence
-        - providers
-        - first_seen
-        - last_seen
     BatchLookupRequest:
       type: object
       properties:

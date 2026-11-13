@@ -388,19 +388,10 @@ public class DatabaseTests
         }
     }
 
-    // A detail object is `{}` where its flag is false, so the members its schema requires are not
-    // required of it on the wire; only a populated one carries them.
-    internal static readonly HashSet<Type> DetailTypes =
-    [
-        typeof(ClassDetail), typeof(ProxyDetail), typeof(PubproxyDetail), typeof(CarrierDetail),
-        typeof(SatelliteDetail), typeof(SshDetail), typeof(SmtpDetail), typeof(DnsResolverDetail),
-        typeof(BitTorrentDetail), typeof(DisposableDetail),
-    ];
-
     // The table is the spec's `required` lists less what each marks nullable, and NSwag writes
     // exactly those members as non-nullable properties, so a re-pin that adds one turns this red
-    // until the table has it. Every class an answer reaches must be in the table, bar the detail
-    // objects and the two envelopes matched by their one member.
+    // until the table has it. Every class an answer reaches that requires a member must be in the
+    // table, bar the two envelopes matched by their one member.
     [Fact]
     public void TheRequiredMembersAreTheGeneratedTypesNonNullableOnes()
     {
@@ -443,15 +434,11 @@ public class DatabaseTests
                 Assert.Subset(WireClient.EnvelopeMembers, members.ToHashSet());
                 continue;
             }
-            if (DetailTypes.Contains(type))
-            {
-                Assert.False(WireClient.AnswerMembers.ContainsKey(type), $"{type.Name} is `{{}}` where its flag is false");
-                continue;
-            }
-            Assert.True(WireClient.AnswerMembers.TryGetValue(type, out var table), $"{type.Name} is not in the table");
+            // A detail object requires nothing: it is `{}` where its flag is false.
+            var table = WireClient.AnswerMembers.TryGetValue(type, out var named) ? named : [];
             Assert.Equal(members, new SortedSet<string>(table, StringComparer.Ordinal));
         }
-        Assert.Equal(WireClient.AnswerMembers.Count + 2 + DetailTypes.Count, seen.Count);
+        Assert.Subset(seen, WireClient.AnswerMembers.Keys.ToHashSet());
     }
 
     private static IEnumerable<Type> Reached(Type type)

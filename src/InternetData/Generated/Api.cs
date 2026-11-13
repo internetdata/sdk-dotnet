@@ -5628,25 +5628,25 @@ namespace InternetData
         /// The provider's ID in its catalog; empty for an unattributed range, and on Tor.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("provider")]
-        public string Provider { get; set; } = default!;
+        public string? Provider { get; set; } = default!;
 
         /// <summary>
         /// The name the catalog gives the provider, empty where it names none.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("provider_name")]
-        public string ProviderName { get; set; } = default!;
+        public string? ProviderName { get; set; } = default!;
 
         /// <summary>
         /// `high`, `medium` or `low`: how sure we are the range is what the flag says.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("confidence")]
-        public string Confidence { get; set; } = default!;
+        public string? Confidence { get; set; } = default!;
 
         /// <summary>
         /// The last day the range was seen as such.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("last_seen")]
-        public string LastSeen { get; set; } = default!;
+        public string? LastSeen { get; set; } = default!;
 
         private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
@@ -5667,43 +5667,43 @@ namespace InternetData
         /// The proxy pool's ID in its catalog, empty where unattributed.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("provider")]
-        public string Provider { get; set; } = default!;
+        public string? Provider { get; set; } = default!;
 
         /// <summary>
         /// The name the catalog gives it.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("provider_name")]
-        public string ProviderName { get; set; } = default!;
+        public string? ProviderName { get; set; } = default!;
 
         /// <summary>
         /// The first day of the window the address was seen as an exit.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("first_seen")]
-        public string FirstSeen { get; set; } = default!;
+        public string? FirstSeen { get; set; } = default!;
 
         /// <summary>
         /// The last day it was.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("last_seen")]
-        public string LastSeen { get; set; } = default!;
+        public string? LastSeen { get; set; } = default!;
 
         /// <summary>
         /// How many times it was seen in the window.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("hits")]
-        public int Hits { get; set; } = default!;
+        public int? Hits { get; set; } = default!;
 
         /// <summary>
         /// On what share of the window's days, in percent.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("hits_days_pct")]
-        public int HitsDaysPct { get; set; } = default!;
+        public int? HitsDaysPct { get; set; } = default!;
 
         /// <summary>
         /// How many pools it was seen in.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("providers_num")]
-        public int ProvidersNum { get; set; } = default!;
+        public int? ProvidersNum { get; set; } = default!;
 
         private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
@@ -5724,43 +5724,43 @@ namespace InternetData
         /// A public proxy listens here.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("entry")]
-        public bool Entry { get; set; } = default!;
+        public bool? Entry { get; set; } = default!;
 
         /// <summary>
         /// Public proxies' traffic leaves from here.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("exit")]
-        public bool Exit { get; set; } = default!;
+        public bool? Exit { get; set; } = default!;
 
         /// <summary>
         /// The protocols at either end, `[]` when unknown.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("protocols")]
-        public System.Collections.Generic.IReadOnlyList<string> Protocols { get; set; } = new System.Collections.Generic.List<string>();
+        public System.Collections.Generic.IReadOnlyList<string>? Protocols { get; set; } = default!;
 
         /// <summary>
         /// How many ports a proxy listens on here.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("num_ports")]
-        public int NumPorts { get; set; } = default!;
+        public int? NumPorts { get; set; } = default!;
 
         /// <summary>
         /// How many proxies' traffic left from here.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("num_proxies")]
-        public int NumProxies { get; set; } = default!;
+        public int? NumProxies { get; set; } = default!;
 
         /// <summary>
         /// The last day one was seen.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("last_seen")]
-        public string LastSeen { get; set; } = default!;
+        public string? LastSeen { get; set; } = default!;
 
         /// <summary>
         /// The last day one answered a request, empty when none did.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("last_usable")]
-        public string LastUsable { get; set; } = default!;
+        public string? LastUsable { get; set; } = default!;
 
         private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
@@ -5781,31 +5781,31 @@ namespace InternetData
         /// The mobile carrier.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("name")]
-        public string Name { get; set; } = default!;
+        public string? Name { get; set; } = default!;
 
         /// <summary>
         /// Its mobile country code.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("mcc")]
-        public string Mcc { get; set; } = default!;
+        public string? Mcc { get; set; } = default!;
 
         /// <summary>
         /// Its mobile network code.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("mnc")]
-        public string Mnc { get; set; } = default!;
+        public string? Mnc { get; set; } = default!;
 
         /// <summary>
         /// ISO 3166 country code.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("country")]
-        public string Country { get; set; } = default!;
+        public string? Country { get; set; } = default!;
 
         /// <summary>
         /// `high`, `medium` or `low`.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("confidence")]
-        public string Confidence { get; set; } = default!;
+        public string? Confidence { get; set; } = default!;
 
         private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
@@ -5826,43 +5826,43 @@ namespace InternetData
         /// The operator's ID in Satellite IP Provider.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("provider")]
-        public string Provider { get; set; } = default!;
+        public string? Provider { get; set; } = default!;
 
         /// <summary>
         /// The operator's name.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("provider_name")]
-        public string ProviderName { get; set; } = default!;
+        public string? ProviderName { get; set; } = default!;
 
         /// <summary>
         /// The orbit: `leo`, `meo` or `geo`.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("orbit")]
-        public string Orbit { get; set; } = default!;
+        public string? Orbit { get; set; } = default!;
 
         /// <summary>
         /// Who the space serves, such as consumer or maritime.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("segment")]
-        public string Segment { get; set; } = default!;
+        public string? Segment { get; set; } = default!;
 
         /// <summary>
         /// ISO 3166 country code.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("country")]
-        public string Country { get; set; } = default!;
+        public string? Country { get; set; } = default!;
 
         /// <summary>
         /// The AS the operator announces it from.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("asn")]
-        public long Asn { get; set; } = default!;
+        public long? Asn { get; set; } = default!;
 
         /// <summary>
         /// `high`, `medium` or `low`.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("confidence")]
-        public string Confidence { get; set; } = default!;
+        public string? Confidence { get; set; } = default!;
 
         private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
@@ -5883,37 +5883,37 @@ namespace InternetData
         /// The port the server answered on.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("port")]
-        public int Port { get; set; } = default!;
+        public int? Port { get; set; } = default!;
 
         /// <summary>
         /// Its banner.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("banner")]
-        public string Banner { get; set; } = default!;
+        public string? Banner { get; set; } = default!;
 
         /// <summary>
         /// Its host key's fingerprint.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("host_key_fp")]
-        public string HostKeyFp { get; set; } = default!;
+        public string? HostKeyFp { get; set; } = default!;
 
         /// <summary>
         /// A session was set up.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("session_ok")]
-        public bool SessionOk { get; set; } = default!;
+        public bool? SessionOk { get; set; } = default!;
 
         /// <summary>
         /// The first day it answered.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("first_seen")]
-        public string FirstSeen { get; set; } = default!;
+        public string? FirstSeen { get; set; } = default!;
 
         /// <summary>
         /// The last day it did.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("last_seen")]
-        public string LastSeen { get; set; } = default!;
+        public string? LastSeen { get; set; } = default!;
 
         private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
@@ -5934,31 +5934,31 @@ namespace InternetData
         /// The port the server answered on.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("port")]
-        public int Port { get; set; } = default!;
+        public int? Port { get; set; } = default!;
 
         /// <summary>
         /// Its banner.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("banner")]
-        public string Banner { get; set; } = default!;
+        public string? Banner { get; set; } = default!;
 
         /// <summary>
         /// A session was set up.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("session_ok")]
-        public bool SessionOk { get; set; } = default!;
+        public bool? SessionOk { get; set; } = default!;
 
         /// <summary>
         /// The first day it answered.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("first_seen")]
-        public string FirstSeen { get; set; } = default!;
+        public string? FirstSeen { get; set; } = default!;
 
         /// <summary>
         /// The last day it did.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("last_seen")]
-        public string LastSeen { get; set; } = default!;
+        public string? LastSeen { get; set; } = default!;
 
         private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
@@ -6078,37 +6078,37 @@ namespace InternetData
         /// The port it answered on.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("port")]
-        public int Port { get; set; } = default!;
+        public int? Port { get; set; } = default!;
 
         /// <summary>
         /// It offered recursion.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("recursion_available")]
-        public bool RecursionAvailable { get; set; } = default!;
+        public bool? RecursionAvailable { get; set; } = default!;
 
         /// <summary>
         /// Its answer's response code.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("rcode")]
-        public int Rcode { get; set; } = default!;
+        public int? Rcode { get; set; } = default!;
 
         /// <summary>
         /// Its answer was right.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("answer_correct")]
-        public bool AnswerCorrect { get; set; } = default!;
+        public bool? AnswerCorrect { get; set; } = default!;
 
         /// <summary>
         /// The first day it answered.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("first_seen")]
-        public string FirstSeen { get; set; } = default!;
+        public string? FirstSeen { get; set; } = default!;
 
         /// <summary>
         /// The last day it did.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("last_seen")]
-        public string LastSeen { get; set; } = default!;
+        public string? LastSeen { get; set; } = default!;
 
         private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
@@ -6129,61 +6129,61 @@ namespace InternetData
         /// A client here answered, or two or more reported it at once.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("verified")]
-        public bool Verified { get; set; } = default!;
+        public bool? Verified { get; set; } = default!;
 
         /// <summary>
         /// A client here derived its node ID from the address (BEP 42).
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("id_matches_ip")]
-        public bool IdMatchesIp { get; set; } = default!;
+        public bool? IdMatchesIp { get; set; } = default!;
 
         /// <summary>
         /// The first day a client was seen here.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("first_seen")]
-        public string FirstSeen { get; set; } = default!;
+        public string? FirstSeen { get; set; } = default!;
 
         /// <summary>
         /// The last day.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("last_seen")]
-        public string LastSeen { get; set; } = default!;
+        public string? LastSeen { get; set; } = default!;
 
         /// <summary>
         /// The last day one answered, empty when none did.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("last_reachable")]
-        public string LastReachable { get; set; } = default!;
+        public string? LastReachable { get; set; } = default!;
 
         /// <summary>
         /// On how many days.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("days_seen")]
-        public int DaysSeen { get; set; } = default!;
+        public int? DaysSeen { get; set; } = default!;
 
         /// <summary>
         /// Distinct ports over the window.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("num_ports")]
-        public int NumPorts { get; set; } = default!;
+        public int? NumPorts { get; set; } = default!;
 
         /// <summary>
         /// The most on one day.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("peak_num_ports")]
-        public int PeakNumPorts { get; set; } = default!;
+        public int? PeakNumPorts { get; set; } = default!;
 
         /// <summary>
         /// A DHT indexer rather than people.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("indexer")]
-        public bool Indexer { get; set; } = default!;
+        public bool? Indexer { get; set; } = default!;
 
         /// <summary>
         /// The two-letter codes its clients name themselves by.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("clients")]
-        public System.Collections.Generic.IReadOnlyList<string> Clients { get; set; } = new System.Collections.Generic.List<string>();
+        public System.Collections.Generic.IReadOnlyList<string>? Clients { get; set; } = default!;
 
         private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
@@ -7143,25 +7143,25 @@ namespace InternetData
         /// `high`, `medium` or `low`.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("confidence")]
-        public string Confidence { get; set; } = default!;
+        public string? Confidence { get; set; } = default!;
 
         /// <summary>
         /// The providers behind it.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("providers")]
-        public System.Collections.Generic.IReadOnlyList<string> Providers { get; set; } = new System.Collections.Generic.List<string>();
+        public System.Collections.Generic.IReadOnlyList<string>? Providers { get; set; } = default!;
 
         /// <summary>
         /// The first day seen in use.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("first_seen")]
-        public string FirstSeen { get; set; } = default!;
+        public string? FirstSeen { get; set; } = default!;
 
         /// <summary>
         /// The last day.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("last_seen")]
-        public string LastSeen { get; set; } = default!;
+        public string? LastSeen { get; set; } = default!;
 
         private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
