@@ -78,6 +78,165 @@ public class TimeoutTests
         Assert.Throws<ArgumentOutOfRangeException>(
             () => new InternetDataClient(new InternetDataClientOptions { RequestTimeout = TimeSpan.Zero }));
     }
+
+    private static readonly TimeSpan PerCall = TimeSpan.FromMilliseconds(250);
+
+    // A per-call value replaces the client's in either direction, on every call that takes one.
+    [Theory]
+    [InlineData("lookup")]
+    [InlineData("myip")]
+    [InlineData("entitlement")]
+    [InlineData("batch")]
+    [InlineData("asn")]
+    [InlineData("domain")]
+    public async Task APerCallTimeoutBelowTheClientsFiresAsARetryableNetworkError(string call)
+    {
+        using var origin = new StallingOrigin(StallingOrigin.Mode.NeverAnswer, "{}");
+        // The client keeps the 30 second default, so a failure inside a few seconds is the
+        // per-call value firing.
+        using var client = new InternetDataClient(origin.Options(TimeSpan.FromSeconds(30)));
+
+        var started = Stopwatch.StartNew();
+        var error = await FailureOf(client, call, PerCall).WaitAsync(TimeSpan.FromSeconds(20));
+
+        Assert.Equal(ErrorKind.Network, error.Kind);
+        Assert.True(error.Retryable);
+        Assert.Equal("the request timed out", error.Message);
+        Assert.True(started.Elapsed >= TimeSpan.FromMilliseconds(200), $"failed after {started.ElapsedMilliseconds}ms");
+        Assert.True(started.Elapsed < TimeSpan.FromSeconds(10), $"took {started.ElapsedMilliseconds}ms");
+        Assert.Equal(1, origin.Requests);
+    }
+
+    [Fact]
+    public async Task APerCallTimeoutAboveTheClientsLengthensIt()
+    {
+        using var origin = new StallingOrigin(
+            StallingOrigin.Mode.AnswerLate, Stub.LookupBody("9.9.9.9"), TimeSpan.FromMilliseconds(800));
+        using var client = new InternetDataClient(origin.Options(TimeSpan.FromMilliseconds(200)));
+
+        var error = await Assert.ThrowsAsync<InternetDataException>(() => client.LookupAsync("9.9.9.9"));
+        Assert.Equal("the request timed out", error.Message);
+
+        var result = await client.LookupAsync(
+            "9.9.9.9", new LookupOptions { RequestTimeout = TimeSpan.FromSeconds(10) });
+        Assert.Equal("9.9.9.9", result.Ip);
+    }
+
+    // Cancelling releases the socket, but only a handler that HONORS the token then settles. A
+    // borrowed HttpClient's own timeout is no help here either: it is the same token.
+    [Fact]
+    public async Task AHandlerThatIgnoresCancellationIsStillBounded()
+    {
+        var never = new TaskCompletionSource<HttpResponseMessage>();
+        using var client = Stub.Client(
+            new DeafHandler(never.Task), new InternetDataClientOptions { CacheEnabled = false, Retries = 0 });
+
+        var call = client.LookupAsync("9.9.9.9", new LookupOptions { RequestTimeout = PerCall });
+        var error = await Assert.ThrowsAsync<InternetDataException>(
+            () => call.WaitAsync(TimeSpan.FromSeconds(10)));
+
+        Assert.Equal(ErrorKind.Network, error.Kind);
+        Assert.Equal("the request timed out", error.Message);
+    }
+
+    // The generated client reads every answer headers-first, and HttpClient.Timeout stops at the
+    // head, so a lookup whose body stalls after it has to be bounded by this library's own deadline.
+    [Fact]
+    public async Task ALookupBodyThatStallsAfterItsHeadIsBoundedToo()
+    {
+        using var origin = new StallingOrigin(StallingOrigin.Mode.StallAfterHead, Stub.LookupBody("9.9.9.9"));
+        using var client = new InternetDataClient(origin.Options(Limit));
+
+        var call = client.LookupAsync("9.9.9.9");
+        var error = await Assert.ThrowsAsync<InternetDataException>(
+            () => call.WaitAsync(TimeSpan.FromSeconds(10)));
+
+        Assert.Equal(ErrorKind.Network, error.Kind);
+        Assert.Equal("the request timed out", error.Message);
+    }
+
+    // Refused before anything can answer locally: a bogon, a cache hit, or a batch with nothing
+    // left to send would otherwise take the value without a word.
+    public static TheoryData<string, TimeSpan> Unbounded() => new()
+    {
+        { "lookup", TimeSpan.Zero },
+        { "bogon", TimeSpan.Zero },
+        { "cached", TimeSpan.FromMilliseconds(-5) },
+        { "batch", TimeSpan.Zero },
+        { "bogonBatch", TimeSpan.FromDays(25) },
+        { "myip", TimeSpan.Zero },
+        { "entitlement", TimeSpan.FromMilliseconds(-2) },
+        { "asn", TimeSpan.Zero },
+        { "domain", TimeSpan.FromDays(25) },
+    };
+
+    [Theory]
+    [MemberData(nameof(Unbounded))]
+    public async Task APerCallTimeoutThatCannotFireIsRefusedBeforeAnythingAnswers(string call, TimeSpan timeout)
+    {
+        var handler = StubHandler.Lookups(Stub.Route("9.9.9.9", Stub.LookupBody("9.9.9.9")));
+        using var client = Stub.Client(handler);
+        await client.LookupAsync("9.9.9.9");
+        var lookup = new LookupOptions { RequestTimeout = timeout };
+        var batch = new BatchOptions { RequestTimeout = timeout };
+
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => call switch
+        {
+            "lookup" => client.LookupAsync("1.1.1.1", lookup),
+            "bogon" => client.LookupAsync("10.0.0.1", lookup),
+            "cached" => client.LookupAsync("9.9.9.9", lookup),
+            "batch" => client.LookupBatchAsync(new[] { "1.1.1.1" }, batch),
+            "bogonBatch" => client.LookupBatchAsync(new[] { "10.0.0.1", "9.9.9.9" }, batch),
+            "myip" => client.MyIpAsync(lookup),
+            "entitlement" => client.MyEntitlementAsync(lookup),
+            "asn" => client.LookupAsnAsync(15169, lookup),
+            _ => client.LookupDomainAsync("example.com", lookup),
+        });
+
+        Assert.Single(handler.Calls);
+    }
+
+    private static async Task<InternetDataException> FailureOf(
+        InternetDataClient client, string call, TimeSpan timeout)
+    {
+        var single = new LookupOptions { RequestTimeout = timeout };
+        switch (call)
+        {
+            case "lookup":
+                return await Assert.ThrowsAsync<InternetDataException>(
+                    () => client.LookupAsync("9.9.9.9", single));
+            case "myip":
+                return await Assert.ThrowsAsync<InternetDataException>(() => client.MyIpAsync(single));
+            case "entitlement":
+                return await Assert.ThrowsAsync<InternetDataException>(
+                    () => client.MyEntitlementAsync(single));
+            case "asn":
+                return await Assert.ThrowsAsync<InternetDataException>(
+                    () => client.LookupAsnAsync(15169, single));
+            case "domain":
+                return await Assert.ThrowsAsync<InternetDataException>(
+                    () => client.LookupDomainAsync("example.com", single));
+            default:
+                var got = await client.LookupBatchAsync(
+                    new[] { "9.9.9.9" }, new BatchOptions { RequestTimeout = timeout });
+                Assert.False(got["9.9.9.9"].IsSuccess, "a chunk that timed out must carry the failure");
+                return got["9.9.9.9"].Error!;
+        }
+    }
+}
+
+// Never answers and never looks at its cancellation token.
+internal sealed class DeafHandler : HttpMessageHandler
+{
+    private readonly Task<HttpResponseMessage> response;
+
+    internal DeafHandler(Task<HttpResponseMessage> response)
+    {
+        this.response = response;
+    }
+
+    protected override Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request, CancellationToken cancellationToken) => response;
 }
 
 // A real socket that takes a request in full, then never answers, or sends a head promising the
@@ -87,13 +246,15 @@ internal sealed class StallingOrigin : IDisposable
     private readonly TcpListener listener = new(IPAddress.Loopback, 0);
     private readonly Mode mode;
     private readonly string body;
+    private readonly TimeSpan delay;
     private readonly List<Socket> held = new();
     private int requests;
 
-    internal StallingOrigin(Mode mode, string body)
+    internal StallingOrigin(Mode mode, string body, TimeSpan delay = default)
     {
         this.mode = mode;
         this.body = body;
+        this.delay = delay;
         listener.Start();
         BaseUrl = $"http://127.0.0.1:{((IPEndPoint)listener.LocalEndpoint).Port}";
         _ = Task.Run(ServeAsync);
@@ -104,6 +265,7 @@ internal sealed class StallingOrigin : IDisposable
         NeverAnswer,
         StallAfterHead,
         Trickle,
+        AnswerLate,
     }
 
     internal string BaseUrl { get; }
@@ -113,7 +275,7 @@ internal sealed class StallingOrigin : IDisposable
 
     /// <summary>Options for a client that owns its HttpClient, so its RequestTimeout is live.</summary>
     internal InternetDataClientOptions Options(TimeSpan requestTimeout, int retries = 0)
-        => new() { BaseUrl = BaseUrl, ApiKey = "k", Retries = retries, RequestTimeout = requestTimeout };
+        => new() { BaseUrl = BaseUrl, ApiKey = "k", Retries = retries, RequestTimeout = requestTimeout, CacheEnabled = false };
 
     public void Dispose()
     {
@@ -166,6 +328,12 @@ internal sealed class StallingOrigin : IDisposable
             if (mode == Mode.StallAfterHead)
             {
                 await WriteAsync(stream, head + body[..8]);
+                return;
+            }
+            if (mode == Mode.AnswerLate)
+            {
+                await Task.Delay(delay);
+                await WriteAsync(stream, head + body);
                 return;
             }
             await WriteAsync(stream, head);

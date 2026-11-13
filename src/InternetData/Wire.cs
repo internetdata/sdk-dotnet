@@ -111,9 +111,24 @@ internal static class Wire
     {
         if (perCall is { } value)
         {
-            CheckTimeout(value, nameof(OauthOptions.RequestTimeout));
+            CheckTimeout(value, nameof(LookupOptions.RequestTimeout));
         }
         return perCall ?? client;
+    }
+
+    /// <summary>
+    /// A per-call retry count, refused when negative as the client's is, and before anything can
+    /// answer locally: vpndetection 5.9.0 read -1 as no retries, and a bogon or a cache hit answered
+    /// it.
+    /// </summary>
+    internal static int? CheckRetries(int? perCall)
+    {
+        if (perCall is < 0)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(LookupOptions.Retries), perCall, "a retry count must not be negative");
+        }
+        return perCall;
     }
 
     /// <summary>The rule <see cref="HttpClient.Timeout"/> applies, which this bound replaces.</summary>
@@ -170,10 +185,19 @@ internal static class Wire
     {
         var retryAfter = RetryAfterOf(e.Headers);
         // A 2xx reaches here only when the generated layer could not read it - a proxy's HTML page,
-        // a cut-off, empty or `null` body - which is the server's fault, retried like a 5xx.
+        // a cut-off, empty or `null` body, an answer without a member it must carry - which is the
+        // server's fault, retried like a 5xx.
         var kind = e.StatusCode is >= 200 and < 300 ? ErrorKind.ServerError : KindOf(e.StatusCode, retryAfter);
         return new InternetDataException(kind, MessageOf(e), e.StatusCode, retryAfter, e);
     }
+
+    /// <summary>
+    /// A per-entry failure inside a successful batch: the status the single lookup would have
+    /// answered, and its message, with no headers at all - so a 429 here is a spent allowance,
+    /// which is the only kind the API puts in an entry.
+    /// </summary>
+    internal static InternetDataException FromEntry(int status, string message)
+        => new(KindOf(status, null), message, status, null, null);
 
     /// <summary>
     /// The member of a 200 a call returns. An answer without it is no answer at all: a retried
@@ -201,19 +225,45 @@ internal static class Wire
         _ => status < 500 ? ErrorKind.BadRequest : ErrorKind.ServerError,
     };
 
-    // Every failure this API reports names itself in `rc`, which is the machine-readable half of
-    // the answer and the only part worth putting in front of a caller.
+    // The two APIs behind this host answer with different envelopes: the lookups and the
+    // entitlement use `error`, the database endpoints use `rc`. Both are read here so a caller never
+    // has to know which one they hit. A documented refusal is parsed into its typed body and carries
+    // no text, so one in the other envelope is read from the member the type left over: through the
+    // text alone, a database call refused with `error`, and an entitlement refused at all, said
+    // nothing but its status.
     private static string MessageOf(WireException e)
     {
-        if (e is WireException<Error> failure && !string.IsNullOrEmpty(failure.Result?.Rc))
+        var message = e switch
         {
-            return failure.Result.Rc;
-        }
+            WireException<LookupError> lookup => Named(lookup.Result?.Error, lookup.Result?.AdditionalProperties),
+            WireException<EntitlementError> entitlement
+                => Named(entitlement.Result?.Error, entitlement.Result?.AdditionalProperties),
+            WireException<Error> database => Named(database.Result?.Rc, database.Result?.AdditionalProperties),
+            _ => null,
+        };
         // An undocumented status, or a body that would not parse, still reaches here with its text.
-        return RcFromJson(e.Response) ?? $"request failed with status {e.StatusCode}";
+        return message ?? FieldFromJson(e.Response) ?? $"request failed with status {e.StatusCode}";
     }
 
-    private static string? RcFromJson(string? body)
+    private static string? Named(string? declared, IDictionary<string, object>? rest)
+    {
+        if (!string.IsNullOrEmpty(declared))
+        {
+            return declared;
+        }
+        foreach (var field in new[] { "error", "rc" })
+        {
+            if (rest is not null && rest.TryGetValue(field, out var value)
+                && value is JsonElement { ValueKind: JsonValueKind.String } text
+                && !string.IsNullOrEmpty(text.GetString()))
+            {
+                return text.GetString();
+            }
+        }
+        return null;
+    }
+
+    private static string? FieldFromJson(string? body)
     {
         if (string.IsNullOrWhiteSpace(body))
         {
@@ -222,11 +272,17 @@ internal static class Wire
         try
         {
             using var doc = JsonDocument.Parse(body);
-            if (doc.RootElement.ValueKind == JsonValueKind.Object
-                && doc.RootElement.TryGetProperty("rc", out var value)
-                && value.ValueKind == JsonValueKind.String)
+            if (doc.RootElement.ValueKind != JsonValueKind.Object)
             {
-                return value.GetString();
+                return null;
+            }
+            foreach (var field in new[] { "error", "rc" })
+            {
+                if (doc.RootElement.TryGetProperty(field, out var value)
+                    && value.ValueKind == JsonValueKind.String)
+                {
+                    return value.GetString();
+                }
             }
         }
         catch (JsonException)
@@ -374,8 +430,10 @@ internal partial class WireClient
     // answered an empty catalog, no downloads or empty checksums (2.4.3, measured 2026-10-11), and
     // an entry without its members one of empty strings, zeros and false (2.4.5, measured
     // 2026-10-14). Every member the spec requires and never sends as null is required on the wire
-    // instead, and refused as null at any depth, which a body without one fails as an answer this
-    // client cannot read.
+    // instead and refused as null at any depth, and a list or map the spec allows to be absent still
+    // holds no null, which a body breaking either fails as an answer this client cannot read. A
+    // detail object is `{}` where its flag is false, so the members its schema requires are not
+    // required of it here: only a populated one carries them.
     //
     // System.Text.Json reads a DateTimeOffset in more forms than the spec's `date-time`: 2.6.1 took
     // a date alone as midnight, a time with no offset in the machine's own zone, `+05` and a time
@@ -397,6 +455,37 @@ internal partial class WireClient
     // its `id` or `format` came back whole.
     internal static readonly IReadOnlyDictionary<Type, string[]> AnswerMembers = new Dictionary<Type, string[]>
     {
+        [typeof(LookupResponse)] = ["ip", "is_bogon", "is_tor", "is_relay", "is_anycast", "is_carrier",
+            "is_satellite", "is_ssh", "is_smtp", "is_web", "is_dns_resolver", "is_bittorrent", "tor", "relay",
+            "location", "asn", "company", "hostname", "abuse"],
+        [typeof(WebDetail)] = ["port", "tls_ok", "session_ok", "status_code", "server", "location", "title",
+            "cert_subject_cn", "cert_subject_o", "cert_issuer_dn", "cert_browser_trusted", "tls_version",
+            "first_seen", "last_seen"],
+        [typeof(Location)] = ["continent", "continent_name", "country", "country_name", "timezone",
+            "currency_code", "currency_name", "currency_symbol", "flag_emoji", "flag_unicode"],
+        [typeof(Asn)] = ["asn", "name", "domain", "type", "prefix"],
+        [typeof(Company)] = ["name", "domain"],
+        [typeof(AbuseContact)] = ["email"],
+        [typeof(Whois)] = ["id", "name", "org", "country", "status", "source", "domain", "abuse_email", "asn"],
+        [typeof(Rwhois)] = ["id", "name", "country", "source", "domain", "abuse_email"],
+        [typeof(HostedDomains)] = ["total"],
+        [typeof(AsnLookupResponse)] = ["asn", "name", "country", "registry", "allocated", "domain"],
+        [typeof(AsnPrefix)] = ["prefix", "peer_count", "rpki_status", "first_seen", "country", "size", "other_origins"],
+        [typeof(DomainLookupResponse)] = ["domain", "is_registered", "has_a", "has_aaaa", "has_mx", "has_ns",
+            "has_cname"],
+        [typeof(DomainDns)] = ["a", "aaaa", "mx", "ns", "cname"],
+        [typeof(DnsAddressRecord)] = ["ip", "last_seen"],
+        [typeof(DnsMxRecord)] = ["priority", "host", "last_seen"],
+        [typeof(DnsNsRecord)] = ["host", "last_seen"],
+        [typeof(DnsCnameRecord)] = ["target", "last_seen"],
+        [typeof(DomainIpRanges)] = ["domain", "redirects_to", "total", "ipv4", "ranges"],
+        [typeof(DomainIpRange)] = ["range", "name", "country"],
+        [typeof(BatchLookupResponse)] = ["results", "errors"],
+        [typeof(BatchLookupError)] = ["status", "error"],
+        [typeof(Entitlement)] = ["org_id", "apikey", "plan", "usage"],
+        [typeof(EntitlementApikey)] = ["id", "allowed_cidrs"],
+        [typeof(EntitlementPlan)] = ["key", "tier"],
+        [typeof(EntitlementUsage)] = ["requests", "quota", "window_start", "window_end"],
         [typeof(Database)] = ["base", "name", "summary", "standing", "open", "versions"],
         [typeof(DatabaseVersion)] = ["id", "version", "summary", "formats"],
         [typeof(DatabaseMetadata)] = ["id", "updated", "entries", "schema", "size"],
@@ -415,6 +504,7 @@ internal partial class WireClient
             return;
         }
         var members = AnswerMembers.TryGetValue(info.Type, out var named) ? named : [];
+        var nullability = new NullabilityInfoContext();
         foreach (var property in info.Properties)
         {
             var type = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
@@ -427,14 +517,24 @@ internal partial class WireClient
             {
                 property.Set = (target, value) => setSample(target, SampleRows(value));
             }
-            if (members.Contains(property.Name) || EnvelopeMembers.Contains(property.Name))
+            if (property.Set is not { } set || property.PropertyType.IsValueType)
+            {
+                property.IsRequired |= members.Contains(property.Name);
+                continue;
+            }
+            var name = property.Name;
+            if (members.Contains(name) || EnvelopeMembers.Contains(name))
             {
                 property.IsRequired = true;
-                if (property.Set is { } set && !property.PropertyType.IsValueType)
-                {
-                    var name = property.Name;
-                    property.Set = (target, value) => set(target, NotNull(value, name));
-                }
+                property.Set = (target, value) => set(target, NotNull(value, name));
+            }
+            else if (property.AttributeProvider is PropertyInfo declared
+                && nullability.Create(declared).GenericTypeArguments is { Length: > 0 } entries
+                && entries.All(entry => entry.ReadState == NullabilityState.NotNull || entry.Type.IsValueType))
+            {
+                // Absent is allowed, a null inside it is not: vpndetection's `protocols: [null]` came
+                // back as served.
+                property.Set = (target, value) => set(target, value is null ? null : Entries(value, name));
             }
         }
     }
@@ -475,6 +575,19 @@ internal partial class WireClient
                 {
                     throw new JsonException("`sample` holds a row that is not an object");
                 }
+            }
+        }
+        return value;
+    }
+
+    private static object Entries(object value, string name)
+    {
+        var entries = value is System.Collections.IDictionary map ? map.Values : value as System.Collections.IEnumerable;
+        foreach (var entry in entries ?? Array.Empty<object>())
+        {
+            if (entry is null)
+            {
+                throw new JsonException($"`{name}` holds a null");
             }
         }
         return value;

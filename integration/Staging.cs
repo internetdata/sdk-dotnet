@@ -14,7 +14,14 @@ namespace InternetData.Integration;
 /// </remarks>
 internal static class Staging
 {
-    internal const string BaseUrl = "https://staging.internetdata.io";
+    /// <summary>The staging API, where the lookups and the database calls both answer.</summary>
+    internal const string BaseUrl = "https://api-staging.internetdata.io";
+
+    /// <summary>Staging's apex, where the authorization server is, which the client derives itself.</summary>
+    internal const string Apex = "https://staging.internetdata.io";
+
+    /// <summary>The production API, which the lookups also run against, without a key.</summary>
+    internal const string ProdBaseUrl = "https://api.internetdata.io";
 
     internal const string Secret = "INTERNETDATA_STAGING_KEY";
 

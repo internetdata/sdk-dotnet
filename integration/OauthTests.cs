@@ -19,7 +19,8 @@ public class OauthTests
 
         var metadata = await client.Oauth.MetadataAsync();
 
-        Assert.Equal(Staging.BaseUrl, metadata.Issuer);
+        // Asked of the apex the client derives from the API host it was given.
+        Assert.Equal(Staging.Apex, metadata.Issuer);
         Assert.NotNull(metadata.DeviceAuthorizationEndpoint);
         Assert.Contains("S256", metadata.CodeChallengeMethodsSupported ?? Array.Empty<string>());
     }

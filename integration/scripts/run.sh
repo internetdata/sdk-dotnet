@@ -182,7 +182,7 @@ function reportKey() {
     if [ -n "${INTERNETDATA_STAGING_KEY:-}" ] ; then
         echo "==> INTERNETDATA_STAGING_KEY is set"
     else
-        notice "INTERNETDATA_STAGING_KEY is not set: the database tests skip, the keyless OAuth checks run"
+        notice "INTERNETDATA_STAGING_KEY is not set: the keyed tests skip, the keyless lookups and OAuth checks run"
     fi
 }
 
