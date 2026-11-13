@@ -8,6 +8,8 @@ What each release changed for you, newest first. Each line is a commit's summary
 
 - Re-pin the spec to 2026.11.13: the lookups and the entitlement ([`218ab29`](https://github.com/internetdata/sdk-dotnet/commit/218ab29e5269ccd94a57d6f33fd5cd8176161d2f))
 - Look up an address, an AS and a domain, on api.internetdata.io by default ([`a31d622`](https://github.com/internetdata/sdk-dotnet/commit/a31d622e18ae7d8a01b50e7b4ade345d54a4380f))
+- Re-pin the spec to 2026.11.13 again: a detail object requires no member ([`d7bd454`](https://github.com/internetdata/sdk-dotnet/commit/d7bd454991c4d1abf513fc1adb186c2eaf3bee7f))
+- Refuse a lookup of anything but an IP address before sending it ([`eae656d`](https://github.com/internetdata/sdk-dotnet/commit/eae656d56157c144feb115e449304f7f89daf646))
 
 ## 2.7.2 - 2026-11-11
 
