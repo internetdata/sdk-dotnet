@@ -3175,7 +3175,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<LookupError>("The key may not be used from this address, or was sent over plain HTTP.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<LookupError>("The key may not be used from this address, lacks the `ip.lookup` scope (Lookups, in the\nconsole\'s API keys), or was sent over plain HTTP.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 429)
@@ -3307,7 +3307,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<LookupError>("The key may not be used from this address, or was sent over plain HTTP.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<LookupError>("The key may not be used from this address, lacks the `ip.lookup` scope (Lookups, in the\nconsole\'s API keys), or was sent over plain HTTP.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 429)
@@ -3459,7 +3459,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<LookupError>("The key may not be used from this address, or was sent over plain HTTP.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<LookupError>("The key may not be used from this address, lacks the `ip.lookup` scope (Lookups, in the\nconsole\'s API keys), or was sent over plain HTTP.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 429)
@@ -3611,7 +3611,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<LookupError>("The key may not be used from this address, or was sent over plain HTTP.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<LookupError>("The key may not be used from this address, lacks the `ip.lookup` scope (Lookups, in the\nconsole\'s API keys), or was sent over plain HTTP.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 429)
@@ -3774,7 +3774,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<LookupError>("The key may not be used from this address, or was sent over plain HTTP.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<LookupError>("The key may not be used from this address, lacks the `ip.lookup` scope (Lookups, in the\nconsole\'s API keys), or was sent over plain HTTP.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 413)
