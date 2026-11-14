@@ -2,6 +2,16 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.1.1 are described by their release commits.
 
+## 2.9.0 - 2026-11-14
+
+### Features
+
+- Add the framework middleware core ([`0b525d5`](https://github.com/internetdata/sdk-dotnet/commit/0b525d5b203b56b5e540a073cc8e4908db4679b4))
+
+### Fixes
+
+- Word the address refusal as every InternetData SDK does ([`e8021d9`](https://github.com/internetdata/sdk-dotnet/commit/e8021d9d89bc3c80c5604799285f2aa424ebc7ff))
+
 ## 2.8.0 - 2026-11-13
 
 ### Features
