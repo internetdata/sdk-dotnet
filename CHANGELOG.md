@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.1.1 are described by their release commits.
 
+## 2.9.1 - 2026-11-14
+
+### Fixes
+
+- Re-pin the spec to 2026.11.13 as republished: the ip.lookup scope 403 ([`784ceb2`](https://github.com/internetdata/sdk-dotnet/commit/784ceb2f00d9324beaf8efa4ce473d5e7af60524))
+
 ## 2.9.0 - 2026-11-14
 
 ### Features
