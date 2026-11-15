@@ -120,7 +120,7 @@ public sealed class Result
                 Asn = 0,
             },
             Rwhois = new Rwhois { Id = "", Name = "", Country = "", Source = "", Domain = "", AbuseEmail = "" },
-            HostedDomains = new HostedDomains { Total = 0 },
+            HostedDomains = new HostedDomains { Total = 0, Domains = Array.Empty<string>() },
         });
 
     /// <summary>The address that was looked up, as parsed: <c>::ffff:a.b.c.d</c> answers as <c>a.b.c.d</c>.</summary>
@@ -279,7 +279,7 @@ public sealed class Result
     /// <summary>The RWhois record for the range. Paid plans and the trial.</summary>
     public Rwhois? Rwhois => raw.Rwhois;
 
-    /// <summary>How many domains are hosted on the address. Paid plans and the trial.</summary>
+    /// <summary>How many domains are hosted on the address, and the 10 most popular. Paid plans and the trial.</summary>
     public HostedDomains? HostedDomains => raw.HostedDomains;
 
     /// <summary>

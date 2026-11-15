@@ -138,6 +138,7 @@ public class LookupAnswerTests
     [InlineData("lookup", "pubproxy", """{"entry":true,"exit":false,"protocols":[null],"num_ports":1,"num_proxies":1,"last_seen":"","last_usable":""}""")]
     [InlineData("lookup", "bittorrent", """{"verified":true,"id_matches_ip":false,"first_seen":"","last_seen":"","last_reachable":"","days_seen":1,"num_ports":1,"peak_num_ports":1,"indexer":false,"clients":[null]}""")]
     [InlineData("lookup", "web", "[null]")]
+    [InlineData("lookup", "hosted_domains", """{"total":1,"domains":[null]}""")]
     [InlineData("lookupAsn", "prefixes", "[null]")]
     [InlineData("lookupAsn", "whois", """{"name":null}""")]
     [InlineData("lookupAsn", "prefixes.0.other_origins", "[null]")]

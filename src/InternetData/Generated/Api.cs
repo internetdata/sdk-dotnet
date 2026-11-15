@@ -6629,7 +6629,7 @@ namespace InternetData
     }
 
     /// <summary>
-    /// From IP Hosted Domains: a count, never the list. Paid plans and the trial.
+    /// From IP Hosted Domains: how many registered domains resolve to the address, and the 10 most popular. Its database lists up to 1,000 an address. Paid plans and the trial.
     /// </summary>
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class HostedDomains
@@ -6640,6 +6640,12 @@ namespace InternetData
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("total")]
         public int Total { get; set; } = default!;
+
+        /// <summary>
+        /// Up to 10 of them, the most popular first; `[]` when none does.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("domains")]
+        public System.Collections.Generic.IReadOnlyList<string>? Domains { get; set; } = default!;
 
         private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
