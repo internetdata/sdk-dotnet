@@ -3354,9 +3354,10 @@ namespace InternetData
         /// </summary>
         /// <remarks>
         /// Answers what InternetData knows about one autonomous system: its registration on every plan,
-        /// <br/>and on a paid one its ASN Whois record and every prefix it announces in global BGP, with RPKI status,
-        /// <br/>up to 20000 per address family (the counts beside them are always whole). An AS no database knows answers
-        /// <br/>its number with empty values.
+        /// <br/>and on a paid one its ASN Whois record, every prefix it announces in global BGP, with RPKI status,
+        /// <br/>up to 20000 per address family, its rank, Tier 1 flag, upstreams, peers and downstreams from ASN
+        /// <br/>Extended, up to 20000 each (the counts beside them are always whole), and the domains it hosts. An AS no
+        /// <br/>database knows answers its number with empty values.
         /// </remarks>
         /// <param name="asn">The AS number, as `AS15169` in any case, or the bare number.</param>
         /// <returns>What each database says about the AS, as much as your plan shows.</returns>
@@ -3372,9 +3373,10 @@ namespace InternetData
         /// </summary>
         /// <remarks>
         /// Answers what InternetData knows about one autonomous system: its registration on every plan,
-        /// <br/>and on a paid one its ASN Whois record and every prefix it announces in global BGP, with RPKI status,
-        /// <br/>up to 20000 per address family (the counts beside them are always whole). An AS no database knows answers
-        /// <br/>its number with empty values.
+        /// <br/>and on a paid one its ASN Whois record, every prefix it announces in global BGP, with RPKI status,
+        /// <br/>up to 20000 per address family, its rank, Tier 1 flag, upstreams, peers and downstreams from ASN
+        /// <br/>Extended, up to 20000 each (the counts beside them are always whole), and the domains it hosts. An AS no
+        /// <br/>database knows answers its number with empty values.
         /// </remarks>
         /// <param name="asn">The AS number, as `AS15169` in any case, or the bare number.</param>
         /// <returns>What each database says about the AS, as much as your plan shows.</returns>
@@ -6659,6 +6661,36 @@ namespace InternetData
     }
 
     /// <summary>
+    /// From ASN Hosted Domains: how many registered domains the AS hosts, and the 10 most popular. Its database lists up to 1,000 an AS. Paid plans and the trial.
+    /// </summary>
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class AsnHostedDomains
+    {
+
+        /// <summary>
+        /// How many registered domains resolve to an address the AS announces.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("total")]
+        public int Total { get; set; } = default!;
+
+        /// <summary>
+        /// Up to 10 of them, the most popular first; `[]` when none does.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("domains")]
+        public System.Collections.Generic.IReadOnlyList<string>? Domains { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    /// <summary>
     /// What every database says about one AS.
     /// </summary>
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
@@ -6754,6 +6786,57 @@ namespace InternetData
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("prefixes")]
         public System.Collections.Generic.IReadOnlyList<AsnPrefix>? Prefixes { get; set; } = default!;
+
+        /// <summary>
+        /// Its rank in ASN Extended, by customer cone, 1 the largest; `0` for an AS seen in no AS path. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("rank")]
+        public int? Rank { get; set; } = default!;
+
+        /// <summary>
+        /// Whether it is one of the transit-free networks at the top of the hierarchy, which get transit from no one and peer with each other. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("tier1")]
+        public bool? Tier1 { get; set; } = default!;
+
+        /// <summary>
+        /// How many AS numbers it gets transit from. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("num_upstreams")]
+        public int? NumUpstreams { get; set; } = default!;
+
+        /// <summary>
+        /// Those AS numbers, ascending, up to 20000. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("upstreams")]
+        public System.Collections.Generic.IReadOnlyList<int>? Upstreams { get; set; } = default!;
+
+        /// <summary>
+        /// How many AS numbers it exchanges its own and its customers' routes with. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("num_peers")]
+        public int? NumPeers { get; set; } = default!;
+
+        /// <summary>
+        /// Those AS numbers, ascending, up to 20000. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("peers")]
+        public System.Collections.Generic.IReadOnlyList<int>? Peers { get; set; } = default!;
+
+        /// <summary>
+        /// How many AS numbers it provides transit to. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("num_downstreams")]
+        public int? NumDownstreams { get; set; } = default!;
+
+        /// <summary>
+        /// Those AS numbers, ascending, up to 20000. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("downstreams")]
+        public System.Collections.Generic.IReadOnlyList<int>? Downstreams { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("hosted_domains")]
+        public AsnHostedDomains? HostedDomains { get; set; } = default!;
 
         /// <summary>
         /// On every answer to a key on the free plan, and on no other: `false` while the day's trial of every field lasts, `true` once the answer has Unlimited's fields.
@@ -7363,8 +7446,9 @@ namespace InternetData
     {
 
         /// <summary>
-        /// The plan the organization is on: `free` for the free plan,
-        /// <br/>Unlimited, or a paid plan's key. On `free`, usage counts the
+        /// The plan the organization is on, as an identifier that is never
+        /// <br/>renamed or reused: `free` for the free plan, or a paid plan's key.
+        /// <br/>Compare against it and show `name`. On `free`, usage counts the
         /// <br/>day's lookups answered with every field, its daily trial.
         /// <br/>
         /// </summary>
@@ -7372,8 +7456,18 @@ namespace InternetData
         public string Key { get; set; } = default!;
 
         /// <summary>
+        /// The plan's name, as the site and console show it: `Unlimited` for
+        /// <br/>the free plan. Show this rather than a name built from `key`: a
+        /// <br/>plan's name can change, and its key never does.
+        /// <br/>
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("name")]
+        public string Name { get; set; } = default!;
+
+        /// <summary>
         /// The field tier, which decides how much of a lookup answer comes
-        /// <br/>back; `free` is the free plan's. What each tier includes is documented
+        /// <br/>back; `free` is the free plan's. This list never gains a value: a
+        /// <br/>new plan reports one of these. What each tier includes is documented
         /// <br/>on the lookup endpoint rather than repeated here, so there is one
         /// <br/>place it can be wrong.
         /// <br/>

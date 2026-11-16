@@ -71,6 +71,7 @@ Same answer `LookupAsync` would give for that address, and the same cost against
 ```csharp
 var acct = await client.MyEntitlementAsync();
 Console.WriteLine(acct.Plan.Key);         // the plan your key is on
+Console.WriteLine(acct.Plan.Name);        // its name to show, "Unlimited" on free
 Console.WriteLine(acct.Usage.Requests);   // lookups spent this window
 Console.WriteLine(acct.Usage.WindowEnd);  // when the allowance resets
 ```
@@ -204,7 +205,7 @@ The API answers a download with a `302` to a time-limited URL that carries its o
 var url = await client.Database.DownloadUrlAsync(id, DatabaseFormat.Mmdb);
 ```
 
-The library follows nothing: you get the link, not the file. The link authorizes the START of a transfer, so one already running is not interrupted when it lapses.
+The library follows nothing: you get the link, not the file. The link only has to be valid when a transfer starts, so one already running isn't cut off when it lapses.
 
 Because a `302` is the answer, an `HttpClient` you supply yourself must not follow redirects, or it would fetch the whole database in place of the link. A client that does follow them is refused with a clear error rather than quietly downloading gigabytes.
 

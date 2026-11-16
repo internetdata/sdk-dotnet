@@ -115,7 +115,7 @@ public sealed class DatabaseApi
     /// The API answers <c>302</c> to object storage. The URL is returned rather than the bytes so
     /// the caller decides how to transfer a file that routinely runs to gigabytes; it carries its
     /// own authorization, so it can be handed to a downloader that never sees your key. The link
-    /// authorizes the START of a transfer, so one already running is not interrupted when it lapses.
+    /// only has to be valid when a transfer starts, so one already running isn't cut off when it lapses.
     /// </remarks>
     public Task<string> DownloadUrlAsync(
         string id, DatabaseFormat format, CancellationToken cancellationToken = default)

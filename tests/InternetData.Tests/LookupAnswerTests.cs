@@ -22,7 +22,7 @@ public class LookupAnswerTests
             .Replace("1.1.1.1", Ip, StringComparison.Ordinal),
         ["lookupAsn"] = Corpus.Case("lookup", "asn-paid-answer").GetProperty("body").GetRawText(),
         ["lookupDomain"] = Corpus.Case("lookup", "domain-paid-answer").GetProperty("body").GetRawText(),
-        ["myEntitlement"] = """{"org_id":"85bb51e4-2eb6-4a31-8e4d-02ba8b98fe61","apikey":{"id":"0ab424cc-7619-4dad-b027-afacdc2cedb0","expires":null,"allowed_cidrs":[]},"plan":{"key":"max","tier":"max"},"usage":{"requests":5,"quota":50,"hard_limit":null,"window_start":"2026-10-04T07:00:00Z","window_end":"2026-11-04T07:00:00Z"}}""",
+        ["myEntitlement"] = """{"org_id":"85bb51e4-2eb6-4a31-8e4d-02ba8b98fe61","apikey":{"id":"0ab424cc-7619-4dad-b027-afacdc2cedb0","expires":null,"allowed_cidrs":[]},"plan":{"key":"max","name":"Max","tier":"max"},"usage":{"requests":5,"quota":50,"hard_limit":null,"window_start":"2026-10-04T07:00:00Z","window_end":"2026-11-04T07:00:00Z"}}""",
     };
 
     public static TheoryData<string, string> Unreadable()
@@ -36,7 +36,7 @@ public class LookupAnswerTests
             }
         }
         data.Add("batch", """{"results":{}}""");
-        data.Add("myEntitlement", """{"org_id":"o","apikey":{"id":"a","expires":null,"allowed_cidrs":[]},"plan":{"key":"k","tier":"t"}}""");
+        data.Add("myEntitlement", """{"org_id":"o","apikey":{"id":"a","expires":null,"allowed_cidrs":[]},"plan":{"key":"k","name":"n","tier":"t"}}""");
         return data;
     }
 
@@ -84,11 +84,12 @@ public class LookupAnswerTests
         Add("myIp", "", "ip", "location");
         Add("myEntitlement", "", "org_id", "apikey", "plan", "usage");
         Add("myEntitlement", "apikey", "id", "allowed_cidrs");
-        Add("myEntitlement", "plan", "key", "tier");
+        Add("myEntitlement", "plan", "key", "name", "tier");
         Add("myEntitlement", "usage", "requests", "quota", "window_start", "window_end");
         Add("lookupAsn", "", "asn", "name", "country", "registry", "allocated", "domain");
         Add("lookupAsn", "prefixes.0", "prefix", "peer_count", "rpki_status", "first_seen", "country", "size",
             "other_origins");
+        Add("lookupAsn", "hosted_domains", "total");
         Add("lookupDomain", "", "domain", "is_registered", "has_a", "has_aaaa", "has_mx", "has_ns", "has_cname");
         Add("lookupDomain", "dns", "a", "aaaa", "mx", "ns", "cname");
         Add("lookupDomain", "dns.a.0", "ip", "last_seen");
