@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.1.1 are described by their release commits.
 
+## 2.11.0 - 2026-11-16
+
+### Features
+
+- Read an AS's rank, neighbors and hosted domains, and the plan's name ([`2fc8417`](https://github.com/internetdata/sdk-dotnet/commit/2fc84170a4182e1db8b702a86b970f8437ca4ce9))
+
 ## 2.10.0 - 2026-11-15
 
 ### Features
