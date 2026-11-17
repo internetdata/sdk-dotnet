@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.1.1 are described by their release commits.
 
+## 2.12.0 - 2026-11-17
+
+### Features
+
+- Read cap_reached on a paid answer past its overage cap ([`5e87035`](https://github.com/internetdata/sdk-dotnet/commit/5e87035b370d91fe585a6eb9785f3027c2ccac38))
+
 ## 2.11.0 - 2026-11-16
 
 ### Features
