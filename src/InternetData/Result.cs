@@ -288,6 +288,13 @@ public sealed class Result
     /// </summary>
     public bool? TrialExpired => raw.TrialExpired;
 
+    /// <summary>
+    /// On answers to a key on a paid plan only: <c>false</c> while the answer has every field,
+    /// <c>true</c> once its organization's overage cap is reached and the answer has Unlimited's.
+    /// Lookups answered past the cap are not billed.
+    /// </summary>
+    public bool? CapReached => raw.CapReached;
+
     /// <summary>The response exactly as it came off the wire.</summary>
     /// <remarks>
     /// The same instance is handed to every later caller that hits this address in the cache, so

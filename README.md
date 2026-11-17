@@ -264,7 +264,7 @@ catch (InternetDataException e)
 
 `Kind` is one of `BadRequest`, `Unauthorized`, `Forbidden`, `RateLimited`, `QuotaExceeded`, `ServerError` or `Network`. `Message` is the API's own reason, so a license refusal reads `NOT_LICENSED` rather than `403`.
 
-Note that `RateLimited` and `QuotaExceeded` both arrive as HTTP 429 and are not the same thing. A rate limit carries `Retry-After` and retrying later works, so the library retries it for you; a spent quota needs your allowance raised or the window to roll over, so it never does.
+Note that `RateLimited` and `QuotaExceeded` both arrive as HTTP 429 and are not the same thing. A rate limit carries `Retry-After` and retrying later works, so the library retries it for you; one without it is `QuotaExceeded`, which it never retries. The API itself always sends `Retry-After` with a 429, so that one comes from something in between, such as a proxy; a paid key past its overage cap gets `CapReached` instead.
 
 Each attempt is abandoned after 30 seconds by default (`RequestTimeout` on the options), which fails as a retryable `Network` error. One call can set its own, longer or shorter:
 
@@ -351,13 +351,14 @@ Each redirect URI must be https on a public host name, or http on a loopback add
 
 ### Absent is not false
 
-Unlimited leaves out the VPN, proxy, hosting and CDN flags, the city and coordinates, and the paid half of the company and abuse contact; a free-plan key's answer carries `TrialExpired`, true once its daily trial is spent. Those members are `null` on a plan without them, which means "not in your plan" rather than "checked, and no".
+Unlimited leaves out the VPN, proxy, hosting and CDN flags, the city and coordinates, and the paid half of the company and abuse contact; a free-plan key's answer carries `TrialExpired`, true once its daily trial is spent. A paid key's carries `CapReached`, true once its organization's overage cap is reached, when the answer has Unlimited's fields and isn't billed. Those members are `null` on a plan without them, which means "not in your plan" rather than "checked, and no".
 
 ```csharp
 result.IsHosting ?? false     // when you only want the flag
 result.IsHosting is null      // on Unlimited: not in your plan
 result.Location.City is null  // on Unlimited: not in your plan
 result.TrialExpired == true   // a free-plan key's daily trial is spent
+result.CapReached == true     // a paid key is past its overage cap
 ```
 
 ## Other Libraries

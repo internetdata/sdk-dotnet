@@ -166,7 +166,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<Error>("The request comes from an address outside the key\'s or its\norganization\'s allowed addresses. Change the allowlist or call from an\nallowed address: the key itself is fine.\n`rc`: `IP_NOT_ALLOWED`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<Error>("The request comes from an address outside the key\'s or its\norganization\'s allowed addresses. Change the allowlist or call from an\nallowed address: the key itself is fine. Or the key was sent over\nplain HTTP, refused whatever the key: use `https://`.\n`rc`: `IP_NOT_ALLOWED`, `KEY_OVER_HTTP`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         {
@@ -305,7 +305,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<Error>("Your organization holds no license for this database (`NOT_LICENSED`),\nor its term has ended (`LICENSE_EXPIRED`); or the request comes from an\naddress outside the key\'s or its organization\'s allowed addresses\n(`IP_NOT_ALLOWED`).\n`rc`: `NOT_LICENSED`, `LICENSE_EXPIRED`, `IP_NOT_ALLOWED`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<Error>("Your organization holds no license for this database (`NOT_LICENSED`),\nor its term has ended (`LICENSE_EXPIRED`); or the request comes from an\naddress outside the key\'s or its organization\'s allowed addresses\n(`IP_NOT_ALLOWED`); or the key was sent over plain HTTP, refused\nwhatever the key (`KEY_OVER_HTTP`): use `https://`.\n`rc`: `NOT_LICENSED`, `LICENSE_EXPIRED`, `IP_NOT_ALLOWED`, `KEY_OVER_HTTP`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 404)
@@ -470,7 +470,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<Error>("The request comes from an address outside the key\'s or its\norganization\'s allowed addresses. Change the allowlist or call from an\nallowed address: the key itself is fine.\n`rc`: `IP_NOT_ALLOWED`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<Error>("The request comes from an address outside the key\'s or its\norganization\'s allowed addresses. Change the allowlist or call from an\nallowed address: the key itself is fine. Or the key was sent over\nplain HTTP, refused whatever the key: use `https://`.\n`rc`: `IP_NOT_ALLOWED`, `KEY_OVER_HTTP`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 404)
@@ -624,7 +624,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<Error>("Your organization holds no license for this database (`NOT_LICENSED`),\nor its term has ended (`LICENSE_EXPIRED`); or the request comes from an\naddress outside the key\'s or its organization\'s allowed addresses\n(`IP_NOT_ALLOWED`).\n`rc`: `NOT_LICENSED`, `LICENSE_EXPIRED`, `IP_NOT_ALLOWED`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<Error>("Your organization holds no license for this database (`NOT_LICENSED`),\nor its term has ended (`LICENSE_EXPIRED`); or the request comes from an\naddress outside the key\'s or its organization\'s allowed addresses\n(`IP_NOT_ALLOWED`); or the key was sent over plain HTTP, refused\nwhatever the key (`KEY_OVER_HTTP`): use `https://`.\n`rc`: `NOT_LICENSED`, `LICENSE_EXPIRED`, `IP_NOT_ALLOWED`, `KEY_OVER_HTTP`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 404)
@@ -764,7 +764,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<Error>("The request comes from an address outside the key\'s or its\norganization\'s allowed addresses. Change the allowlist or call from an\nallowed address: the key itself is fine.\n`rc`: `IP_NOT_ALLOWED`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<Error>("The request comes from an address outside the key\'s or its\norganization\'s allowed addresses. Change the allowlist or call from an\nallowed address: the key itself is fine. Or the key was sent over\nplain HTTP, refused whatever the key: use `https://`.\n`rc`: `IP_NOT_ALLOWED`, `KEY_OVER_HTTP`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         {
@@ -1227,14 +1227,14 @@ namespace InternetData
         /// The identity behind this credential: what it is, the organization it is
         /// <br/>scoped to, and the scopes it currently holds.
         /// <br/>
-        /// <br/>`user` is present for an OAuth token and ABSENT for an API key, which
+        /// <br/>`user` is present for an OAuth token and absent for an API key, which
         /// <br/>has an organization but no person behind it. `credential.kind` says
         /// <br/>which you are holding, so a client can branch without guessing from a
         /// <br/>missing field.
         /// <br/>
         /// <br/>Narrower than what the console shows its own user on purpose: an
         /// <br/>integration needs a name to display and an organization to address, not
-        /// <br/>a profile. The `scopes` array is what the credential may do RIGHT NOW,
+        /// <br/>a profile. The `scopes` array is what the credential may do right now,
         /// <br/>so a client can render its own capabilities rather than discovering
         /// <br/>them from a 403.
         /// </remarks>
@@ -1253,14 +1253,14 @@ namespace InternetData
         /// The identity behind this credential: what it is, the organization it is
         /// <br/>scoped to, and the scopes it currently holds.
         /// <br/>
-        /// <br/>`user` is present for an OAuth token and ABSENT for an API key, which
+        /// <br/>`user` is present for an OAuth token and absent for an API key, which
         /// <br/>has an organization but no person behind it. `credential.kind` says
         /// <br/>which you are holding, so a client can branch without guessing from a
         /// <br/>missing field.
         /// <br/>
         /// <br/>Narrower than what the console shows its own user on purpose: an
         /// <br/>integration needs a name to display and an organization to address, not
-        /// <br/>a profile. The `scopes` array is what the credential may do RIGHT NOW,
+        /// <br/>a profile. The `scopes` array is what the credential may do right now,
         /// <br/>so a client can render its own capabilities rather than discovering
         /// <br/>them from a 403.
         /// </remarks>
@@ -1716,7 +1716,7 @@ namespace InternetData
         /// <remarks>
         /// Creates a key and returns its secret.
         /// <br/>
-        /// <br/>This is the ONLY response that ever carries the secret, and only
+        /// <br/>This is the only response that ever carries the secret, and only
         /// <br/>because this is the moment it comes into existence. Store it now.
         /// </remarks>
         /// <returns>The new key, including its secret.</returns>
@@ -1733,7 +1733,7 @@ namespace InternetData
         /// <remarks>
         /// Creates a key and returns its secret.
         /// <br/>
-        /// <br/>This is the ONLY response that ever carries the secret, and only
+        /// <br/>This is the only response that ever carries the secret, and only
         /// <br/>because this is the moment it comes into existence. Store it now.
         /// </remarks>
         /// <returns>The new key, including its secret.</returns>
@@ -3185,7 +3185,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<LookupError>("A rate limit, with `Retry-After` (this API protecting itself, or Unlimited\'s per-minute\nlimit), or, with none, a paid plan\'s overage cap.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<LookupError>("A rate limit, always with `Retry-After`: this API protecting itself, or Unlimited\'s\nper-minute limit. A paid plan\'s overage cap is never a `429`: it answers `200` with\nUnlimited\'s fields and `cap_reached` `true`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 500)
@@ -3317,7 +3317,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<LookupError>("A rate limit, with `Retry-After` (this API protecting itself, or Unlimited\'s per-minute\nlimit), or, with none, a paid plan\'s overage cap.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<LookupError>("A rate limit, always with `Retry-After`: this API protecting itself, or Unlimited\'s\nper-minute limit. A paid plan\'s overage cap is never a `429`: it answers `200` with\nUnlimited\'s fields and `cap_reached` `true`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 500)
@@ -3471,7 +3471,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<LookupError>("A rate limit, with `Retry-After` (this API protecting itself, or Unlimited\'s per-minute\nlimit), or, with none, a paid plan\'s overage cap.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<LookupError>("A rate limit, always with `Retry-After`: this API protecting itself, or Unlimited\'s\nper-minute limit. A paid plan\'s overage cap is never a `429`: it answers `200` with\nUnlimited\'s fields and `cap_reached` `true`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 500)
@@ -3623,7 +3623,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<LookupError>("A rate limit, with `Retry-After` (this API protecting itself, or Unlimited\'s per-minute\nlimit), or, with none, a paid plan\'s overage cap.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<LookupError>("A rate limit, always with `Retry-After`: this API protecting itself, or Unlimited\'s\nper-minute limit. A paid plan\'s overage cap is never a `429`: it answers `200` with\nUnlimited\'s fields and `cap_reached` `true`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 500)
@@ -3662,7 +3662,8 @@ namespace InternetData
         /// Up to 1000 addresses, AS numbers and domains in one call, each answered exactly as its own
         /// <br/>lookup would be and each counted as one lookup. Answers and failures are keyed by the string you sent, in
         /// <br/>the order you sent them; duplicates collapse. Needs a paid plan: a batch of one item is answered as the
-        /// <br/>lookup it is on any plan.
+        /// <br/>lookup it is on any plan. An overage cap reached part way through answers the remaining items with
+        /// <br/>Unlimited's fields and `cap_reached` `true`, in `results`.
         /// </remarks>
         /// <returns>Every item, under `results` or `errors`.</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
@@ -3679,7 +3680,8 @@ namespace InternetData
         /// Up to 1000 addresses, AS numbers and domains in one call, each answered exactly as its own
         /// <br/>lookup would be and each counted as one lookup. Answers and failures are keyed by the string you sent, in
         /// <br/>the order you sent them; duplicates collapse. Needs a paid plan: a batch of one item is answered as the
-        /// <br/>lookup it is on any plan.
+        /// <br/>lookup it is on any plan. An overage cap reached part way through answers the remaining items with
+        /// <br/>Unlimited's fields and `cap_reached` `true`, in `results`.
         /// </remarks>
         /// <returns>Every item, under `results` or `errors`.</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
@@ -3908,7 +3910,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<EntitlementError>("The key restricts which source addresses may use it, and this\nrequest did not come from one of them.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<EntitlementError>("The key restricts which source addresses may use it, and this\nrequest did not come from one of them; or the key was sent over\nplain HTTP, which is refused whatever the key.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 503)
@@ -4129,7 +4131,7 @@ namespace InternetData
     }
 
     /// <summary>
-    /// One database FAMILY, with your organization's license beside it. A
+    /// One database family, with your organization's license beside it. A
     /// <br/>license covers the family, while a download names a specific version,
     /// <br/>so the IDs passed to `download` and `checksum` come from `versions`.
     /// <br/>
@@ -4234,7 +4236,7 @@ namespace InternetData
         public string Summary { get; set; } = default!;
 
         /// <summary>
-        /// The formats this version is BUILT in. Asking for another is a 400,
+        /// The formats this version is built in. Asking for another is a 400,
         /// <br/>not a gap - the `_provider` catalogs are keyed by provider ID, so no
         /// <br/>MMDB exists for them.
         /// <br/>
@@ -4262,7 +4264,7 @@ namespace InternetData
     }
 
     /// <summary>
-    /// One download ATTEMPT, refusals included.
+    /// One download attempt, refusals included.
     /// </summary>
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class Download
@@ -4292,7 +4294,7 @@ namespace InternetData
         public bool Open { get; set; } = default!;
 
         /// <summary>
-        /// Object size at redirect time, NOT bytes delivered: the transfer is a
+        /// Object size at redirect time, not bytes delivered: the transfer is a
         /// <br/>presigned redirect straight to object storage, so we never observe
         /// <br/>how much of it was taken.
         /// <br/>
@@ -4793,7 +4795,7 @@ namespace InternetData
     }
 
     /// <summary>
-    /// Key METADATA. Never the key itself.
+    /// Key metadata. Never the key itself.
     /// </summary>
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
     internal partial class ApikeyDetail
@@ -4824,7 +4826,7 @@ namespace InternetData
         public System.DateTimeOffset? RevokedAt { get; set; } = default!;
 
         /// <summary>
-        /// Source-IP allowlist. EMPTY MEANS UNRESTRICTED, not deny-all.
+        /// Source-IP allowlist. Empty means unrestricted, not deny-all.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("allowed_cidrs")]
         public System.Collections.Generic.IReadOnlyList<string>? AllowedCidrs { get; set; } = default!;
@@ -5610,6 +5612,12 @@ namespace InternetData
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("trial_expired")]
         public bool? TrialExpired { get; set; } = default!;
+
+        /// <summary>
+        /// On every answer to a key on a paid plan, and on no other: `false` while the answer has every field, `true` once its organization's overage cap is reached and the answer has Unlimited's. Lookups answered past the cap are not billed; raising or removing the cap in Billing turns it `false` again.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("cap_reached")]
+        public bool? CapReached { get; set; } = default!;
 
         private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
@@ -6844,6 +6852,12 @@ namespace InternetData
         [System.Text.Json.Serialization.JsonPropertyName("trial_expired")]
         public bool? TrialExpired { get; set; } = default!;
 
+        /// <summary>
+        /// On every answer to a key on a paid plan, and on no other: `false` while the answer has every field, `true` once its organization's overage cap is reached and the answer has Unlimited's. Lookups answered past the cap are not billed; raising or removing the cap in Billing turns it `false` again.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("cap_reached")]
+        public bool? CapReached { get; set; } = default!;
+
         private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
@@ -6984,6 +6998,12 @@ namespace InternetData
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("trial_expired")]
         public bool? TrialExpired { get; set; } = default!;
+
+        /// <summary>
+        /// On every answer to a key on a paid plan, and on no other: `false` while the answer has every field, `true` once its organization's overage cap is reached and the answer has Unlimited's. Lookups answered past the cap are not billed; raising or removing the cap in Billing turns it `false` again.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("cap_reached")]
+        public bool? CapReached { get; set; } = default!;
 
         private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
@@ -7423,7 +7443,7 @@ namespace InternetData
         public System.DateTimeOffset? Expires { get; set; } = default!;
 
         /// <summary>
-        /// The source addresses this key may be used from. EMPTY means
+        /// The source addresses this key may be used from. Empty means
         /// <br/>unrestricted, never "deny all".
         /// <br/>
         /// </summary>
@@ -7506,9 +7526,12 @@ namespace InternetData
         public long Quota { get; set; } = default!;
 
         /// <summary>
-        /// Where we stop serving. NULL means never, which is the normal state
-        /// <br/>of an uncapped paid plan and is not the same as zero. Above the
-        /// <br/>quota and below this, requests are served and billed as overage.
+        /// Where full answers stop: past it, a paid key is answered with
+        /// <br/>Unlimited's fields and `cap_reached: true`, uncharged, until the
+        /// <br/>window ends or the cap is raised. `null` means never, which is the
+        /// <br/>normal state of an uncapped paid plan and is not the same as zero.
+        /// <br/>Above the quota and below this, requests are served and billed as
+        /// <br/>overage.
         /// <br/>
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("hard_limit")]
