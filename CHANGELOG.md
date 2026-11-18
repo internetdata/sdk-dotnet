@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.1.1 are described by their release commits.
 
+## 2.12.1 - 2026-11-18
+
+### Fixes
+
+- Re-pin the spec to 2026.11.17 as republished: KEY_OVER_HTTP on the account 403 ([`8dc7fad`](https://github.com/internetdata/sdk-dotnet/commit/8dc7fadf67b5aedaa0ad8058d162c7201d9fe094))
+
 ## 2.12.0 - 2026-11-17
 
 ### Features
