@@ -1332,7 +1332,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<AccountRc>("The credential does not hold the scope this endpoint requires. The\nmissing scope is deliberately not named.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<AccountRc>("The credential does not hold the scope this endpoint requires\n(`FORBIDDEN`); the missing scope is deliberately not named. Or the\ncredential was sent over plain HTTP, refused whatever it is\n(`KEY_OVER_HTTP`): use `https://`.\n`rc`: `FORBIDDEN`, `KEY_OVER_HTTP`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         {
@@ -1450,7 +1450,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<AccountRc>("The credential does not hold the scope this endpoint requires. The\nmissing scope is deliberately not named.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<AccountRc>("The credential does not hold the scope this endpoint requires\n(`FORBIDDEN`); the missing scope is deliberately not named. Or the\ncredential was sent over plain HTTP, refused whatever it is\n(`KEY_OVER_HTTP`): use `https://`.\n`rc`: `FORBIDDEN`, `KEY_OVER_HTTP`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         {
@@ -1564,7 +1564,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<AccountRc>("The credential does not hold the scope this endpoint requires. The\nmissing scope is deliberately not named.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<AccountRc>("The credential does not hold the scope this endpoint requires\n(`FORBIDDEN`); the missing scope is deliberately not named. Or the\ncredential was sent over plain HTTP, refused whatever it is\n(`KEY_OVER_HTTP`): use `https://`.\n`rc`: `FORBIDDEN`, `KEY_OVER_HTTP`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         {
@@ -1688,7 +1688,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<AccountRc>("The credential does not hold the scope this endpoint requires. The\nmissing scope is deliberately not named.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<AccountRc>("The credential does not hold the scope this endpoint requires\n(`FORBIDDEN`); the missing scope is deliberately not named. Or the\ncredential was sent over plain HTTP, refused whatever it is\n(`KEY_OVER_HTTP`): use `https://`.\n`rc`: `FORBIDDEN`, `KEY_OVER_HTTP`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         {
@@ -1821,7 +1821,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<AccountRc>("The credential does not hold the scope this endpoint requires. The\nmissing scope is deliberately not named.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<AccountRc>("The credential does not hold the scope this endpoint requires\n(`FORBIDDEN`); the missing scope is deliberately not named. Or the\ncredential was sent over plain HTTP, refused whatever it is\n(`KEY_OVER_HTTP`): use `https://`.\n`rc`: `FORBIDDEN`, `KEY_OVER_HTTP`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         {
@@ -1945,7 +1945,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<AccountRc>("The credential does not hold the scope this endpoint requires. The\nmissing scope is deliberately not named.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<AccountRc>("The credential does not hold the scope this endpoint requires\n(`FORBIDDEN`); the missing scope is deliberately not named. Or the\ncredential was sent over plain HTTP, refused whatever it is\n(`KEY_OVER_HTTP`): use `https://`.\n`rc`: `FORBIDDEN`, `KEY_OVER_HTTP`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 404)
@@ -2077,7 +2077,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<AccountRc>("The credential does not hold the scope this endpoint requires. The\nmissing scope is deliberately not named.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<AccountRc>("The credential does not hold the scope this endpoint requires\n(`FORBIDDEN`); the missing scope is deliberately not named. Or the\ncredential was sent over plain HTTP, refused whatever it is\n(`KEY_OVER_HTTP`): use `https://`.\n`rc`: `FORBIDDEN`, `KEY_OVER_HTTP`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 404)
@@ -2221,7 +2221,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<AccountRc>("The credential does not hold the scope this endpoint requires. The\nmissing scope is deliberately not named.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<AccountRc>("The credential does not hold the scope this endpoint requires\n(`FORBIDDEN`); the missing scope is deliberately not named. Or the\ncredential was sent over plain HTTP, refused whatever it is\n(`KEY_OVER_HTTP`): use `https://`.\n`rc`: `FORBIDDEN`, `KEY_OVER_HTTP`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 404)
