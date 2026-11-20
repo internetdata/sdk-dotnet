@@ -32,7 +32,7 @@ Console.WriteLine(result.Asn.Name);           // Google LLC
 
 ### With an API key
 
-Every paid plan answers every field: the VPN, proxy, hosting and CDN flags as well, the row behind each flag, the city and coordinates, the Whois and RWhois records and how many domains an address hosts. The plans differ only in how many lookups they include, and a free account tries every field, 100 lookups a day. Create a key in the [console](https://app.internetdata.io), then pass it in:
+Every paid plan answers every field: the VPN, proxy, hosting and CDN flags as well, the row behind each flag, the city and coordinates, the Whois and RWhois records and how many domains an address hosts. The plans differ only in how many lookups they include, and a free account tries every field. Create a key in the [console](https://app.internetdata.io), then pass it in:
 
 ```csharp
 using var client = new InternetDataClient(Environment.GetEnvironmentVariable("INTERNETDATA_API_KEY")!);
@@ -351,13 +351,13 @@ Each redirect URI must be https on a public host name, or http on a loopback add
 
 ### Absent is not false
 
-Unlimited leaves out the VPN, proxy, hosting and CDN flags, the city and coordinates, and the paid half of the company and abuse contact; a free-plan key's answer carries `TrialExpired`, true once its daily trial is spent. A paid key's carries `CapReached`, true once its organization's overage cap is reached, when the answer has Unlimited's fields and isn't billed. Those members are `null` on a plan without them, which means "not in your plan" rather than "checked, and no".
+Unlimited leaves out the VPN, proxy, hosting and CDN flags, the city and coordinates, and the paid half of the company and abuse contact; a free-plan key's answer carries `TrialExpired`, true once its trial is spent. A paid key's carries `CapReached`, true once its organization's overage cap is reached, when the answer has Unlimited's fields and isn't billed. Those members are `null` on a plan without them, which means "not in your plan" rather than "checked, and no".
 
 ```csharp
 result.IsHosting ?? false     // when you only want the flag
 result.IsHosting is null      // on Unlimited: not in your plan
 result.Location.City is null  // on Unlimited: not in your plan
-result.TrialExpired == true   // a free-plan key's daily trial is spent
+result.TrialExpired == true   // a free-plan key's trial is spent
 result.CapReached == true     // a paid key is past its overage cap
 ```
 
