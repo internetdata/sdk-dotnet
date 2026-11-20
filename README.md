@@ -135,6 +135,8 @@ using var client = new InternetDataClient(new InternetDataClientOptions
 using var noCache = new InternetDataClient(new InternetDataClientOptions { CacheEnabled = false });
 ```
 
+An answer with `TrialExpired` or `CapReached` true is cached for a minute at most, so a renewed trial or a raised cap reaches you within a minute.
+
 The cache belongs to the client instance, never to the process, because two keys can be on different plans and so entitled to different fields.
 
 ### Private and reserved addresses

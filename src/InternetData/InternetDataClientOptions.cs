@@ -23,8 +23,15 @@ public sealed class InternetDataClientOptions
     /// <summary>Maximum number of addresses held. Default 10000.</summary>
     public long CacheSize { get; set; } = 10_000;
 
-    /// <summary>How long an answer stays fresh. Default 1 hour.</summary>
+    /// <summary>
+    /// How long an answer stays fresh. Default 1 hour. An answer whose
+    /// <see cref="Result.TrialExpired"/> or <see cref="Result.CapReached"/> is true stays a minute
+    /// at most, since a renewed trial or a raised cap ends it.
+    /// </summary>
     public TimeSpan CacheTtl { get; set; } = TimeSpan.FromHours(1);
+
+    // The cache's clock, which a test moves rather than waits on. Null is the system clock.
+    internal Microsoft.Extensions.Internal.ISystemClock? CacheClock { get; set; }
 
     /// <summary>Concurrent batch requests - chunks of up to 1000 addresses - during a batch. Default 8.</summary>
     public int Concurrency { get; set; } = 8;

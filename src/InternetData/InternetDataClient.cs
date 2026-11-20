@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Internal;
 
 namespace InternetData;
 
@@ -169,7 +170,9 @@ public sealed class InternetDataClient : IDisposable
         this.retries = o.Retries;
         this.concurrency = o.Concurrency;
         this.cacheTtl = o.CacheTtl;
-        this.cache = o.CacheEnabled ? new MemoryCache(new MemoryCacheOptions { SizeLimit = o.CacheSize }) : null;
+        this.cache = o.CacheEnabled
+            ? new MemoryCache(new MemoryCacheOptions { SizeLimit = o.CacheSize, Clock = o.CacheClock })
+            : null;
         this.Database = new DatabaseApi(this.wire, http, o.Retries, this.requestTimeout);
         this.Oauth = new OauthApi(http, OauthBaseOf(baseUrl), o.Retries, this.requestTimeout);
     }
@@ -304,8 +307,19 @@ public sealed class InternetDataClient : IDisposable
         => cache?.Set(ip, result, new MemoryCacheEntryOptions
         {
             Size = 1,
-            AbsoluteExpirationRelativeToNow = cacheTtl,
+            AbsoluteExpirationRelativeToNow = LifeOf(result, cacheTtl),
         });
+
+    /// <summary>The longest an answer past the trial or the overage cap stays cached.</summary>
+    internal static readonly TimeSpan ReducedAnswerLife = TimeSpan.FromSeconds(60);
+
+    // An answer with Unlimited's fields because the trial is spent or the overage cap is reached
+    // holds only until the trial is renewed or the cap raised, so it is kept a minute at most rather
+    // than the whole TTL. It is still kept, so a busy address is not asked again on every lookup.
+    internal static TimeSpan LifeOf(Result result, TimeSpan ttl)
+        => (result.TrialExpired == true || result.CapReached == true) && ttl > ReducedAnswerLife
+            ? ReducedAnswerLife
+            : ttl;
 
     private static TaskCompletionSource<Result> NewFlight()
         => new(TaskCreationOptions.RunContinuationsAsynchronously);
