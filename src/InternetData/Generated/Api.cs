@@ -3513,8 +3513,10 @@ namespace InternetData
         /// <remarks>
         /// Answers what InternetData knows about one domain from its latest snapshots: on every plan
         /// <br/>whether it is registered and which DNS record types it has; on a paid one the records themselves, up to
-        /// <br/>100 a type, the organization's IP ranges and whether it is a disposable email domain. An internationalized
-        /// <br/>name is answered under its punycode spelling.
+        /// <br/>100 a type, the network announcing each address, the other domains on its first IPv4 address, the
+        /// <br/>organization's IP ranges, whether it is a disposable email domain, what its home page says of itself and
+        /// <br/>links to, and the domains whose home page redirects or links to it. An internationalized name is answered
+        /// <br/>under its punycode spelling.
         /// </remarks>
         /// <param name="domain">The domain to look up.</param>
         /// <returns>What each database says about the domain, as much as your plan shows.</returns>
@@ -3531,8 +3533,10 @@ namespace InternetData
         /// <remarks>
         /// Answers what InternetData knows about one domain from its latest snapshots: on every plan
         /// <br/>whether it is registered and which DNS record types it has; on a paid one the records themselves, up to
-        /// <br/>100 a type, the organization's IP ranges and whether it is a disposable email domain. An internationalized
-        /// <br/>name is answered under its punycode spelling.
+        /// <br/>100 a type, the network announcing each address, the other domains on its first IPv4 address, the
+        /// <br/>organization's IP ranges, whether it is a disposable email domain, what its home page says of itself and
+        /// <br/>links to, and the domains whose home page redirects or links to it. An internationalized name is answered
+        /// <br/>under its punycode spelling.
         /// </remarks>
         /// <param name="domain">The domain to look up.</param>
         /// <returns>What each database says about the domain, as much as your plan shows.</returns>
@@ -6988,6 +6992,15 @@ namespace InternetData
         [System.Text.Json.Serialization.JsonPropertyName("dns")]
         public DomainDns? Dns { get; set; } = default!;
 
+        /// <summary>
+        /// The network announcing each address in `dns.a` and then `dns.aaaa`, from IP ASN; `[]` where it resolves to none. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("hosting")]
+        public System.Collections.Generic.IReadOnlyList<DomainHost>? Hosting { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("cohosted_domains")]
+        public CohostedDomains? CohostedDomains { get; set; } = default!;
+
         [System.Text.Json.Serialization.JsonPropertyName("ip_ranges")]
         public DomainIpRanges? IpRanges { get; set; } = default!;
 
@@ -6996,6 +7009,15 @@ namespace InternetData
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("disposable")]
         public DisposableDetail? Disposable { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("web")]
+        public DomainWeb? Web { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("redirects")]
+        public DomainRedirects? Redirects { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("backlinks")]
+        public DomainBacklinks? Backlinks { get; set; } = default!;
 
         /// <summary>
         /// On every answer to a key on the free plan, and on no other: `false` while its organization's trial of every field lasts, `true` once the answer has Unlimited's fields.
@@ -7008,6 +7030,207 @@ namespace InternetData
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("cap_reached")]
         public bool? CapReached { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    /// <summary>
+    /// An address the domain resolves to and the network announcing it.
+    /// </summary>
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class DomainHost
+    {
+
+        /// <summary>
+        /// One address the domain resolves to.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("ip")]
+        public string Ip { get; set; } = default!;
+
+        /// <summary>
+        /// The network announcing it, as an address lookup's `asn`; every member empty where IP ASN holds none.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("asn")]
+        public Asn Asn { get; set; } = new Asn();
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    /// <summary>
+    /// From IP Hosted Domains: the other registered domains on the domain's first IPv4 address, how many and the 10 most popular. Paid plans and the trial.
+    /// </summary>
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class CohostedDomains
+    {
+
+        /// <summary>
+        /// The domain's first IPv4 address, `''` where it has none.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("ip")]
+        public string Ip { get; set; } = default!;
+
+        /// <summary>
+        /// How many other registered domains resolve to it.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("total")]
+        public int Total { get; set; } = default!;
+
+        /// <summary>
+        /// Up to 10 of them, the most popular first, the domain itself left out; `[]` when none does.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("domains")]
+        public System.Collections.Generic.IReadOnlyList<string> Domains { get; set; } = new System.Collections.Generic.List<string>();
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    /// <summary>
+    /// What our crawl last read of the domain's own home page, every member empty where it holds none. Paid plans and the trial.
+    /// </summary>
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class DomainWeb
+    {
+
+        /// <summary>
+        /// The URL of the home page read.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("url")]
+        public string Url { get; set; } = default!;
+
+        /// <summary>
+        /// An English page's title.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("title")]
+        public string Title { get; set; } = default!;
+
+        /// <summary>
+        /// An English page's description.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("description")]
+        public string Description { get; set; } = default!;
+
+        /// <summary>
+        /// The day it was last read.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("last_seen")]
+        public string LastSeen { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("links")]
+        public DomainWebLinks Links { get; set; } = new DomainWebLinks();
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    /// <summary>
+    /// The external hosts the home page links to.
+    /// </summary>
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class DomainWebLinks
+    {
+
+        /// <summary>
+        /// How many external hosts the home page links to.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("total")]
+        public int Total { get; set; } = default!;
+
+        /// <summary>
+        /// Up to 10 of them; `[]` when it links to none.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("hosts")]
+        public System.Collections.Generic.IReadOnlyList<string> Hosts { get; set; } = new System.Collections.Generic.List<string>();
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    /// <summary>
+    /// The registered domains whose home page redirects to this one, how many and the 10 most popular. Paid plans and the trial.
+    /// </summary>
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class DomainRedirects
+    {
+
+        /// <summary>
+        /// How many registered domains have a home page that redirects to this domain.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("total")]
+        public int Total { get; set; } = default!;
+
+        /// <summary>
+        /// Up to 10 of them, the most popular first; `[]` when none does.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("domains")]
+        public System.Collections.Generic.IReadOnlyList<string> Domains { get; set; } = new System.Collections.Generic.List<string>();
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    /// <summary>
+    /// The registered domains whose home page links to this one, how many and the 10 most popular. Paid plans and the trial.
+    /// </summary>
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class DomainBacklinks
+    {
+
+        /// <summary>
+        /// How many registered domains have a home page that links to this domain.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("total")]
+        public int Total { get; set; } = default!;
+
+        /// <summary>
+        /// Up to 10 of them, the most popular first; `[]` when none does.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("domains")]
+        public System.Collections.Generic.IReadOnlyList<string> Domains { get; set; } = new System.Collections.Generic.List<string>();
 
         private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 

@@ -97,6 +97,13 @@ public class LookupAnswerTests
         Add("lookupDomain", "dns.ns.0", "host", "last_seen");
         Add("lookupDomain", "ip_ranges", "domain", "redirects_to", "total", "ipv4", "ranges");
         Add("lookupDomain", "ip_ranges.ranges.0", "range", "name", "country");
+        Add("lookupDomain", "hosting.0", "ip", "asn");
+        Add("lookupDomain", "hosting.0.asn", "asn", "name", "domain", "type", "prefix");
+        Add("lookupDomain", "cohosted_domains", "ip", "total", "domains");
+        Add("lookupDomain", "web", "url", "title", "description", "last_seen", "links");
+        Add("lookupDomain", "web.links", "total", "hosts");
+        Add("lookupDomain", "redirects", "total", "domains");
+        Add("lookupDomain", "backlinks", "total", "domains");
         return data;
     }
 
@@ -145,6 +152,11 @@ public class LookupAnswerTests
     [InlineData("lookupAsn", "prefixes.0.other_origins", "[null]")]
     [InlineData("lookupDomain", "dns.ns", "[null]")]
     [InlineData("lookupDomain", "disposable", """{"confidence":"high","providers":[null],"first_seen":"","last_seen":""}""")]
+    [InlineData("lookupDomain", "hosting", "[null]")]
+    [InlineData("lookupDomain", "cohosted_domains.domains", "[null]")]
+    [InlineData("lookupDomain", "web.links.hosts", "[null]")]
+    [InlineData("lookupDomain", "redirects.domains", "[null]")]
+    [InlineData("lookupDomain", "backlinks.domains", "[null]")]
     [InlineData("myEntitlement", "apikey.allowed_cidrs", "[null]")]
     public async Task ANullInsideAListIsARetriedServerError(string call, string path, string value)
     {
@@ -196,6 +208,33 @@ public class LookupAnswerTests
 
         Assert.Equal(ErrorKind.ServerError, failure.Kind);
         Assert.Equal(2, handler.Calls.Count);
+    }
+
+    // A paid domain answer's network on each address, co-hosted domains, home page, redirects and
+    // backlinks, each a typed member, which fails to compile without them.
+    [Fact]
+    public async Task APaidDomainAnswerReadsItsHostingWebAndReferrersAsTypedMembers()
+    {
+        using var client = Stub.Client(StubHandler.Always(new Route(Bodies["lookupDomain"])));
+
+        var answer = await client.LookupDomainAsync("example.com");
+
+        Assert.Equal(["192.0.2.10", "2001:db8::10"], answer.Hosting!.Select(host => host.Ip));
+        Assert.Equal(64496, answer.Hosting![1].Asn.Number);
+        Assert.Equal("2001:db8::/32", answer.Hosting![1].Asn.Prefix);
+        Assert.Equal("192.0.2.10", answer.CohostedDomains!.Ip);
+        Assert.Equal(3, answer.CohostedDomains.Total);
+        Assert.Equal(["example.net", "example.org", "shop.example"], answer.CohostedDomains.Domains);
+        Assert.Equal("https://example.com/", answer.Web!.Url);
+        Assert.Equal("Example Domain", answer.Web.Title);
+        Assert.Equal("", answer.Web.Description);
+        Assert.Equal("2026-11-18", answer.Web.LastSeen);
+        Assert.Equal(1, answer.Web.Links.Total);
+        Assert.Equal(["www.iana.org"], answer.Web.Links.Hosts);
+        Assert.Equal(2, answer.Redirects!.Total);
+        Assert.Equal(["example.net", "example.org"], answer.Redirects.Domains);
+        Assert.Equal(3, answer.Backlinks!.Total);
+        Assert.Equal(["docs.example", "news.example", "wiki.example"], answer.Backlinks.Domains);
     }
 
     [Fact]
