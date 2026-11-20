@@ -10,7 +10,7 @@ namespace InternetData.Middleware;
 /// <summary>How a middleware behaves.</summary>
 /// <remarks>
 /// Everything is optional, though a server almost certainly wants an <see cref="ApiKey"/>: without
-/// one a lookup is on Unlimited, the free plan, and every lookup shares the per-minute limit of the
+/// one a lookup is on Unlimited, the free plan, and every lookup shares the rate limit of the
 /// server's one address.
 ///
 /// <para>Deliberately not sealed: an adapter adds the one or two settings that only its framework

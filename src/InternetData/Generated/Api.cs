@@ -192,8 +192,10 @@ namespace InternetData
         /// Download
         /// </summary>
         /// <remarks>
-        /// Answers `302`; the bytes come straight from object storage rather than
-        /// <br/>through this API. Follow the redirect.
+        /// Downloads one file of a database: the answer is a `302` to time-limited
+        /// <br/>object storage, so follow the redirect.
+        /// <br/>
+        /// <br/>The bytes come straight from object storage rather than through this API.
         /// </remarks>
         /// <param name="id">Database identifier (e.g. `vpn_ip_v1`, `resproxy_provider_v1`).</param>
         /// <param name="format">Database file format.</param>
@@ -211,8 +213,10 @@ namespace InternetData
         /// Download
         /// </summary>
         /// <remarks>
-        /// Answers `302`; the bytes come straight from object storage rather than
-        /// <br/>through this API. Follow the redirect.
+        /// Downloads one file of a database: the answer is a `302` to time-limited
+        /// <br/>object storage, so follow the redirect.
+        /// <br/>
+        /// <br/>The bytes come straight from object storage rather than through this API.
         /// </remarks>
         /// <param name="id">Database identifier (e.g. `vpn_ip_v1`, `resproxy_provider_v1`).</param>
         /// <param name="format">Database file format.</param>
@@ -670,8 +674,8 @@ namespace InternetData
         /// History
         /// </summary>
         /// <remarks>
-        /// Refusals are listed too: a denial is what answers "it stopped working",
-        /// <br/>and its absence answers nothing.
+        /// Lists your organization's recent database downloads, newest first,
+        /// <br/>refused ones included, so a download that stopped working shows why.
         /// </remarks>
         /// <param name="limit">How many attempts to return. Clamped to 200.</param>
         /// <returns>OK</returns>
@@ -686,8 +690,8 @@ namespace InternetData
         /// History
         /// </summary>
         /// <remarks>
-        /// Refusals are listed too: a denial is what answers "it stopped working",
-        /// <br/>and its absence answers nothing.
+        /// Lists your organization's recent database downloads, newest first,
+        /// <br/>refused ones included, so a download that stopped working shows why.
         /// </remarks>
         /// <param name="limit">How many attempts to return. Clamped to 200.</param>
         /// <returns>OK</returns>
@@ -1358,11 +1362,10 @@ namespace InternetData
         /// Organization
         /// </summary>
         /// <remarks>
-        /// The organization this credential is scoped to.
+        /// Returns the organization the presented credential is scoped to. A
+        /// <br/>credential belongs to exactly one, so there is no ID to pass.
         /// <br/>
-        /// <br/>There is no way to name a different one. A credential describes exactly
-        /// <br/>one organization, so an identifier in the path could only ever be your
-        /// <br/>own or a refusal.
+        /// <br/>An identifier in the path could only ever be your own or a refusal.
         /// </remarks>
         /// <returns>The organization.</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
@@ -1376,11 +1379,10 @@ namespace InternetData
         /// Organization
         /// </summary>
         /// <remarks>
-        /// The organization this credential is scoped to.
+        /// Returns the organization the presented credential is scoped to. A
+        /// <br/>credential belongs to exactly one, so there is no ID to pass.
         /// <br/>
-        /// <br/>There is no way to name a different one. A credential describes exactly
-        /// <br/>one organization, so an identifier in the path could only ever be your
-        /// <br/>own or a refusal.
+        /// <br/>An identifier in the path could only ever be your own or a refusal.
         /// </remarks>
         /// <returns>The organization.</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
@@ -1476,9 +1478,10 @@ namespace InternetData
         /// Members
         /// </summary>
         /// <remarks>
-        /// Read-only. Adding or removing a member is an invitation flow with email
-        /// <br/>in the middle rather than a POST, and modeling it as one here would
-        /// <br/>promise something this API does not do.
+        /// Lists the members of your organization. Adding or removing one is an
+        /// <br/>emailed invitation in the console, not an API call.
+        /// <br/>
+        /// <br/>Modeling it as one here would promise something this API does not do.
         /// </remarks>
         /// <returns>The members.</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
@@ -1492,9 +1495,10 @@ namespace InternetData
         /// Members
         /// </summary>
         /// <remarks>
-        /// Read-only. Adding or removing a member is an invitation flow with email
-        /// <br/>in the middle rather than a POST, and modeling it as one here would
-        /// <br/>promise something this API does not do.
+        /// Lists the members of your organization. Adding or removing one is an
+        /// <br/>emailed invitation in the console, not an API call.
+        /// <br/>
+        /// <br/>Modeling it as one here would promise something this API does not do.
         /// </remarks>
         /// <returns>The members.</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
@@ -1590,9 +1594,11 @@ namespace InternetData
         /// List
         /// </summary>
         /// <remarks>
-        /// Metadata only. A key's secret is never in a list - not here and not in
-        /// <br/>the console - because a list is the response that ends up in logs,
-        /// <br/>caches and support tickets.
+        /// Lists your organization's API keys with their metadata, never a secret:
+        /// <br/>only Create, Rotate and Reveal return one.
+        /// <br/>
+        /// <br/>A secret is never in a list, here or in the console, because a list is
+        /// <br/>the response that ends up in logs, caches and support tickets.
         /// <br/>
         /// <br/>`retrievable` says whether the secret could still be read back at all.
         /// <br/>A key issued before this product stored secrets recoverably was never
@@ -1611,9 +1617,11 @@ namespace InternetData
         /// List
         /// </summary>
         /// <remarks>
-        /// Metadata only. A key's secret is never in a list - not here and not in
-        /// <br/>the console - because a list is the response that ends up in logs,
-        /// <br/>caches and support tickets.
+        /// Lists your organization's API keys with their metadata, never a secret:
+        /// <br/>only Create, Rotate and Reveal return one.
+        /// <br/>
+        /// <br/>A secret is never in a list, here or in the console, because a list is
+        /// <br/>the response that ends up in logs, caches and support tickets.
         /// <br/>
         /// <br/>`retrievable` says whether the secret could still be read back at all.
         /// <br/>A key issued before this product stored secrets recoverably was never
@@ -1714,10 +1722,8 @@ namespace InternetData
         /// Create
         /// </summary>
         /// <remarks>
-        /// Creates a key and returns its secret.
-        /// <br/>
-        /// <br/>This is the only response that ever carries the secret, and only
-        /// <br/>because this is the moment it comes into existence. Store it now.
+        /// Creates an API key and returns its secret, which no list ever shows:
+        /// <br/>keep it, or reveal it again later.
         /// </remarks>
         /// <returns>The new key, including its secret.</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
@@ -1731,10 +1737,8 @@ namespace InternetData
         /// Create
         /// </summary>
         /// <remarks>
-        /// Creates a key and returns its secret.
-        /// <br/>
-        /// <br/>This is the only response that ever carries the secret, and only
-        /// <br/>because this is the moment it comes into existence. Store it now.
+        /// Creates an API key and returns its secret, which no list ever shows:
+        /// <br/>keep it, or reveal it again later.
         /// </remarks>
         /// <returns>The new key, including its secret.</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
@@ -3185,7 +3189,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<LookupError>("A rate limit, always with `Retry-After`: this API protecting itself, or Unlimited\'s\nper-minute limit. A paid plan\'s overage cap is never a `429`: it answers `200` with\nUnlimited\'s fields and `cap_reached` `true`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<LookupError>("A rate limit, always with `Retry-After`: this API protecting itself, or a burst of Unlimited\nlookups. A paid plan\'s overage cap is never a `429`: it answers `200` with Unlimited\'s\nfields and `cap_reached` `true`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 500)
@@ -3317,7 +3321,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<LookupError>("A rate limit, always with `Retry-After`: this API protecting itself, or Unlimited\'s\nper-minute limit. A paid plan\'s overage cap is never a `429`: it answers `200` with\nUnlimited\'s fields and `cap_reached` `true`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<LookupError>("A rate limit, always with `Retry-After`: this API protecting itself, or a burst of Unlimited\nlookups. A paid plan\'s overage cap is never a `429`: it answers `200` with Unlimited\'s\nfields and `cap_reached` `true`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 500)
@@ -3471,7 +3475,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<LookupError>("A rate limit, always with `Retry-After`: this API protecting itself, or Unlimited\'s\nper-minute limit. A paid plan\'s overage cap is never a `429`: it answers `200` with\nUnlimited\'s fields and `cap_reached` `true`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<LookupError>("A rate limit, always with `Retry-After`: this API protecting itself, or a burst of Unlimited\nlookups. A paid plan\'s overage cap is never a `429`: it answers `200` with Unlimited\'s\nfields and `cap_reached` `true`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 500)
@@ -3623,7 +3627,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<LookupError>("A rate limit, always with `Retry-After`: this API protecting itself, or Unlimited\'s\nper-minute limit. A paid plan\'s overage cap is never a `429`: it answers `200` with\nUnlimited\'s fields and `cap_reached` `true`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<LookupError>("A rate limit, always with `Retry-After`: this API protecting itself, or a burst of Unlimited\nlookups. A paid plan\'s overage cap is never a `429`: it answers `200` with Unlimited\'s\nfields and `cap_reached` `true`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 500)
@@ -5608,7 +5612,7 @@ namespace InternetData
         public HostedDomains? HostedDomains { get; set; } = default!;
 
         /// <summary>
-        /// On every answer to a key on the free plan, and on no other: `false` while the day's trial of every field lasts, `true` once the answer has Unlimited's fields.
+        /// On every answer to a key on the free plan, and on no other: `false` while its organization's trial of every field lasts, `true` once the answer has Unlimited's fields.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("trial_expired")]
         public bool? TrialExpired { get; set; } = default!;
@@ -6382,13 +6386,13 @@ namespace InternetData
         public string Prefix { get; set; } = default!;
 
         /// <summary>
-        /// The country its registry assigned it to. Paid plans and the trial.
+        /// The country its registry assigned it to.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("country")]
         public string? Country { get; set; } = default!;
 
         /// <summary>
-        /// The announcement's RPKI status. Paid plans and the trial.
+        /// The announcement's RPKI status.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("rpki_status")]
         public string? RpkiStatus { get; set; } = default!;
@@ -6847,7 +6851,7 @@ namespace InternetData
         public AsnHostedDomains? HostedDomains { get; set; } = default!;
 
         /// <summary>
-        /// On every answer to a key on the free plan, and on no other: `false` while the day's trial of every field lasts, `true` once the answer has Unlimited's fields.
+        /// On every answer to a key on the free plan, and on no other: `false` while its organization's trial of every field lasts, `true` once the answer has Unlimited's fields.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("trial_expired")]
         public bool? TrialExpired { get; set; } = default!;
@@ -6994,7 +6998,7 @@ namespace InternetData
         public DisposableDetail? Disposable { get; set; } = default!;
 
         /// <summary>
-        /// On every answer to a key on the free plan, and on no other: `false` while the day's trial of every field lasts, `true` once the answer has Unlimited's fields.
+        /// On every answer to a key on the free plan, and on no other: `false` while its organization's trial of every field lasts, `true` once the answer has Unlimited's fields.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("trial_expired")]
         public bool? TrialExpired { get; set; } = default!;
@@ -7468,8 +7472,8 @@ namespace InternetData
         /// <summary>
         /// The plan the organization is on, as an identifier that is never
         /// <br/>renamed or reused: `free` for the free plan, or a paid plan's key.
-        /// <br/>Compare against it and show `name`. On `free`, usage counts the
-        /// <br/>day's lookups answered with every field, its daily trial.
+        /// <br/>Compare against it and show `name`. On `free`, usage counts its
+        /// <br/>trial, the lookups answered with every field.
         /// <br/>
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("key")]

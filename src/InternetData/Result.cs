@@ -283,8 +283,8 @@ public sealed class Result
     public HostedDomains? HostedDomains => raw.HostedDomains;
 
     /// <summary>
-    /// On answers to a key on the free plan only: <c>false</c> while the day's trial of every field
-    /// lasts, <c>true</c> once the answer has Unlimited's.
+    /// On answers to a key on the free plan only: <c>false</c> while its organization's trial of
+    /// every field lasts, <c>true</c> once the answer has Unlimited's.
     /// </summary>
     public bool? TrialExpired => raw.TrialExpired;
 

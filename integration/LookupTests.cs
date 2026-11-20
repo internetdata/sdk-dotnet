@@ -4,7 +4,7 @@ namespace InternetData.Integration;
 
 // The published package looking addresses, an AS and a domain up, without a key against staging
 // and prod, and with the CI key against staging. That key's organization is on the free plan, whose
-// daily trial every SDK's run shares, so nothing here depends on which half of the day's answers it
+// trial every SDK's run shares, so nothing here depends on which half of the trial's answers it
 // gets. Nothing pins a field COUNT: presence is the plan, the value is the answer.
 public class LookupTests
 {
@@ -136,15 +136,15 @@ public class LookupTests
             Assert.True(recorder.CarriedKey, "the CI key never reached the wire");
             Assert.Equal(Probe, result.Ip);
             Assert.NotNull(result.TrialExpired);
-            // The organization's first lookups of the UTC day are answered in full, the rest as
-            // Unlimited's: which half a run sees depends on the day.
+            // The organization's lookups are answered in full while its trial lasts, the rest as
+            // Unlimited's: which half a run sees depends on what the trial has left.
             Assert.Equal(result.TrialExpired == false, result.IsHosting is not null);
             Assert.Equal(result.TrialExpired == false, result.Location.City is not null);
         }
     }
 
     [Fact]
-    public async Task TheCiKeysEntitlementIsTheFreePlansDailyTrial()
+    public async Task TheCiKeysEntitlementIsTheFreePlansTrial()
     {
         var (client, recorder) = Staging.Client();
         using (client)
