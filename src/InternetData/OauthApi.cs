@@ -405,6 +405,7 @@ public sealed class OauthApi
         bool readBody = true, string? json = null)
     {
         using var request = new HttpRequestMessage(method, baseUrl + path);
+        Wire.Name(request);
         request.Headers.Accept.ParseAdd("application/json");
         if (form is not null)
         {

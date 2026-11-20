@@ -22,6 +22,28 @@ internal static class Wire
     /// </summary>
     internal static readonly TimeSpan LongestWait = TimeSpan.FromMilliseconds(int.MaxValue);
 
+    /// <summary>What every request names itself: <c>internetdata-dotnet/&lt;version&gt;</c>.</summary>
+    internal static readonly string UserAgent = "internetdata-dotnet/" + VersionOf(typeof(Wire).Assembly);
+
+    // Set on each request, the API's, OAuth's and the transfer's alike, never on a borrowed
+    // HttpClient's defaults, which belong to the caller. A handler the caller passes in sees it
+    // already set, so a wrapping program can put its own name first.
+    internal static void Name(HttpRequestMessage request)
+        => request.Headers.TryAddWithoutValidation("User-Agent", UserAgent);
+
+    // The package version the build wrote into the assembly, without the commit Source Link adds
+    // after a `+`.
+    internal static string VersionOf(Assembly assembly)
+    {
+        var version = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+        if (string.IsNullOrEmpty(version))
+        {
+            return "devel";
+        }
+        var plus = version.IndexOf('+', StringComparison.Ordinal);
+        return plus < 0 ? version : version[..plus];
+    }
+
     // Retry-After is seconds as digits alone, or an HTTP date in one of RFC 9110's three forms,
     // always GMT. int.TryParse alone reads `+1` as a second, and DateTimeOffset.TryParse takes `1.5`
     // for a date and reads an ISO 8601 time in the machine's own zone.
@@ -594,6 +616,7 @@ internal partial class WireClient
 
     partial void PrepareRequest(HttpClient client, HttpRequestMessage request, string url)
     {
+        Wire.Name(request);
         if (!string.IsNullOrWhiteSpace(ApiKey))
         {
             request.Headers.TryAddWithoutValidation("Authorization", "Bearer " + ApiKey);

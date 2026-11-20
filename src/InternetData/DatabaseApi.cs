@@ -291,6 +291,7 @@ public sealed class DatabaseApi
         return await Wire.ExecuteAsync(retries, timeout, async ct =>
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, url);
+            Wire.Name(request);
             // ResponseHeadersRead is load-bearing, not an optimization. Under the default the whole
             // body is read inside SendAsync, and the attempt's timeout covers all of it, so a 30
             // second client would abandon any database that takes longer than that to move. With
