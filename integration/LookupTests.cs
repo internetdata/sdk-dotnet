@@ -27,6 +27,8 @@ public class LookupTests
             Assert.True(result.IsAnycast, $"{Probe} is anycast");
             Assert.Equal("US", result.Location.Country);
             Assert.Equal(15169, result.Asn.Number);
+            // On every plan since 2026-11-20, as the AS's registry country is.
+            Assert.False(string.IsNullOrEmpty(result.Asn.RpkiStatus), "the RPKI status is on every plan");
             Assert.False(string.IsNullOrEmpty(result.Abuse.Email), "the abuse email is on every plan");
             // Absent, never false or zero: each needs a paid plan, and this call carries no key.
             Assert.Null(result.IsVpn);
@@ -34,7 +36,6 @@ public class LookupTests
             Assert.Null(result.Vpn);
             Assert.Null(result.Location.City);
             Assert.Null(result.Location.Latitude);
-            Assert.Null(result.Asn.RpkiStatus);
             Assert.Null(result.Company.Type);
             Assert.Null(result.Abuse.Phone);
             Assert.Null(result.Whois);
