@@ -2,6 +2,17 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.1.1 are described by their release commits.
 
+## 2.13.0 - 2026-11-20
+
+### Features
+
+- Name the SDK in every request's User-Agent ([`1677038`](https://github.com/internetdata/sdk-dotnet/commit/1677038433ebe03d1d071d8e2745ea34f9cb4417))
+
+### Fixes
+
+- Cache a spent trial's or a reached cap's answer for a minute at most ([`21d52f5`](https://github.com/internetdata/sdk-dotnet/commit/21d52f5cd15523a1d0333025ac2df09a7b668008))
+- Re-pin the spec to 2026.11.20: reworded descriptions ([`4a60ad5`](https://github.com/internetdata/sdk-dotnet/commit/4a60ad50e0999ecc219f451ba8649dcb6c529e53))
+
 ## 2.12.1 - 2026-11-18
 
 ### Fixes
