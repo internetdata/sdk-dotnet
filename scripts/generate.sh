@@ -29,6 +29,12 @@ fi
 echo "==> generating ${OUT}"
 mkdir -p "$(dirname "$OUT")"
 
+# NSwag reads a copy of the pin with the few changes that would move a public type taken out
+# (scripts/generator_input.py says which and why); the pin itself stays the published spec.
+INPUT="$(mktemp -d)/openapi.yaml"
+trap 'rm -rf "$(dirname "$INPUT")"' EXIT
+python3 scripts/generator_input.py spec/openapi.yaml "$INPUT"
+
 # The whole published spec is pinned, v1 included, so the diff shows the spec version rather than
 # an edited subset of it. Only the v2 operations are surfaced: the generated client is internal,
 # and scripts/normalize_generated.py demotes the v1-only DTOs so the public API is v2 alone.
@@ -40,7 +46,7 @@ mkdir -p "$(dirname "$OUT")"
 #   dateType:System.DateOnly              `updated` is a calendar day, not an instant.
 #   arrayType:IReadOnlyList               a response collection a caller cannot mutate.
 "${TOOLS}/nswag" openapi2csclient \
-    /input:spec/openapi.yaml \
+    /input:"$INPUT" \
     /output:"$OUT" \
     /namespace:InternetData \
     /className:WireClient \

@@ -295,7 +295,7 @@ public sealed class InternetDataClient : IDisposable
         var result = await Wire.ExecuteAsync(
             options?.Retries ?? retries,
             timeout,
-            async ct => Result.Of(await wire.LookupIpAsync(ip, ct).ConfigureAwait(false)),
+            async ct => Result.Of(await wire.LookupIpAsync(ip, null, ct).ConfigureAwait(false)),
             cancellationToken).ConfigureAwait(false);
         Remember(ip, result);
         return result;
@@ -429,7 +429,7 @@ public sealed class InternetDataClient : IDisposable
         => Wire.ExecuteAsync(
             Wire.CheckRetries(options?.Retries) ?? retries,
             Wire.TimeoutFor(options?.RequestTimeout, requestTimeout),
-            async ct => Result.Of(await wire.LookupMyIpAsync(ct).ConfigureAwait(false)),
+            async ct => Result.Of(await wire.LookupMyIpAsync(null, ct).ConfigureAwait(false)),
             cancellationToken);
 
     /// <summary>What this client's key is entitled to, with the client's defaults.</summary>

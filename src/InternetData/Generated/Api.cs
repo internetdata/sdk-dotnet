@@ -1241,6 +1241,8 @@ namespace InternetData
         /// <br/>a profile. The `scopes` array is what the credential may do right now,
         /// <br/>so a client can render its own capabilities rather than discovering
         /// <br/>them from a 403.
+        /// <br/>
+        /// <br/>Needs the `account.read` scope.
         /// </remarks>
         /// <returns>The caller.</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
@@ -1267,6 +1269,8 @@ namespace InternetData
         /// <br/>a profile. The `scopes` array is what the credential may do right now,
         /// <br/>so a client can render its own capabilities rather than discovering
         /// <br/>them from a 403.
+        /// <br/>
+        /// <br/>Needs the `account.read` scope.
         /// </remarks>
         /// <returns>The caller.</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
@@ -1366,6 +1370,8 @@ namespace InternetData
         /// <br/>credential belongs to exactly one, so there is no ID to pass.
         /// <br/>
         /// <br/>An identifier in the path could only ever be your own or a refusal.
+        /// <br/>
+        /// <br/>Needs the `org.read` scope.
         /// </remarks>
         /// <returns>The organization.</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
@@ -1383,6 +1389,8 @@ namespace InternetData
         /// <br/>credential belongs to exactly one, so there is no ID to pass.
         /// <br/>
         /// <br/>An identifier in the path could only ever be your own or a refusal.
+        /// <br/>
+        /// <br/>Needs the `org.read` scope.
         /// </remarks>
         /// <returns>The organization.</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
@@ -1482,6 +1490,8 @@ namespace InternetData
         /// <br/>emailed invitation in the console, not an API call.
         /// <br/>
         /// <br/>Modeling it as one here would promise something this API does not do.
+        /// <br/>
+        /// <br/>Needs the `org.read` scope.
         /// </remarks>
         /// <returns>The members.</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
@@ -1499,6 +1509,8 @@ namespace InternetData
         /// <br/>emailed invitation in the console, not an API call.
         /// <br/>
         /// <br/>Modeling it as one here would promise something this API does not do.
+        /// <br/>
+        /// <br/>Needs the `org.read` scope.
         /// </remarks>
         /// <returns>The members.</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
@@ -1604,6 +1616,8 @@ namespace InternetData
         /// <br/>A key issued before this product stored secrets recoverably was never
         /// <br/>kept, so `reveal` will refuse it permanently; rotating produces one
         /// <br/>that can be read.
+        /// <br/>
+        /// <br/>Needs the `apikeys.read` scope.
         /// </remarks>
         /// <returns>The organization's keys, newest first.</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
@@ -1627,6 +1641,8 @@ namespace InternetData
         /// <br/>A key issued before this product stored secrets recoverably was never
         /// <br/>kept, so `reveal` will refuse it permanently; rotating produces one
         /// <br/>that can be read.
+        /// <br/>
+        /// <br/>Needs the `apikeys.read` scope.
         /// </remarks>
         /// <returns>The organization's keys, newest first.</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
@@ -1724,6 +1740,8 @@ namespace InternetData
         /// <remarks>
         /// Creates an API key and returns its secret, which no list ever shows:
         /// <br/>keep it, or reveal it again later.
+        /// <br/>
+        /// <br/>Needs the `apikeys.manage` scope.
         /// </remarks>
         /// <returns>The new key, including its secret.</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
@@ -1739,6 +1757,8 @@ namespace InternetData
         /// <remarks>
         /// Creates an API key and returns its secret, which no list ever shows:
         /// <br/>keep it, or reveal it again later.
+        /// <br/>
+        /// <br/>Needs the `apikeys.manage` scope.
         /// </remarks>
         /// <returns>The new key, including its secret.</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
@@ -1988,6 +2008,8 @@ namespace InternetData
         /// Stops the key working. Revocation is soft: the key stays listed with a
         /// <br/>`revoked_at`, because the organization still owns whatever it did while
         /// <br/>it was alive.
+        /// <br/>
+        /// <br/>Needs the `apikeys.manage` scope.
         /// </remarks>
         /// <param name="id">The key's ID, as returned by the list endpoint. Never the key itself.</param>
         /// <returns>Revoked.</returns>
@@ -2005,6 +2027,8 @@ namespace InternetData
         /// Stops the key working. Revocation is soft: the key stays listed with a
         /// <br/>`revoked_at`, because the organization still owns whatever it did while
         /// <br/>it was alive.
+        /// <br/>
+        /// <br/>Needs the `apikeys.manage` scope.
         /// </remarks>
         /// <param name="id">The key's ID, as returned by the list endpoint. Never the key itself.</param>
         /// <returns>Revoked.</returns>
@@ -2126,6 +2150,8 @@ namespace InternetData
         /// <br/>Refused with `NOT_RETRIEVABLE` for a key issued before this product
         /// <br/>stored secrets recoverably - that secret was never kept, so no retry
         /// <br/>will ever produce it. Rotate the key instead.
+        /// <br/>
+        /// <br/>Needs the `apikeys.reveal` scope.
         /// </remarks>
         /// <param name="id">The key's ID, as returned by the list endpoint. Never the key itself.</param>
         /// <returns>The key's secret.</returns>
@@ -2149,6 +2175,8 @@ namespace InternetData
         /// <br/>Refused with `NOT_RETRIEVABLE` for a key issued before this product
         /// <br/>stored secrets recoverably - that secret was never kept, so no retry
         /// <br/>will ever produce it. Rotate the key instead.
+        /// <br/>
+        /// <br/>Needs the `apikeys.reveal` scope.
         /// </remarks>
         /// <param name="id">The key's ID, as returned by the list endpoint. Never the key itself.</param>
         /// <returns>The key's secret.</returns>
@@ -3080,11 +3108,12 @@ namespace InternetData
         /// <br/>pages do, and then answers as `GET /asn/{asn}` or `GET /domain/{domain}` would.
         /// </remarks>
         /// <param name="ip">The IPv4 or IPv6 address to look up.</param>
+        /// <param name="user_agent">The `User-Agent` header of the request you are deciding on. With every field, on a paid plan or the trial, the answer then carries `user_agent`, the agent it names and whether this address bears that out. Never kept, and nothing sent with a lookup feeds our data.</param>
         /// <returns>What each database says about the address, as much as your plan shows.</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<LookupResponse> LookupIpAsync(string ip)
+        public virtual System.Threading.Tasks.Task<LookupResponse> LookupIpAsync(string ip, string? user_agent)
         {
-            return LookupIpAsync(ip, System.Threading.CancellationToken.None);
+            return LookupIpAsync(ip, user_agent, System.Threading.CancellationToken.None);
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
@@ -3098,9 +3127,10 @@ namespace InternetData
         /// <br/>pages do, and then answers as `GET /asn/{asn}` or `GET /domain/{domain}` would.
         /// </remarks>
         /// <param name="ip">The IPv4 or IPv6 address to look up.</param>
+        /// <param name="user_agent">The `User-Agent` header of the request you are deciding on. With every field, on a paid plan or the trial, the answer then carries `user_agent`, the agent it names and whether this address bears that out. Never kept, and nothing sent with a lookup feeds our data.</param>
         /// <returns>What each database says about the address, as much as your plan shows.</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<LookupResponse> LookupIpAsync(string ip, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<LookupResponse> LookupIpAsync(string ip, string? user_agent, System.Threading.CancellationToken cancellationToken)
         {
             if (ip == null)
                 throw new System.ArgumentNullException("ip");
@@ -3118,6 +3148,12 @@ namespace InternetData
                     if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
                     // Operation Path: "{ip}"
                     urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(ip, System.Globalization.CultureInfo.InvariantCulture)));
+                    urlBuilder_.Append('?');
+                    if (user_agent != null)
+                    {
+                        urlBuilder_.Append(System.Uri.EscapeDataString("user_agent")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(user_agent, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+                    }
+                    urlBuilder_.Length--;
 
                     PrepareRequest(client_, request_, urlBuilder_);
 
@@ -3189,7 +3225,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<LookupError>("A rate limit, always with `Retry-After`: this API protecting itself, or a burst of Unlimited\nlookups. A paid plan\'s overage cap is never a `429`: it answers `200` with Unlimited\'s\nfields and `cap_reached` `true`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<LookupError>("A rate limit, always with `Retry-After`: this API protecting itself, or a burst of Unlimited\nlookups. A paid plan\'s overage cap is never a `429` by itself: it answers `200` with\nUnlimited\'s fields and `cap_reached` `true`, and a burst past it pays Unlimited\'s rate limit.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 500)
@@ -3228,11 +3264,12 @@ namespace InternetData
         /// The address you are calling from, answered as `GET /{ip}` would answer it, and charged as
         /// <br/>that lookup is.
         /// </remarks>
+        /// <param name="user_agent">The `User-Agent` header of the request you are deciding on. With every field, on a paid plan or the trial, the answer then carries `user_agent`, the agent it names and whether this address bears that out. Never kept, and nothing sent with a lookup feeds our data.</param>
         /// <returns>The lookup of your own address.</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<LookupResponse> LookupMyIpAsync()
+        public virtual System.Threading.Tasks.Task<LookupResponse> LookupMyIpAsync(string? user_agent)
         {
-            return LookupMyIpAsync(System.Threading.CancellationToken.None);
+            return LookupMyIpAsync(user_agent, System.Threading.CancellationToken.None);
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
@@ -3243,9 +3280,10 @@ namespace InternetData
         /// The address you are calling from, answered as `GET /{ip}` would answer it, and charged as
         /// <br/>that lookup is.
         /// </remarks>
+        /// <param name="user_agent">The `User-Agent` header of the request you are deciding on. With every field, on a paid plan or the trial, the answer then carries `user_agent`, the agent it names and whether this address bears that out. Never kept, and nothing sent with a lookup feeds our data.</param>
         /// <returns>The lookup of your own address.</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<LookupResponse> LookupMyIpAsync(System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<LookupResponse> LookupMyIpAsync(string? user_agent, System.Threading.CancellationToken cancellationToken)
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -3260,6 +3298,12 @@ namespace InternetData
                     if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
                     // Operation Path: "myip"
                     urlBuilder_.Append("myip");
+                    urlBuilder_.Append('?');
+                    if (user_agent != null)
+                    {
+                        urlBuilder_.Append(System.Uri.EscapeDataString("user_agent")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(user_agent, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+                    }
+                    urlBuilder_.Length--;
 
                     PrepareRequest(client_, request_, urlBuilder_);
 
@@ -3321,7 +3365,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<LookupError>("A rate limit, always with `Retry-After`: this API protecting itself, or a burst of Unlimited\nlookups. A paid plan\'s overage cap is never a `429`: it answers `200` with Unlimited\'s\nfields and `cap_reached` `true`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<LookupError>("A rate limit, always with `Retry-After`: this API protecting itself, or a burst of Unlimited\nlookups. A paid plan\'s overage cap is never a `429` by itself: it answers `200` with\nUnlimited\'s fields and `cap_reached` `true`, and a burst past it pays Unlimited\'s rate limit.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 500)
@@ -3475,7 +3519,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<LookupError>("A rate limit, always with `Retry-After`: this API protecting itself, or a burst of Unlimited\nlookups. A paid plan\'s overage cap is never a `429`: it answers `200` with Unlimited\'s\nfields and `cap_reached` `true`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<LookupError>("A rate limit, always with `Retry-After`: this API protecting itself, or a burst of Unlimited\nlookups. A paid plan\'s overage cap is never a `429` by itself: it answers `200` with\nUnlimited\'s fields and `cap_reached` `true`, and a burst past it pays Unlimited\'s rate limit.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 500)
@@ -3631,7 +3675,7 @@ namespace InternetData
                             {
                                 throw new WireException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new WireException<LookupError>("A rate limit, always with `Retry-After`: this API protecting itself, or a burst of Unlimited\nlookups. A paid plan\'s overage cap is never a `429`: it answers `200` with Unlimited\'s\nfields and `cap_reached` `true`.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new WireException<LookupError>("A rate limit, always with `Retry-After`: this API protecting itself, or a burst of Unlimited\nlookups. A paid plan\'s overage cap is never a `429` by itself: it answers `200` with\nUnlimited\'s fields and `cap_reached` `true`, and a burst past it pays Unlimited\'s rate limit.\n", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 500)
@@ -5445,6 +5489,12 @@ namespace InternetData
         public bool? IsCdn { get; set; } = default!;
 
         /// <summary>
+        /// In Bot IP: an automated client's address, such as a search engine's or an AI company's crawler, an uptime monitor, an internet scanner or a webhook sender. `bot` says whose, what it does and whether its operator vouches for the address.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("is_bot")]
+        public bool IsBot { get; set; } = default!;
+
+        /// <summary>
         /// In Anycast IP: announced from many places at once.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("is_anycast")]
@@ -5545,6 +5595,12 @@ namespace InternetData
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("cdn")]
         public ClassDetail? Cdn { get; set; } = default!;
+
+        /// <summary>
+        /// `{}` when `is_bot` is false. Paid plans and the trial.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("bot")]
+        public BotDetail? Bot { get; set; } = default!;
 
         /// <summary>
         /// `{}` when `is_carrier` is false. Paid plans and the trial.
@@ -5881,6 +5937,115 @@ namespace InternetData
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("confidence")]
         public string? Confidence { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    internal partial class UserAgentVerdict
+    {
+
+        /// <summary>
+        /// The agent the user agent names, such as `Googlebot` or `Chrome`; `Unknown` where it names none.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("agent")]
+        public string Agent { get; set; } = default!;
+
+        /// <summary>
+        /// `browser`, `inapp`, `automation`, `bot`, `ai-bot`, `http-client` or `unknown`: what kind of client the user agent says it is.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("kind")]
+        public string Kind { get; set; } = default!;
+
+        /// <summary>
+        /// `verified`: the agent's operator vouches for this address as it. `spoofed`: the operator of a bot that publishes its addresses, or whose registered space it uses, does not vouch for this one, or this address posed as the bot before. `unverifiable`: a bot no published list or registered space can confirm. `not_bot`: a browser, an app or a script.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("verdict")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<UserAgentVerdictVerdict>))]
+        public UserAgentVerdictVerdict Verdict { get; set; } = default!;
+
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class BotDetail
+    {
+
+        /// <summary>
+        /// The bot operator's ID in Bot Provider, empty where no operator is known.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("provider")]
+        public string? Provider { get; set; } = default!;
+
+        /// <summary>
+        /// The operator's name, empty where no operator is known.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("provider_name")]
+        public string? ProviderName { get; set; } = default!;
+
+        /// <summary>
+        /// The bots the address serves, as their user agents name them (`Googlebot`, `GPTBot`); for an address that is not verified, the bots it claimed to be. One address can serve several, and `[]` means none is named.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("agents")]
+        public System.Collections.Generic.IReadOnlyList<string>? Agents { get; set; } = default!;
+
+        /// <summary>
+        /// What those bots do: `search_engine`, `ai_training`, `ai_search`, `ai_assistant`, `ai_agent`, `seo`, `ads`, `preview`, `feed`, `monitoring`, `archiver`, `scanner`, `link_security`, `webhook` or `other`; `[]` where unknown.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("categories")]
+        public System.Collections.Generic.IReadOnlyList<string>? Categories { get; set; } = default!;
+
+        /// <summary>
+        /// Whether the operator vouches for the address, so the bots in `agents` really are its.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("verified")]
+        public bool? Verified { get; set; } = default!;
+
+        /// <summary>
+        /// `verified` (the operator vouches for the address), `declared` (it names itself a bot that cannot be verified), `spoofed` (it claimed a bot whose operator vouches for other addresses) or `undeclared` (it hides as a browser and behaves as automation).
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("identity")]
+        public string? Identity { get; set; } = default!;
+
+        /// <summary>
+        /// How a verified address verified: `list` (the operator publishes it), `rdns` (its reverse DNS name ends in a suffix the operator documents and resolves back) or `owner` (the operator's own space, seen claiming its bot); empty when not verified.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("verified_by")]
+        public string? VerifiedBy { get; set; } = default!;
+
+        /// <summary>
+        /// `high`, `medium` or `low`: how sure we are the address is what the row says.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("confidence")]
+        public string? Confidence { get; set; } = default!;
+
+        /// <summary>
+        /// The first day the address was seen as such.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("first_seen")]
+        public string? FirstSeen { get; set; } = default!;
+
+        /// <summary>
+        /// The last day it was.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("last_seen")]
+        public string? LastSeen { get; set; } = default!;
 
         private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
@@ -7535,6 +7700,12 @@ namespace InternetData
         [System.Text.Json.Serialization.JsonPropertyName("domains")]
         public System.Collections.Generic.IReadOnlyList<string>? Domains { get; set; } = default!;
 
+        /// <summary>
+        /// Each address's `User-Agent`, keyed by the string it is sent as in `ips`. With every field, that address's answer then carries `user_agent`, as a single lookup's does. Never kept.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("user_agents")]
+        public System.Collections.Generic.IDictionary<string, string>? UserAgents { get; set; } = default!;
+
         private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
@@ -8010,6 +8181,24 @@ namespace InternetData
 
         [System.Runtime.Serialization.EnumMember(Value = @"DB_NOT_FOUND")]
         DB_NOT_FOUND = 0,
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
+    internal enum UserAgentVerdictVerdict
+    {
+
+        [System.Runtime.Serialization.EnumMember(Value = @"verified")]
+        Verified = 0,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"spoofed")]
+        Spoofed = 1,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"unverifiable")]
+        Unverifiable = 2,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"not_bot")]
+        Not_bot = 3,
 
     }
 

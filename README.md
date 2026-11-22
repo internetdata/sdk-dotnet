@@ -17,7 +17,7 @@ Targets .NET 8 and newer.
 
 ## Usage
 
-**No API key needed to start.** Unlimited, the free plan, answers the anycast, carrier, satellite and service flags, Tor and relay detection, the country, the AS, the company, the reverse DNS name and the abuse email, with no daily or monthly cap, with a key or without one.
+**No API key needed to start.** Unlimited, the free plan, answers the bot, anycast, carrier, satellite and service flags, Tor and relay detection, the country, the AS, the company, the reverse DNS name and the abuse email, with no daily or monthly cap, with a key or without one.
 
 ```csharp
 using InternetData;
@@ -41,6 +41,7 @@ var result = await client.LookupAsync("146.70.116.130");
 Console.WriteLine(result.IsVpn);              // True, on a paid plan
 Console.WriteLine(result.Vpn?.Provider);      // mullvad, on a paid plan
 Console.WriteLine(result.Location.City);      // Vienna, on a paid plan
+Console.WriteLine(result.Bot?.ProviderName);  // Google, for a crawler's address, on a paid plan
 ```
 
 ### An AS or a domain

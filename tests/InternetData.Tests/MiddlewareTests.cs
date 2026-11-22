@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 using InternetData.Middleware;
 
@@ -162,6 +163,51 @@ public class MiddlewareTests
         Assert.Empty(handler.Calls);
         Assert.Single(warnings);
         Assert.Contains("not a public address", warnings[0]);
+    }
+
+    // A condition on the bot flag, which every plan answers: a crawler's public address is refused
+    // and another visitor's is not, and a private address answered locally carries the flag false,
+    // so a strict core neither blocks it nor reports the member missing.
+    [Fact]
+    public async Task ABotConditionMatchesFromAPublicPeerAndAPrivateAddressCarriesTheFlag()
+    {
+        const string Crawler = "66.249.66.1";
+        var crawlerBody = JsonNode.Parse(Stub.LookupBody(Crawler))!.AsObject();
+        crawlerBody["is_bot"] = true;
+        var visitorBody = JsonNode.Parse(Stub.LookupBody(PublicIp))!.AsObject();
+        visitorBody["is_bot"] = false;
+        var handler = StubHandler.Lookups(new Dictionary<string, Route>
+        {
+            [Crawler] = new Route(crawlerBody.ToJsonString(), 200),
+            [PublicIp] = new Route(visitorBody.ToJsonString(), 200),
+        });
+        var client = Stub.Client(handler, new InternetDataClientOptions { CacheEnabled = false, Retries = 0 });
+        var conditions = new[] { new Condition { ["is_bot"] = true } };
+        string? peer = null;
+        var core = CoreFor(new MiddlewareOptions<Req>
+        {
+            Client = client,
+            IpSelector = _ => peer!,
+            BlockCondition = conditions,
+            OnMissingField = MiddlewareOptions<Req>.MissingField.Throw,
+        });
+
+        peer = Crawler;
+        var crawler = await core.EvaluateAsync(Req.Of());
+        Assert.True(crawler!.Blocked);
+        Assert.True(crawler.Result!.IsBot);
+
+        peer = PublicIp;
+        var visitor = await core.EvaluateAsync(Req.Of());
+        Assert.False(visitor!.Blocked);
+        Assert.False(visitor.Result!.IsBot);
+
+        var calls = handler.Calls.Count;
+        var bogon = await client.LookupAsync("10.0.0.7");
+        Assert.False(bogon.IsBot);
+        Assert.False(Condition.Matches(conditions, bogon));
+        Assert.Empty(Condition.MissingMembers(conditions, bogon));
+        Assert.Equal(calls, handler.Calls.Count);
     }
 
     [Fact]

@@ -475,7 +475,7 @@ internal partial class WireClient
     // its `id` or `format` came back whole.
     internal static readonly IReadOnlyDictionary<Type, string[]> AnswerMembers = new Dictionary<Type, string[]>
     {
-        [typeof(LookupResponse)] = ["ip", "is_bogon", "is_tor", "is_relay", "is_anycast", "is_carrier",
+        [typeof(LookupResponse)] = ["ip", "is_bogon", "is_tor", "is_relay", "is_bot", "is_anycast", "is_carrier",
             "is_satellite", "is_ssh", "is_smtp", "is_web", "is_dns_resolver", "is_bittorrent", "tor", "relay",
             "location", "asn", "company", "hostname", "abuse"],
         [typeof(WebDetail)] = ["port", "tls_ok", "session_ok", "status_code", "server", "location", "title",

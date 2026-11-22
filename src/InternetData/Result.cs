@@ -46,6 +46,7 @@ public sealed class Result
             IsPubproxy = false,
             IsHosting = false,
             IsCdn = false,
+            IsBot = false,
             IsAnycast = false,
             IsCarrier = false,
             IsSatellite = false,
@@ -63,6 +64,7 @@ public sealed class Result
             Pubproxy = new PubproxyDetail(),
             Hosting = new ClassDetail(),
             Cdn = new ClassDetail(),
+            Bot = new BotDetail(),
             Carrier = new CarrierDetail(),
             Satellite = new SatelliteDetail(),
             Ssh = new SshDetail(),
@@ -165,6 +167,12 @@ public sealed class Result
     /// <summary>Whether the address is in CDN IP: a content delivery network. Paid plans and the trial.</summary>
     public bool? IsCdn => raw.IsCdn;
 
+    /// <summary>
+    /// Whether the address is in Bot IP: an automated client's, such as a search engine's or an AI
+    /// company's crawler, an uptime monitor, an internet scanner or a webhook sender. On every answer.
+    /// </summary>
+    public bool IsBot => raw.IsBot;
+
     /// <summary>Whether the address is in Anycast IP: announced from many places at once. On every answer.</summary>
     public bool IsAnycast => raw.IsAnycast;
 
@@ -224,6 +232,12 @@ public sealed class Result
 
     /// <summary>Detail behind <see cref="IsCdn"/>. Empty when it is false. Paid plans and the trial.</summary>
     public ClassDetail? Cdn => raw.Cdn;
+
+    /// <summary>
+    /// Whose bot uses the address, what it does and whether its operator vouches for the address.
+    /// Empty when <see cref="IsBot"/> is false. Paid plans and the trial.
+    /// </summary>
+    public BotDetail? Bot => raw.Bot;
 
     /// <summary>Detail behind <see cref="IsCarrier"/>. Empty when it is false. Paid plans and the trial.</summary>
     public CarrierDetail? Carrier => raw.Carrier;

@@ -66,9 +66,9 @@ public class LookupAnswerTests
                 data.Add(call, at, member);
             }
         }
-        Add("lookup", "", "ip", "is_bogon", "is_tor", "is_relay", "is_anycast", "is_carrier", "is_satellite",
-            "is_ssh", "is_smtp", "is_web", "is_dns_resolver", "is_bittorrent", "tor", "relay", "location", "asn",
-            "company", "hostname", "abuse");
+        Add("lookup", "", "ip", "is_bogon", "is_tor", "is_relay", "is_bot", "is_anycast", "is_carrier",
+            "is_satellite", "is_ssh", "is_smtp", "is_web", "is_dns_resolver", "is_bittorrent", "tor", "relay",
+            "location", "asn", "company", "hostname", "abuse");
         Add("lookup", "location", "continent", "continent_name", "country", "country_name", "timezone",
             "currency_code", "currency_name", "currency_symbol", "flag_emoji", "flag_unicode");
         Add("lookup", "asn", "asn", "name", "domain", "type", "prefix");
@@ -146,6 +146,8 @@ public class LookupAnswerTests
     [InlineData("lookup", "pubproxy", """{"entry":true,"exit":false,"protocols":[null],"num_ports":1,"num_proxies":1,"last_seen":"","last_usable":""}""")]
     [InlineData("lookup", "bittorrent", """{"verified":true,"id_matches_ip":false,"first_seen":"","last_seen":"","last_reachable":"","days_seen":1,"num_ports":1,"peak_num_ports":1,"indexer":false,"clients":[null]}""")]
     [InlineData("lookup", "web", "[null]")]
+    [InlineData("lookup", "bot", """{"provider":"google","agents":[null],"categories":[]}""")]
+    [InlineData("lookup", "bot", """{"provider":"google","agents":[],"categories":[null]}""")]
     [InlineData("lookup", "hosted_domains", """{"total":1,"domains":[null]}""")]
     [InlineData("lookupAsn", "prefixes", "[null]")]
     [InlineData("lookupAsn", "whois", """{"name":null}""")]
