@@ -71,7 +71,7 @@ public class LookupAnswerTests
             "location", "asn", "company", "hostname", "abuse");
         Add("lookup", "location", "continent", "continent_name", "country", "country_name", "timezone",
             "currency_code", "currency_name", "currency_symbol", "flag_emoji", "flag_unicode");
-        Add("lookup", "asn", "asn", "name", "domain", "type", "prefix");
+        Add("lookup", "asn", "asn", "name", "domain", "type", "prefix", "country", "rpki_status");
         Add("lookup", "company", "name", "domain");
         Add("lookup", "abuse", "email");
         Add("lookup", "whois", "id", "name", "org", "country", "status", "source", "domain", "abuse_email", "asn");
@@ -81,7 +81,9 @@ public class LookupAnswerTests
             "cert_subject_cn", "cert_subject_o", "cert_issuer_dn", "cert_browser_trusted", "tls_version",
             "first_seen", "last_seen");
         Add("batch", "location", "country");
+        Add("batch", "asn", "country", "rpki_status");
         Add("myIp", "", "ip", "location");
+        Add("myIp", "asn", "country", "rpki_status");
         Add("myEntitlement", "", "org_id", "apikey", "plan", "usage");
         Add("myEntitlement", "apikey", "id", "allowed_cidrs");
         Add("myEntitlement", "plan", "key", "name", "tier");
@@ -98,7 +100,7 @@ public class LookupAnswerTests
         Add("lookupDomain", "ip_ranges", "domain", "redirects_to", "total", "ipv4", "ranges");
         Add("lookupDomain", "ip_ranges.ranges.0", "range", "name", "country");
         Add("lookupDomain", "hosting.0", "ip", "asn");
-        Add("lookupDomain", "hosting.0.asn", "asn", "name", "domain", "type", "prefix");
+        Add("lookupDomain", "hosting.0.asn", "asn", "name", "domain", "type", "prefix", "country", "rpki_status");
         Add("lookupDomain", "cohosted_domains", "ip", "total", "domains");
         Add("lookupDomain", "web", "url", "title", "description", "last_seen", "links");
         Add("lookupDomain", "web.links", "total", "hosts");

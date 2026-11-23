@@ -390,8 +390,9 @@ public class DatabaseTests
 
     // The table is the spec's `required` lists less what each marks nullable, and NSwag writes
     // exactly those members as non-nullable properties, so a re-pin that adds one turns this red
-    // until the table has it. Every class an answer reaches that requires a member must be in the
-    // table, bar the two envelopes matched by their one member.
+    // until the table has it. A member the spec requires whose public type stays nullable until a
+    // major is in the table and in HeldOptional both. Every class an answer reaches that requires a
+    // member must be in the table, bar the two envelopes matched by their one member.
     [Fact]
     public void TheRequiredMembersAreTheGeneratedTypesNonNullableOnes()
     {
@@ -433,6 +434,11 @@ public class DatabaseTests
             {
                 Assert.Subset(WireClient.EnvelopeMembers, members.ToHashSet());
                 continue;
+            }
+            if (WireClient.HeldOptional.TryGetValue(type, out var held))
+            {
+                Assert.DoesNotContain(held, members.Contains);
+                members.UnionWith(held);
             }
             // A detail object requires nothing: it is `{}` where its flag is false.
             var table = WireClient.AnswerMembers.TryGetValue(type, out var named) ? named : [];

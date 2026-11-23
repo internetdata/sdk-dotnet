@@ -10,13 +10,15 @@ each must be found exactly where it is expected or the run fails:
 - Spec 2026.11.21 requires the AS's `country` and `rpki_status`, which every
   answer has served since 2026-11-20. Generated as required they would turn
   `Asn.Country` and `Asn.RpkiStatus` from `string?` into `string`, so the
-  public type keeps them optional.
+  public type keeps them optional. The decoder still refuses an answer without
+  them: Wire.cs's AnswerMembers names both, and HeldOptional says why.
 - The answer's `user_agent` verdict comes only when a lookup sends a
   `user_agent`, which this client does not yet, so it adds no public type
   until it does.
 
 The request's `user_agent` parameter and the batch's `user_agents` stay in:
-they reach only the internal WireClient and its internal batch request.
+they reach only the internal WireClient and its internal batch request, whose
+body leaves out every member left null.
 """
 
 import sys
