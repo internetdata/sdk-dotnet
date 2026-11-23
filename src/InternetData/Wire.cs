@@ -461,8 +461,12 @@ internal partial class WireClient
     // takes `full-date` alone. NSwag's JsonStringEnumConverter reads a NUMBER as an enum too, so
     // `"outcome": 1` came back as `Unauthorized` and a checksum's `"format": 7` as a format nobody
     // publishes; every enum is read by its wire name alone (WireEnumConverter).
+    //
+    // A request body leaves out what it does not set: through 2.15.0 every batch also sent
+    // `"asns":null,"domains":null,"user_agents":null`, members the spec types as a list and a map.
     static partial void UpdateJsonSerializerSettings(JsonSerializerOptions settings)
     {
+        settings.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
         settings.Converters.Add(new WireEnumConverter<DatabaseFormat>());
         settings.Converters.Add(new Rfc3339DateTimeConverter());
         settings.TypeInfoResolver = new DefaultJsonTypeInfoResolver { Modifiers = { RequireAnswerMembers } };

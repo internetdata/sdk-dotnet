@@ -131,6 +131,27 @@ public class ClientTests
         Assert.True(handler.Peak <= 2, $"peak in flight was {handler.Peak}, expected at most 2");
     }
 
+    // A batch sends its addresses and nothing else: through 2.15.0 every POST also carried
+    // `"asns":null,"domains":null,"user_agents":null`, members the spec types as a list and a map.
+    [Fact]
+    public async Task ABatchSendsItsAddressesAndNothingElse()
+    {
+        var bodies = new List<string>();
+        var handler = new StubHandler(request =>
+        {
+            lock (bodies)
+            {
+                bodies.Add(request.Content!.ReadAsStringAsync().GetAwaiter().GetResult());
+            }
+            return StubHandler.Json(new Route(BatchAnswers.Of(StubHandler.Ips(request))));
+        });
+        using var client = Stub.Client(handler, new InternetDataClientOptions { CacheEnabled = false });
+
+        await client.LookupBatchAsync(["9.9.9.9", "8.8.4.4"]);
+
+        Assert.Equal("""{"ips":["9.9.9.9","8.8.4.4"]}""", Assert.Single(bodies));
+    }
+
     // No cap on what one call accepts: chunking to the endpoint's 1000 is this library's job, so
     // 2,500 addresses is three requests rather than an error.
     [Fact]
