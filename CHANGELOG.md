@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.1.1 are described by their release commits.
 
+## 2.15.2 - 2026-11-23
+
+### Fixes
+
+- Say what a bot's provider and provider name hold for an address that is not verified ([`d00f668`](https://github.com/internetdata/sdk-dotnet/commit/d00f6687f69329d490f9bed41dff14b239904918))
+
 ## 2.15.1 - 2026-11-23
 
 ### Fixes
