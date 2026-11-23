@@ -5988,13 +5988,13 @@ namespace InternetData
     {
 
         /// <summary>
-        /// The bot operator's ID in Bot Provider, empty where no operator is known.
+        /// The bot operator's ID in Bot Provider; for an address that is not verified, the operator its claim named. Empty where no operator is known.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("provider")]
         public string? Provider { get; set; } = default!;
 
         /// <summary>
-        /// The operator's name, empty where no operator is known.
+        /// The operator's name, the one its claim named for an address that is not verified; empty where no operator is known.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("provider_name")]
         public string? ProviderName { get; set; } = default!;
