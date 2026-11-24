@@ -15,6 +15,9 @@ each must be found exactly where it is expected or the run fails:
 - The answer's `user_agent` verdict comes only when a lookup sends a
   `user_agent`, which this client does not yet, so it adds no public type
   until it does.
+- Spec 2026.11.23 gives 23 `first_seen` and `last_seen` members `format:
+  date`, which NSwag would generate as `DateOnly?` where they were `string?`.
+  They stay strings, handed back as served, until a major moves them.
 
 The request's `user_agent` parameter and the batch's `user_agents` stay in:
 they reach only the internal WireClient and its internal batch request, whose
@@ -32,6 +35,33 @@ REQUIRED_DROPPED = [
 # (schema, property): a property dropped, with everything indented under it.
 PROPERTIES_DROPPED = [
     ("LookupResponse", "user_agent"),
+]
+
+# (schema, property): a property's `format: date` dropped, so it stays a string.
+DATE_FORMAT_DROPPED = [
+    ("ClassDetail", "last_seen"),
+    ("ProxyDetail", "first_seen"),
+    ("ProxyDetail", "last_seen"),
+    ("PubproxyDetail", "last_seen"),
+    ("BotDetail", "first_seen"),
+    ("BotDetail", "last_seen"),
+    ("SshDetail", "first_seen"),
+    ("SshDetail", "last_seen"),
+    ("SmtpDetail", "first_seen"),
+    ("SmtpDetail", "last_seen"),
+    ("WebDetail", "first_seen"),
+    ("WebDetail", "last_seen"),
+    ("DnsResolverDetail", "first_seen"),
+    ("DnsResolverDetail", "last_seen"),
+    ("BitTorrentDetail", "first_seen"),
+    ("BitTorrentDetail", "last_seen"),
+    ("AsnPrefix", "first_seen"),
+    ("DnsAddressRecord", "last_seen"),
+    ("DnsMxRecord", "last_seen"),
+    ("DnsNsRecord", "last_seen"),
+    ("DnsCnameRecord", "last_seen"),
+    ("DisposableDetail", "first_seen"),
+    ("DisposableDetail", "last_seen"),
 ]
 
 SCHEMA_INDENT = " " * 4
@@ -88,6 +118,22 @@ def drop_property(lines, schema, prop):
     del lines[hits[0]:stop]
 
 
+def drop_date_format(lines, schema, prop):
+    start, end = schema_span(lines, schema)
+    first, last = field_span(lines, start, end, "properties", schema)
+    wanted = f"{MEMBER_INDENT}{prop}:\n"
+    hits = [i for i in range(first, last) if lines[i] == wanted]
+    if len(hits) != 1:
+        raise SystemExit(f"schema {schema}: property `{prop}` not found once; review the transform")
+    stop = hits[0] + 1
+    while stop < last and (lines[stop].strip() == "" or lines[stop].startswith(MEMBER_INDENT + " ")):
+        stop += 1
+    formats = [i for i in range(hits[0] + 1, stop) if lines[i] == f"{MEMBER_INDENT}  format: date\n"]
+    if len(formats) != 1:
+        raise SystemExit(f"schema {schema}: `{prop}` no longer has `format: date` once; review the transform")
+    del lines[formats[0]]
+
+
 def main() -> int:
     source, target = sys.argv[1], sys.argv[2]
     with open(source, encoding="utf-8") as f:
@@ -98,6 +144,9 @@ def main() -> int:
     for schema, prop in PROPERTIES_DROPPED:
         drop_property(lines, schema, prop)
         print(f"  generator input: {schema}.{prop} left out")
+    for schema, prop in DATE_FORMAT_DROPPED:
+        drop_date_format(lines, schema, prop)
+        print(f"  generator input: {schema}.{prop} left a string")
     with open(target, "w", encoding="utf-8") as f:
         f.writelines(lines)
     return 0

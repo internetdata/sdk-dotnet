@@ -7299,7 +7299,7 @@ namespace InternetData
         public string Description { get; set; } = default!;
 
         /// <summary>
-        /// The day it was last read.
+        /// The day it was last read, empty when the crawl holds no page.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("last_seen")]
         public string LastSeen { get; set; } = default!;
