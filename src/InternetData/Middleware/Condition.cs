@@ -151,9 +151,17 @@ public sealed class Condition : Dictionary<string, object?>
     // An ABSENT member arrives here as null, which is exactly what "not in your plan" looks like.
     // Every branch below must therefore reject it, which is what makes an unserved member fail a
     // match rather than pass it.
+    //
+    // A member the answer holds as a list (`web`'s rows, `pubproxy.protocols`) matches when any
+    // element matches the term, an object term matching one element whole; through 2.15.2 the term
+    // was compared with the list itself and never matched.
     private static bool MatchesValue(object? want, object? got)
     {
         got = Unwrap(got);
+        if (got is IList elements)
+        {
+            return elements.Cast<object?>().Any(element => MatchesValue(want, element));
+        }
         switch (want)
         {
             case Bound bound:

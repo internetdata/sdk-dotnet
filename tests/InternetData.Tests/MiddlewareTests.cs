@@ -44,8 +44,8 @@ public class MiddlewareTests
             var result = await ResultFor(c);
             var conditions = ToConditions(c.GetProperty("condition"));
 
-            Assert.Equal(c.GetProperty("expect").GetProperty("blocked").GetBoolean(),
-                Condition.Matches(conditions, result));
+            Assert.True(c.GetProperty("expect").GetProperty("blocked").GetBoolean()
+                == Condition.Matches(conditions, result), $"{why} (blocked)");
 
             var missing = Condition.MissingMembers(conditions, result).OrderBy(m => m).ToList();
             var want = c.GetProperty("expect").GetProperty("missing").EnumerateArray()
