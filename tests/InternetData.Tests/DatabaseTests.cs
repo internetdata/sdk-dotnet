@@ -757,24 +757,28 @@ public class DatabaseTests
         Assert.True(started.Elapsed < TimeSpan.FromSeconds(5), $"took {started.ElapsedMilliseconds}ms");
     }
 
-    // A C# enum takes any integer by a cast, and 2.1.0 sent `(DatabaseFormat)99` as `format=99`
-    // for the API to refuse a round trip later. Refused before any request, and before a download
-    // creates anything on disk.
-    [Fact]
-    public async Task AnUndefinedFormatIsRefusedBeforeAnyRequest()
+    // 2.1.0 sent `(DatabaseFormat)99` as `format=99` for the API to refuse a round trip later, and
+    // from 3.0.0 a format is any string. One this release was not built with, another case of one
+    // it was, and a null are refused before any request, and before a download creates anything on
+    // disk.
+    [Theory]
+    [InlineData("parquet")]
+    [InlineData("MMDB")]
+    [InlineData(null)]
+    public async Task AnUnpublishedFormatIsRefusedBeforeAnyRequest(string? value)
     {
         var handler = StubHandler.Always(new Route("""{"rc":"BAD_REQUEST"}""", 400));
         using var client = Stub.Client(handler);
-        var undefined = (DatabaseFormat)99;
+        var undefined = value is null ? null! : new DatabaseFormat(value);
         var path = Path.Combine(TempDir(), "database.mmdb");
 
-        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
+        await Assert.ThrowsAnyAsync<ArgumentException>(
             () => client.Database.ChecksumsAsync("cdn_ip_v1", undefined));
-        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
+        await Assert.ThrowsAnyAsync<ArgumentException>(
             () => client.Database.DownloadUrlAsync("cdn_ip_v1", undefined));
-        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
+        await Assert.ThrowsAnyAsync<ArgumentException>(
             () => client.Database.DownloadBytesAsync("cdn_ip_v1", undefined));
-        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
+        await Assert.ThrowsAnyAsync<ArgumentException>(
             () => client.Database.DownloadAsync("cdn_ip_v1", undefined, path));
 
         Assert.Empty(handler.Calls);

@@ -4150,15 +4150,47 @@ namespace InternetData
     /// A file format a database version is published in.
     /// </summary>
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
-    public enum DatabaseFormat
+    [System.Text.Json.Serialization.JsonConverter(typeof(VocabularyConverter<DatabaseFormat>))]
+    public sealed class DatabaseFormat : System.IEquatable<DatabaseFormat>, IVocabulary<DatabaseFormat>
     {
+        /// <summary><c>csvgz</c></summary>
+        public static DatabaseFormat Csvgz { get; } = new("csvgz");
 
-        [System.Runtime.Serialization.EnumMember(Value = @"csvgz")]
-        Csvgz = 0,
+        /// <summary><c>mmdb</c></summary>
+        public static DatabaseFormat Mmdb { get; } = new("mmdb");
 
-        [System.Runtime.Serialization.EnumMember(Value = @"mmdb")]
-        Mmdb = 1,
+        /// <summary>Every value this release was built with, in the spec's order.</summary>
+        public static System.Collections.Generic.IReadOnlyList<DatabaseFormat> Known { get; } = [Csvgz, Mmdb];
 
+        /// <summary>A value as the API spells it, one this release was built with or not.</summary>
+        public DatabaseFormat(string value)
+        {
+            Value = value ?? throw new System.ArgumentNullException(nameof(value));
+        }
+
+        /// <summary>The value as the API spells it.</summary>
+        public string Value { get; }
+
+        /// <summary>
+        /// Whether this release was built with the value, one of <see cref="Known"/>. A value the API
+        /// added since reads as itself with this false, rather than failing the call.
+        /// </summary>
+        public bool IsKnown => System.Linq.Enumerable.Contains(Known, this);
+
+        public bool Equals(DatabaseFormat? other) => other is not null && string.Equals(Value, other.Value, System.StringComparison.Ordinal);
+
+        public override bool Equals(object? obj) => Equals(obj as DatabaseFormat);
+
+        public override int GetHashCode() => System.StringComparer.Ordinal.GetHashCode(Value);
+
+        /// <summary>The value as the API spells it.</summary>
+        public override string ToString() => Value;
+
+        public static bool operator ==(DatabaseFormat? left, DatabaseFormat? right) => left is null ? right is null : left.Equals(right);
+
+        public static bool operator !=(DatabaseFormat? left, DatabaseFormat? right) => !(left == right);
+
+        static DatabaseFormat IVocabulary<DatabaseFormat>.Of(string value) => new(value);
     }
 
     /// <summary>
@@ -4168,18 +4200,50 @@ namespace InternetData
     /// <br/>
     /// </summary>
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
-    public enum Standing
+    [System.Text.Json.Serialization.JsonConverter(typeof(VocabularyConverter<Standing>))]
+    public sealed class Standing : System.IEquatable<Standing>, IVocabulary<Standing>
     {
+        /// <summary><c>licensed</c></summary>
+        public static Standing Licensed { get; } = new("licensed");
 
-        [System.Runtime.Serialization.EnumMember(Value = @"licensed")]
-        Licensed = 0,
+        /// <summary><c>expired</c></summary>
+        public static Standing Expired { get; } = new("expired");
 
-        [System.Runtime.Serialization.EnumMember(Value = @"expired")]
-        Expired = 1,
+        /// <summary><c>unlicensed</c></summary>
+        public static Standing Unlicensed { get; } = new("unlicensed");
 
-        [System.Runtime.Serialization.EnumMember(Value = @"unlicensed")]
-        Unlicensed = 2,
+        /// <summary>Every value this release was built with, in the spec's order.</summary>
+        public static System.Collections.Generic.IReadOnlyList<Standing> Known { get; } = [Licensed, Expired, Unlicensed];
 
+        /// <summary>A value as the API spells it, one this release was built with or not.</summary>
+        public Standing(string value)
+        {
+            Value = value ?? throw new System.ArgumentNullException(nameof(value));
+        }
+
+        /// <summary>The value as the API spells it.</summary>
+        public string Value { get; }
+
+        /// <summary>
+        /// Whether this release was built with the value, one of <see cref="Known"/>. A value the API
+        /// added since reads as itself with this false, rather than failing the call.
+        /// </summary>
+        public bool IsKnown => System.Linq.Enumerable.Contains(Known, this);
+
+        public bool Equals(Standing? other) => other is not null && string.Equals(Value, other.Value, System.StringComparison.Ordinal);
+
+        public override bool Equals(object? obj) => Equals(obj as Standing);
+
+        public override int GetHashCode() => System.StringComparer.Ordinal.GetHashCode(Value);
+
+        /// <summary>The value as the API spells it.</summary>
+        public override string ToString() => Value;
+
+        public static bool operator ==(Standing? left, Standing? right) => left is null ? right is null : left.Equals(right);
+
+        public static bool operator !=(Standing? left, Standing? right) => !(left == right);
+
+        static Standing IVocabulary<Standing>.Of(string value) => new(value);
     }
 
     /// <summary>
@@ -4208,7 +4272,6 @@ namespace InternetData
         public string Summary { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("standing")]
-        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<Standing>))]
         public Standing Standing { get; set; } = default!;
 
         /// <summary>
@@ -4228,7 +4291,6 @@ namespace InternetData
         /// <br/>
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("license_type")]
-        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<DatabaseLicense_type>))]
         public DatabaseLicense_type? LicenseType { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("starts")]
@@ -4294,14 +4356,12 @@ namespace InternetData
         /// <br/>
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("formats")]
-        // TODO(system.text.json): Add string enum item converter
         public System.Collections.Generic.IReadOnlyList<DatabaseFormat> Formats { get; set; } = new System.Collections.Generic.List<DatabaseFormat>();
 
         /// <summary>
         /// The formats an evaluation sample is published in, if any.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("sample_formats")]
-        // TODO(system.text.json): Add string enum item converter
         public System.Collections.Generic.IReadOnlyList<DatabaseFormat>? SampleFormats { get; set; } = default!;
 
         private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
@@ -4329,7 +4389,6 @@ namespace InternetData
         public string Format { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("outcome")]
-        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<DownloadOutcome>))]
         public DownloadOutcome Outcome { get; set; } = default!;
 
         /// <summary>
@@ -7891,7 +7950,6 @@ namespace InternetData
         /// <br/>
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("tier")]
-        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<EntitlementPlanTier>))]
         public EntitlementPlanTier Tier { get; set; } = default!;
 
         private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
@@ -8020,7 +8078,6 @@ namespace InternetData
         public string Id { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("format")]
-        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<DatabaseFormat>))]
         public DatabaseFormat Format { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("checksums")]
@@ -8056,42 +8113,106 @@ namespace InternetData
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
-    public enum DatabaseLicense_type
+    [System.Text.Json.Serialization.JsonConverter(typeof(VocabularyConverter<DatabaseLicense_type>))]
+    public sealed class DatabaseLicense_type : System.IEquatable<DatabaseLicense_type>, IVocabulary<DatabaseLicense_type>
     {
+        /// <summary><c>evaluation</c></summary>
+        public static DatabaseLicense_type Evaluation { get; } = new("evaluation");
 
-        [System.Runtime.Serialization.EnumMember(Value = @"evaluation")]
-        Evaluation = 0,
+        /// <summary><c>standard</c></summary>
+        public static DatabaseLicense_type Standard { get; } = new("standard");
 
-        [System.Runtime.Serialization.EnumMember(Value = @"standard")]
-        Standard = 1,
+        /// <summary><c>redistribute</c></summary>
+        public static DatabaseLicense_type Redistribute { get; } = new("redistribute");
 
-        [System.Runtime.Serialization.EnumMember(Value = @"redistribute")]
-        Redistribute = 2,
+        /// <summary>Every value this release was built with, in the spec's order.</summary>
+        public static System.Collections.Generic.IReadOnlyList<DatabaseLicense_type> Known { get; } = [Evaluation, Standard, Redistribute];
 
+        /// <summary>A value as the API spells it, one this release was built with or not.</summary>
+        public DatabaseLicense_type(string value)
+        {
+            Value = value ?? throw new System.ArgumentNullException(nameof(value));
+        }
+
+        /// <summary>The value as the API spells it.</summary>
+        public string Value { get; }
+
+        /// <summary>
+        /// Whether this release was built with the value, one of <see cref="Known"/>. A value the API
+        /// added since reads as itself with this false, rather than failing the call.
+        /// </summary>
+        public bool IsKnown => System.Linq.Enumerable.Contains(Known, this);
+
+        public bool Equals(DatabaseLicense_type? other) => other is not null && string.Equals(Value, other.Value, System.StringComparison.Ordinal);
+
+        public override bool Equals(object? obj) => Equals(obj as DatabaseLicense_type);
+
+        public override int GetHashCode() => System.StringComparer.Ordinal.GetHashCode(Value);
+
+        /// <summary>The value as the API spells it.</summary>
+        public override string ToString() => Value;
+
+        public static bool operator ==(DatabaseLicense_type? left, DatabaseLicense_type? right) => left is null ? right is null : left.Equals(right);
+
+        public static bool operator !=(DatabaseLicense_type? left, DatabaseLicense_type? right) => !(left == right);
+
+        static DatabaseLicense_type IVocabulary<DatabaseLicense_type>.Of(string value) => new(value);
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
-    public enum DownloadOutcome
+    [System.Text.Json.Serialization.JsonConverter(typeof(VocabularyConverter<DownloadOutcome>))]
+    public sealed class DownloadOutcome : System.IEquatable<DownloadOutcome>, IVocabulary<DownloadOutcome>
     {
+        /// <summary><c>ok</c></summary>
+        public static DownloadOutcome Ok { get; } = new("ok");
 
-        [System.Runtime.Serialization.EnumMember(Value = @"ok")]
-        Ok = 0,
+        /// <summary><c>unauthorized</c></summary>
+        public static DownloadOutcome Unauthorized { get; } = new("unauthorized");
 
-        [System.Runtime.Serialization.EnumMember(Value = @"unauthorized")]
-        Unauthorized = 1,
+        /// <summary><c>denied</c></summary>
+        public static DownloadOutcome Denied { get; } = new("denied");
 
-        [System.Runtime.Serialization.EnumMember(Value = @"denied")]
-        Denied = 2,
+        /// <summary><c>expired</c></summary>
+        public static DownloadOutcome Expired { get; } = new("expired");
 
-        [System.Runtime.Serialization.EnumMember(Value = @"expired")]
-        Expired = 3,
+        /// <summary><c>unknown</c></summary>
+        public static DownloadOutcome Unknown { get; } = new("unknown");
 
-        [System.Runtime.Serialization.EnumMember(Value = @"unknown")]
-        Unknown = 4,
+        /// <summary><c>unavailable</c></summary>
+        public static DownloadOutcome Unavailable { get; } = new("unavailable");
 
-        [System.Runtime.Serialization.EnumMember(Value = @"unavailable")]
-        Unavailable = 5,
+        /// <summary>Every value this release was built with, in the spec's order.</summary>
+        public static System.Collections.Generic.IReadOnlyList<DownloadOutcome> Known { get; } = [Ok, Unauthorized, Denied, Expired, Unknown, Unavailable];
 
+        /// <summary>A value as the API spells it, one this release was built with or not.</summary>
+        public DownloadOutcome(string value)
+        {
+            Value = value ?? throw new System.ArgumentNullException(nameof(value));
+        }
+
+        /// <summary>The value as the API spells it.</summary>
+        public string Value { get; }
+
+        /// <summary>
+        /// Whether this release was built with the value, one of <see cref="Known"/>. A value the API
+        /// added since reads as itself with this false, rather than failing the call.
+        /// </summary>
+        public bool IsKnown => System.Linq.Enumerable.Contains(Known, this);
+
+        public bool Equals(DownloadOutcome? other) => other is not null && string.Equals(Value, other.Value, System.StringComparison.Ordinal);
+
+        public override bool Equals(object? obj) => Equals(obj as DownloadOutcome);
+
+        public override int GetHashCode() => System.StringComparer.Ordinal.GetHashCode(Value);
+
+        /// <summary>The value as the API spells it.</summary>
+        public override string ToString() => Value;
+
+        public static bool operator ==(DownloadOutcome? left, DownloadOutcome? right) => left is null ? right is null : left.Equals(right);
+
+        public static bool operator !=(DownloadOutcome? left, DownloadOutcome? right) => !(left == right);
+
+        static DownloadOutcome IVocabulary<DownloadOutcome>.Of(string value) => new(value);
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
@@ -8203,21 +8324,53 @@ namespace InternetData
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
-    public enum EntitlementPlanTier
+    [System.Text.Json.Serialization.JsonConverter(typeof(VocabularyConverter<EntitlementPlanTier>))]
+    public sealed class EntitlementPlanTier : System.IEquatable<EntitlementPlanTier>, IVocabulary<EntitlementPlanTier>
     {
+        /// <summary><c>free</c></summary>
+        public static EntitlementPlanTier Free { get; } = new("free");
 
-        [System.Runtime.Serialization.EnumMember(Value = @"free")]
-        Free = 0,
+        /// <summary><c>starter</c></summary>
+        public static EntitlementPlanTier Starter { get; } = new("starter");
 
-        [System.Runtime.Serialization.EnumMember(Value = @"starter")]
-        Starter = 1,
+        /// <summary><c>scale</c></summary>
+        public static EntitlementPlanTier Scale { get; } = new("scale");
 
-        [System.Runtime.Serialization.EnumMember(Value = @"scale")]
-        Scale = 2,
+        /// <summary><c>max</c></summary>
+        public static EntitlementPlanTier Max { get; } = new("max");
 
-        [System.Runtime.Serialization.EnumMember(Value = @"max")]
-        Max = 3,
+        /// <summary>Every value this release was built with, in the spec's order.</summary>
+        public static System.Collections.Generic.IReadOnlyList<EntitlementPlanTier> Known { get; } = [Free, Starter, Scale, Max];
 
+        /// <summary>A value as the API spells it, one this release was built with or not.</summary>
+        public EntitlementPlanTier(string value)
+        {
+            Value = value ?? throw new System.ArgumentNullException(nameof(value));
+        }
+
+        /// <summary>The value as the API spells it.</summary>
+        public string Value { get; }
+
+        /// <summary>
+        /// Whether this release was built with the value, one of <see cref="Known"/>. A value the API
+        /// added since reads as itself with this false, rather than failing the call.
+        /// </summary>
+        public bool IsKnown => System.Linq.Enumerable.Contains(Known, this);
+
+        public bool Equals(EntitlementPlanTier? other) => other is not null && string.Equals(Value, other.Value, System.StringComparison.Ordinal);
+
+        public override bool Equals(object? obj) => Equals(obj as EntitlementPlanTier);
+
+        public override int GetHashCode() => System.StringComparer.Ordinal.GetHashCode(Value);
+
+        /// <summary>The value as the API spells it.</summary>
+        public override string ToString() => Value;
+
+        public static bool operator ==(EntitlementPlanTier? left, EntitlementPlanTier? right) => left is null ? right is null : left.Equals(right);
+
+        public static bool operator !=(EntitlementPlanTier? left, EntitlementPlanTier? right) => !(left == right);
+
+        static EntitlementPlanTier IVocabulary<EntitlementPlanTier>.Of(string value) => new(value);
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]

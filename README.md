@@ -170,7 +170,7 @@ If your key carries the `db.download` scope, the databases your organization is 
 ```csharp
 foreach (var db in await client.Database.ListAsync())
 {
-    Console.WriteLine($"{db.Base}: {db.Standing}");   // bogon_ip: Licensed
+    Console.WriteLine($"{db.Base}: {db.Standing}");   // bogon_ip: licensed
 }
 ```
 
@@ -363,6 +363,19 @@ result.Location.City is null  // on Unlimited: not in your plan
 result.TrialExpired == true   // a free-plan key's trial is spent
 result.CapReached == true     // a paid key is past its overage cap
 ```
+
+### A value the API adds
+
+A plan's tier, a database's standing and license type, a format and a download's outcome are each a class with a property per value this release knows. A value the API adds later reads as itself rather than failing the call, so compare with `==` and keep a fallback:
+
+```csharp
+if (database.Standing == Standing.Licensed) { /* download it */ }
+database.Standing.Value    // "licensed", as the API spells it
+database.Standing.IsKnown  // false for a value added after this release
+Standing.Known             // every value this release knows
+```
+
+A format you pass in must be one of `DatabaseFormat.Known`; any other is refused with an `ArgumentException` before a request is made.
 
 ## Other Libraries
 

@@ -440,15 +440,7 @@ internal partial class WireClient
 
     internal string? ApiKey { get; set; }
 
-    // NSwag gives a scalar enum property its own JsonStringEnumConverter, but where an enum sits
-    // inside a LIST it writes a "TODO: Add string enum item converter" comment and nothing else,
-    // and System.Text.Json's default is to read an enum as a NUMBER. So `formats: ["csvgz"]`
-    // throws on a perfectly healthy answer unless the converter is registered for the document,
-    // which is every call to list. Registered for the one enum that appears in a list rather than
-    // for all of them; scripts/normalize_generated.py refuses to emit a client where a SECOND enum
-    // needs it.
-    //
-    // NSwag also starts every member at a default, so `{}` from list, downloads or checksums
+    // NSwag starts every member at a default, so `{}` from list, downloads or checksums
     // answered an empty catalog, no downloads or empty checksums (2.4.3, measured 2026-10-11), and
     // an entry without its members one of empty strings, zeros and false (2.4.5, measured
     // 2026-10-14). Every member the spec requires and never sends as null is required on the wire
@@ -460,14 +452,16 @@ internal partial class WireClient
     // without seconds, and refused a lowercase `t` or `z` (measured 2026-10-29). Its DateOnly reader
     // takes `full-date` alone. NSwag's JsonStringEnumConverter reads a NUMBER as an enum too, so
     // `"outcome": 1` came back as `Unauthorized` and a checksum's `"format": 7` as a format nobody
-    // publishes; every enum is read by its wire name alone (WireEnumConverter).
+    // publishes, and an enum refused a value the API added, so 2.15.2 failed on a `tier` of `data`.
+    // scripts/normalize_generated.py opens every enum a public answer carries into a class holding
+    // the value as served, read from a JSON string alone (VocabularyConverter), the one in a list
+    // included; an internal enum left is read by its wire name alone (WireEnumConverter).
     //
     // A request body leaves out what it does not set: through 2.15.0 every batch also sent
     // `"asns":null,"domains":null,"user_agents":null`, members the spec types as a list and a map.
     static partial void UpdateJsonSerializerSettings(JsonSerializerOptions settings)
     {
         settings.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-        settings.Converters.Add(new WireEnumConverter<DatabaseFormat>());
         settings.Converters.Add(new Rfc3339DateTimeConverter());
         settings.TypeInfoResolver = new DefaultJsonTypeInfoResolver { Modifiers = { RequireAnswerMembers } };
     }

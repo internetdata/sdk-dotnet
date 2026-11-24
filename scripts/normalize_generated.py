@@ -130,12 +130,68 @@ AS_NUMBER = re.compile(
 )
 
 # NSwag writes a per-property converter for a scalar enum and this comment for an enum inside a
-# LIST, where System.Text.Json's default is to read a NUMBER. Wire.cs registers a converter for
-# DatabaseFormat to cover it, so a list of any OTHER enum would deserialize no healthy answer.
+# LIST, where System.Text.Json's default is to read a NUMBER. Every enum an answer carries is
+# opened below and carries its own converter, so the comment goes with it, and one left behind
+# names a list nothing reads.
 ITEM_CONVERTER_TODO = re.compile(
-    r"// TODO\(system\.text\.json\): Add string enum item converter\n"
-    r"[ \t]*public [^\n]*?IReadOnlyList<(?P<item>[A-Za-z_][A-Za-z0-9_]*)>"
+    r"[ \t]*// TODO\(system\.text\.json\): Add string enum item converter\n"
+    r"(?=[ \t]*public [^\n]*?IReadOnlyList<(?P<item>[A-Za-z_][A-Za-z0-9_]*)>)"
 )
+
+# A C# enum cannot hold a value it was not built with, so a value the API adds to one an answer
+# carries failed the whole call in every installed release (5.15.0, measured 2026-11-17 on a tier,
+# a standing, a license type, a format and an outcome). Each such enum becomes a class holding the
+# value as served, with a property per value the spec lists, compared by value, the shape of
+# System.Net.Http.HttpMethod. An enum only a request takes (OAuth's) stays an enum.
+ENUM_DECLARATION = re.compile(
+    r"(?P<attr>[ \t]*\[System\.CodeDom\.Compiler\.GeneratedCode\([^\n]*\)\]\n)"
+    r"[ \t]*public enum (?P<name>[A-Za-z_][A-Za-z0-9_]*)\n[ \t]*\{\n(?P<body>.*?)\n[ \t]*\}\n",
+    re.DOTALL,
+)
+
+OPEN_MEMBER = re.compile(
+    r'\[System\.Runtime\.Serialization\.EnumMember\(Value = @"(?P<wire>[^"]*)"\)\]\n'
+    r"[ \t]*(?P<member>[A-Za-z_][A-Za-z0-9_]*) = [0-9]+,"
+)
+
+OPEN_CLASS = """{attr}    [System.Text.Json.Serialization.JsonConverter(typeof(VocabularyConverter<{name}>))]
+    public sealed class {name} : System.IEquatable<{name}>, IVocabulary<{name}>
+    {{
+{members}
+        /// <summary>Every value this release was built with, in the spec's order.</summary>
+        public static System.Collections.Generic.IReadOnlyList<{name}> Known {{ get; }} = [{known}];
+
+        /// <summary>A value as the API spells it, one this release was built with or not.</summary>
+        public {name}(string value)
+        {{
+            Value = value ?? throw new System.ArgumentNullException(nameof(value));
+        }}
+
+        /// <summary>The value as the API spells it.</summary>
+        public string Value {{ get; }}
+
+        /// <summary>
+        /// Whether this release was built with the value, one of <see cref="Known"/>. A value the API
+        /// added since reads as itself with this false, rather than failing the call.
+        /// </summary>
+        public bool IsKnown => System.Linq.Enumerable.Contains(Known, this);
+
+        public bool Equals({name}? other) => other is not null && string.Equals(Value, other.Value, System.StringComparison.Ordinal);
+
+        public override bool Equals(object? obj) => Equals(obj as {name});
+
+        public override int GetHashCode() => System.StringComparer.Ordinal.GetHashCode(Value);
+
+        /// <summary>The value as the API spells it.</summary>
+        public override string ToString() => Value;
+
+        public static bool operator ==({name}? left, {name}? right) => left is null ? right is null : left.Equals(right);
+
+        public static bool operator !=({name}? left, {name}? right) => !(left == right);
+
+        static {name} IVocabulary<{name}>.Of(string value) => new(value);
+    }}
+"""
 
 
 # NSwag copies each response's headers through HttpHeaders' validating enumerator, which parses
@@ -159,6 +215,7 @@ def main() -> int:
     src, renamed = pascal_case_properties(src)
     src, hidden = hide_wire_types(src)
     src, members = fix_enum_member_names(src)
+    src, opened = open_answer_enums(src)
     src, widened = AS_NUMBER.subn(lambda m: m.group(1) + "long" + m.group(2) + (m.group(3) + "long>();" if m.group(3) else ""), src)
     src, raw = RESPONSE_HEADERS.subn("foreach (var item_ in response_.Headers.NonValidated)\n", src)
 
@@ -171,9 +228,11 @@ def main() -> int:
         print(f"  type     {old} -> {new}")
     for name in hidden:
         print(f"  internal {name}")
+    for name in opened:
+        print(f"  open     {name}")
     print(f"  {len(renamed)} properties, {len(retyped)} types renamed, "
           f"{folded} duplicate enums folded, {len(hidden)} hidden, {members} enum members retagged, "
-          f"{raw} header copies left unparsed, {widened} AS numbers widened")
+          f"{len(opened)} answer enums opened, {raw} header copies left unparsed, {widened} AS numbers widened")
 
     return check(src)
 
@@ -290,6 +349,46 @@ def fix_enum_member_names(src):
     return src, n
 
 
+def open_answer_enums(src):
+    """Turns every enum a DTO property carries into a class that holds any value as served.
+
+    Derived from the file: an enum is opened when a property, or a list a property holds, is of
+    its type, so an enum the spec adds to an answer is opened without a list to keep in step. Its
+    per-property JsonStringEnumConverter goes too, since the class carries its own converter, which
+    a property's attribute would override.
+    """
+    opened = []
+
+    def carried(name):
+        return re.search(
+            rf"^[ \t]*public (?:System\.Collections\.Generic\.IReadOnlyList<)?{re.escape(name)}>?\??"
+            rf" [A-Za-z_][A-Za-z0-9_]* \{{ get; set; \}}", src, re.M)
+
+    def open_one(m):
+        name = m.group("name")
+        if not carried(name):
+            return m.group(0)
+        values = OPEN_MEMBER.findall(m.group("body"))
+        if not values:
+            raise SystemExit(f"enum {name} has no EnumMember values to open")
+        opened.append(name)
+        members = "".join(
+            f'        /// <summary><c>{wire}</c></summary>\n'
+            f'        public static {name} {member} {{ get; }} = new("{wire}");\n\n'
+            for wire, member in values)
+        members = members[:-1]
+        known = ", ".join(member for _, member in values)
+        return OPEN_CLASS.format(attr=m.group("attr"), name=name, members=members, known=known)
+
+    src = ENUM_DECLARATION.sub(open_one, src)
+    for name in opened:
+        src = re.sub(
+            rf"[ \t]*\[System\.Text\.Json\.Serialization\.JsonConverter\(typeof\("
+            rf"System\.Text\.Json\.Serialization\.JsonStringEnumConverter<{re.escape(name)}>\)\)\]\n", "", src)
+    src = ITEM_CONVERTER_TODO.sub(lambda m: "" if m.group("item") in opened else m.group(0), src)
+    return src, opened
+
+
 def hide_wire_types(src):
     """Demotes the wire-only types to internal.
 
@@ -320,8 +419,12 @@ def check(src) -> int:
     for m in re.finditer(r"^\s*public (?:partial class|enum) (Format\d?|Formats)\b", src, re.M):
         bad.append(f"duplicate format enum {m.group(1)} survived the fold")
     for m in ITEM_CONVERTER_TODO.finditer(src):
-        if m.group("item") != "DatabaseFormat":
-            bad.append(f"a list of {m.group('item')} has no item converter; only DatabaseFormat has one")
+        bad.append(f"a list of {m.group('item')} has no item converter")
+    public_enums = set(re.findall(r"^[ \t]*public enum ([A-Za-z_][A-Za-z0-9_]*)", src, re.M))
+    for m in re.finditer(r"JsonStringEnumConverter<([A-Za-z_][A-Za-z0-9_]*)>", src):
+        if m.group(1) not in public_enums:
+            continue
+        bad.append(f"{m.group(1)} is still a closed enum in an answer, which fails on a value the API adds")
     if AS_NUMBER.search(src):
         bad.append("an AS number is still a 32-bit int")
     if RESPONSE_HEADERS.search(src):

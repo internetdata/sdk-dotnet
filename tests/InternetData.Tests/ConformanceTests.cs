@@ -401,14 +401,15 @@ public class ConformanceTests
 
         Assert.Equal(
             wire.Order().ToArray(),
-            Enum.GetNames<Standing>().Select(n => n.ToLowerInvariant()).Order().ToArray());
+            Standing.Known.Select(n => n.Value).Order().ToArray());
         foreach (var standing in wire)
         {
             var family = Assert.Single(await Listed($$"""
                 {"base":"bogon_ip","name":"Bogon IP","summary":"s","standing":"{{standing}}","open":false,
                 "license_type":null,"starts":null,"expires":null,"renews_at":null,"notice_due_at":null,"versions":[]}
                 """));
-            Assert.Equal(standing, family.Standing.ToString().ToLowerInvariant());
+            Assert.Equal(standing, family.Standing.Value);
+            Assert.True(family.Standing.IsKnown);
         }
     }
 
@@ -419,20 +420,71 @@ public class ConformanceTests
 
         Assert.Equal(
             wire.Order().ToArray(),
-            Enum.GetNames<DatabaseLicense_type>().Select(n => n.ToLowerInvariant()).Order().ToArray());
+            DatabaseLicense_type.Known.Select(n => n.Value).Order().ToArray());
         foreach (var term in wire)
         {
             var family = Assert.Single(await Listed(Family(license_type: $"\"{term}\"")));
-            Assert.Equal(term, family.LicenseType!.Value.ToString().ToLowerInvariant());
+            Assert.Equal(term, family.LicenseType!.Value);
         }
         // No license means no term, which is null rather than the first enum member.
         var unlicensed = Assert.Single(await Listed(Family(license_type: "null")));
         Assert.Null(unlicensed.LicenseType);
     }
 
+    // Each vocabulary case serves a well-formed answer, and each `expect` path, wire names with a
+    // number indexing a list, reads the same value off the typed result: the plan's name beside its
+    // key, and a tier, standing, license type, format and outcome no published list holds (2.15.2
+    // failed the call on each of the five).
+    [Fact]
+    public async Task EveryVocabularyCaseReadsAsServed()
+    {
+        var cases = Corpus.Data.GetProperty("vocabulary").GetProperty("cases").EnumerateArray().ToList();
+        Assert.Equal(7, cases.Count);
+        foreach (var c in cases)
+        {
+            var name = c.GetProperty("name").GetString()!;
+            var call = c.GetProperty("call").GetString()!;
+            var answer = c.GetProperty("answer").GetRawText();
+            using var client = Stub.Client(new StubHandler(_ => StubHandler.Json(new Route(answer))));
+
+            object typed = call switch
+            {
+                "myEntitlement" => await client.MyEntitlementAsync(),
+                "listDatabases" => new Dictionary<string, object> { ["databases"] = await client.Database.ListAsync() },
+                "listDownloads" => new Dictionary<string, object> { ["downloads"] = await client.Database.DownloadsAsync() },
+                _ => throw new InvalidOperationException($"{name}: no call {call}"),
+            };
+
+            var read = JsonDocument.Parse(Corpus.AsWire(typed)).RootElement;
+            foreach (var expect in c.GetProperty("expect").EnumerateObject())
+            {
+                var at = expect.Name.Split('.').Aggregate(read, (node, step)
+                    => int.TryParse(step, out var index) ? node[index] : node.GetProperty(step));
+                Assert.True(expect.Value.GetRawText() == at.GetRawText(),
+                    $"{name}: {expect.Name} read {at.GetRawText()}, want {expect.Value.GetRawText()}");
+            }
+        }
+    }
+
+    [Fact]
+    public async Task AnUnknownVocabularyValueIsNotAKnownOne()
+    {
+        var entitlement = Corpus.Data.GetProperty("vocabulary").GetProperty("cases").EnumerateArray()
+            .Single(entry => entry.GetProperty("name").GetString() == "entitlement-tier-unknown");
+        using var client = Stub.Client(new StubHandler(_ => StubHandler.Json(new Route(entitlement.GetProperty("answer").GetRawText()))));
+
+        var plan = (await client.MyEntitlementAsync()).Plan;
+
+        Assert.Equal("data", plan.Tier.Value);
+        Assert.False(plan.Tier.IsKnown);
+        Assert.Equal("Data", plan.Name);
+        Assert.True(EntitlementPlanTier.Free.IsKnown);
+        Assert.Equal(EntitlementPlanTier.Free, new EntitlementPlanTier("free"));
+    }
+
     // An enum inside a LIST is the one place NSwag writes no converter, and System.Text.Json reads
-    // an enum as a NUMBER by default, so a healthy `formats: ["csvgz"]` throws without the
-    // converter Wire.cs registers for the document.
+    // an enum as a NUMBER by default, so a healthy `formats: ["csvgz"]` threw until the opened
+    // class carried its own converter.
     [Fact]
     public async Task EveryPublishedFormatDecodesFromAListAndIsSentAsItsWireValue()
     {
@@ -440,7 +492,7 @@ public class ConformanceTests
 
         Assert.Equal(
             wire.Order().ToArray(),
-            Enum.GetNames<DatabaseFormat>().Select(n => n.ToLowerInvariant()).Order().ToArray());
+            DatabaseFormat.Known.Select(n => n.Value).Order().ToArray());
 
         var quoted = string.Join(",", wire.Select(f => $"\"{f}\""));
         var family = Assert.Single(await Listed(Family(versions: $$"""
@@ -448,13 +500,13 @@ public class ConformanceTests
             """)));
         Assert.Equal(
             wire,
-            Assert.Single(family.Versions).Formats.Select(f => f.ToString().ToLowerInvariant()).ToArray());
+            Assert.Single(family.Versions).Formats.Select(f => f.Value).ToArray());
 
         foreach (var format in wire)
         {
             var handler = StubHandler.Always(new Route(Checksums));
             using var client = Stub.Client(handler);
-            await client.Database.ChecksumsAsync("bogon_ip_v1", Enum.Parse<DatabaseFormat>(format, true));
+            await client.Database.ChecksumsAsync("bogon_ip_v1", DatabaseFormat.Known.Single(f => f.Value == format));
             Assert.Contains($"format={format}", handler.Calls[0], StringComparison.Ordinal);
         }
     }

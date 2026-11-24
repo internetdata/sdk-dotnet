@@ -337,12 +337,13 @@ public sealed class DatabaseApi
         return written;
     }
 
-    // A C# enum takes any integer by a cast, and the generated client sends an undefined one as its
-    // number, `format=99`, for the API to refuse a round trip later. Refused here, before any
-    // request; both downloads reach this through DownloadUrlAsync.
+    // A format this release was not built with, `new DatabaseFormat("parquet")`, would cost a round
+    // trip for the API to refuse it, as `(DatabaseFormat)99` went out as `format=99` through 5.2.2.
+    // Refused here, before any request; both downloads reach this through DownloadUrlAsync.
     private static void CheckFormat(DatabaseFormat format)
     {
-        if (!Enum.IsDefined(format))
+        ArgumentNullException.ThrowIfNull(format);
+        if (!format.IsKnown)
         {
             throw new ArgumentOutOfRangeException(nameof(format), format, "not a published database format");
         }
