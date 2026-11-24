@@ -18,9 +18,10 @@
     <!-- The range a consumer would write, and the gate scripts/run.sh reads to decide whether
          anything published satisfies it. The runner overrides this with the newest published
          version for the run, so a daily run keeps testing what is newest rather than the lowest
-         version the range happens to admit. Its floor is the first release with the lookups the
-         suite calls: a C# test naming a method an older version lacks does not compile. -->
-    <InternetDataVersion Condition="'$(InternetDataVersion)' == ''">[2.8.0,3.0.0)</InternetDataVersion>
+         version the range happens to admit. Its floor is the first release with the API the
+         suite calls (3.0.0 opened the vocabularies): a C# test naming a member an older
+         version lacks does not compile. -->
+    <InternetDataVersion Condition="'$(InternetDataVersion)' == ''">[3.0.0,4.0.0)</InternetDataVersion>
   </PropertyGroup>
 
   <ItemGroup>

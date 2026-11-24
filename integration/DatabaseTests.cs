@@ -14,7 +14,7 @@ public class DatabaseTests
     // The smallest published database, and one the CI organization licenses.
     private const string DatabaseId = "bogon_ip_v1";
 
-    private const DatabaseFormat Format = DatabaseFormat.Csvgz;
+    private static readonly DatabaseFormat Format = DatabaseFormat.Csvgz;
 
     // 8 MiB against a database published in hundreds of bytes. Four orders of magnitude of
     // headroom, so tripping it means the suite is pointed somewhere unintended, which is exactly
@@ -54,9 +54,9 @@ public class DatabaseTests
                 Assert.False(string.IsNullOrEmpty(family.Base), "a listed family carries no base");
                 Assert.False(string.IsNullOrEmpty(family.Name), $"{family.Base} carries no name");
                 Assert.True(
-                    Enum.IsDefined(family.Standing), $"{family.Base} carries an undocumented standing");
+                    family.Standing.IsKnown, $"{family.Base} carries an undocumented standing");
                 Assert.True(
-                    family.LicenseType is null || Enum.IsDefined(family.LicenseType.Value),
+                    family.LicenseType is null || family.LicenseType.IsKnown,
                     $"{family.Base} carries an undocumented license_type term");
                 // A license covers the family, and these are the IDs the download and checksum
                 // calls take.
@@ -174,7 +174,7 @@ public class DatabaseTests
 
             Assert.NotEmpty(attempts);
             Assert.All(attempts, a => Assert.True(
-                Enum.IsDefined(a.Outcome), $"{a.DatasetId} carries an undocumented outcome"));
+                a.Outcome.IsKnown, $"{a.DatasetId} carries an undocumented outcome"));
             // Projected before asserting, so a failure prints IDs and outcomes rather than every
             // field of every attempt into a public log.
             var seen = attempts.Select(a => $"{a.DatasetId}:{a.Outcome}").ToArray();
