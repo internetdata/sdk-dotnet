@@ -2,6 +2,20 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.1.1 are described by their release commits.
 
+## 3.0.0 - 2026-11-24
+
+### Breaking changes
+
+- Read a tier, standing, license type, format or outcome the API adds ([`6442609`](https://github.com/internetdata/sdk-dotnet/commit/6442609d1074fa639e4b7da10ca64900fad4dce5))
+
+### Features
+
+- Match a middleware term on a list member when any element matches ([`374003f`](https://github.com/internetdata/sdk-dotnet/commit/374003f538da932f593fb6d43e51b967e730696b))
+
+### Fixes
+
+- Re-pin the spec to 2026.11.23: seen days stay strings ([`05ce357`](https://github.com/internetdata/sdk-dotnet/commit/05ce3578586cc5a7a3cce7a18800185472f20628))
+
 ## 2.15.2 - 2026-11-23
 
 ### Fixes
