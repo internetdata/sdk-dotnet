@@ -77,6 +77,20 @@ public class MiddlewareOptions<TRequest>
 
     /// <summary>Where warnings go. Defaults to Console.Error.</summary>
     public Action<string>? OnWarn { get; set; }
+
+    /// <summary>
+    /// Send the request's own <c>User-Agent</c> with its lookup, and never refuse a request whose
+    /// answer's <see cref="Result.UserAgent"/> verdict is <see cref="Verdict.Verified"/>, whatever
+    /// <see cref="BlockCondition"/> matches; the answer is still attached.
+    /// </summary>
+    /// <remarks>
+    /// Off by default, so the cache holds one answer per address rather than one per agent. An
+    /// absent or empty header sends none. A keyless client, or a free key past its trial, is never
+    /// answered a verdict, so nothing is let through and <see cref="OnMissingField"/> says so once.
+    /// A condition naming <c>user_agent</c> (<c>{ "user_agent": { "verdict": "spoofed" } }</c>)
+    /// can match only with this on.
+    /// </remarks>
+    public bool AllowBots { get; set; }
 }
 
 /// <summary>
@@ -126,8 +140,16 @@ public sealed class Core<TRequest>
     /// through. What CAN throw is a misconfiguration - a condition naming a member the plan does
     /// not serve, with <c>OnMissingField</c> set to Throw.
     /// </remarks>
-    public async Task<Lookup?> EvaluateAsync(
+    public Task<Lookup?> EvaluateAsync(
         TRequest request, CancellationToken cancellationToken = default)
+        => EvaluateAsync(request, null, cancellationToken);
+
+    /// <summary>
+    /// Classify one request whose own <c>User-Agent</c> header an adapter has read, which
+    /// <c>AllowBots</c> sends with the lookup. Off, the agent is never sent.
+    /// </summary>
+    public async Task<Lookup?> EvaluateAsync(
+        TRequest request, string? userAgent, CancellationToken cancellationToken = default)
     {
         if (options.Skip is not null && options.Skip(request))
         {
@@ -151,10 +173,16 @@ public sealed class Core<TRequest>
                 + "setting or pass an IpSelector that reads your edge's header.");
         }
 
+        var agent = options.AllowBots ? userAgent?.Trim() : null;
+        if (string.IsNullOrEmpty(agent))
+        {
+            agent = null;
+        }
         Result result;
         try
         {
-            result = await client.LookupAsync(ip, cancellationToken).ConfigureAwait(false);
+            result = await client.LookupAsync(
+                ip, agent is null ? null : new LookupOptions { UserAgent = agent }, cancellationToken).ConfigureAwait(false);
         }
         catch (InternetDataException e)
         {
@@ -164,8 +192,15 @@ public sealed class Core<TRequest>
         {
             ReportMissing(result);
         }
+        if (agent is not null && !result.IsBogon && result.UserAgent is null)
+        {
+            Report("AllowBots sent the request's user agent, and the answer carries no user_agent "
+                + "verdict, so no crawler is let through: a keyless client, or a free key past its "
+                + "trial, is never answered one.");
+        }
+        var verified = agent is not null && result.UserAgent?.Verdict == Verdict.Verified;
         return new Lookup(
-            condition is not null && Condition.Matches(condition, result), ip, result, null);
+            condition is not null && !verified && Condition.Matches(condition, result), ip, result, null);
     }
 
     private void ReportMissing(Result result)
@@ -180,14 +215,24 @@ public sealed class Core<TRequest>
         {
             return;
         }
-        string message = $"BlockCondition names {string.Join(", ", missing)}, which your plan does "
+        Report($"BlockCondition names {string.Join(", ", missing)}, which your plan does "
             + "not include, so those terms can never match. An absent member means \"not in your "
-            + "plan\", not \"checked, and no\".";
-        if (options.OnMissingField == MiddlewareOptions<TRequest>.MissingField.Throw)
+            + "plan\", not \"checked, and no\".");
+    }
+
+    // Says what the plan does not serve as OnMissingField asks: thrown, warned once, or nothing.
+    private void Report(string message)
+    {
+        switch (options.OnMissingField)
         {
-            throw new InvalidOperationException($"internetdata: {message}");
+            case MiddlewareOptions<TRequest>.MissingField.Ignore:
+                return;
+            case MiddlewareOptions<TRequest>.MissingField.Throw:
+                throw new InvalidOperationException($"internetdata: {message}");
+            default:
+                Warn(message);
+                return;
         }
-        Warn(message);
     }
 
     // A misconfiguration is the same on every request, so saying so once is a warning and saying
