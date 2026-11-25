@@ -5494,7 +5494,7 @@ namespace InternetData
         public bool IsBogon { get; set; } = default!;
 
         /// <summary>
-        /// In VPN IP: a VPN service's server. Paid plans and the trial.
+        /// In VPN IP: a VPN service's server. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("is_vpn")]
         public bool? IsVpn { get; set; } = default!;
@@ -5512,37 +5512,37 @@ namespace InternetData
         public bool IsRelay { get; set; } = default!;
 
         /// <summary>
-        /// In Residential Proxy IP's 90-day window: a residential proxy exit. Paid plans and the trial.
+        /// In Residential Proxy IP's 90-day window: a residential proxy exit. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("is_resproxy")]
         public bool? IsResproxy { get; set; } = default!;
 
         /// <summary>
-        /// In Datacenter Proxy IP's 90-day window. Paid plans and the trial.
+        /// In Datacenter Proxy IP's 90-day window. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("is_dcproxy")]
         public bool? IsDcproxy { get; set; } = default!;
 
         /// <summary>
-        /// In Mobile Proxy IP's 90-day window. Paid plans and the trial.
+        /// In Mobile Proxy IP's 90-day window. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("is_mobproxy")]
         public bool? IsMobproxy { get; set; } = default!;
 
         /// <summary>
-        /// In Public Proxy IP: a public proxy listens here, or its traffic left from here. Paid plans and the trial.
+        /// In Public Proxy IP: a public proxy listens here, or its traffic left from here. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("is_pubproxy")]
         public bool? IsPubproxy { get; set; } = default!;
 
         /// <summary>
-        /// In Hosting IP: a hosting or cloud network. Paid plans and the trial.
+        /// In Hosting IP: a hosting or cloud network. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("is_hosting")]
         public bool? IsHosting { get; set; } = default!;
 
         /// <summary>
-        /// In CDN IP: a content delivery network. Paid plans and the trial.
+        /// In CDN IP: a content delivery network. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("is_cdn")]
         public bool? IsCdn { get; set; } = default!;
@@ -5602,7 +5602,7 @@ namespace InternetData
         public bool IsBittorrent { get; set; } = default!;
 
         /// <summary>
-        /// VPN IP's row, `{}` when `is_vpn` is false. Paid plans and the trial.
+        /// VPN IP's row, `{}` when `is_vpn` is false. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("vpn")]
         public ClassDetail? Vpn { get; set; } = default!;
@@ -5620,85 +5620,85 @@ namespace InternetData
         public ClassDetail Relay { get; set; } = new ClassDetail();
 
         /// <summary>
-        /// `{}` when `is_resproxy` is false. Paid plans and the trial.
+        /// `{}` when `is_resproxy` is false. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("resproxy")]
         public ProxyDetail? Resproxy { get; set; } = default!;
 
         /// <summary>
-        /// `{}` when `is_dcproxy` is false. Paid plans and the trial.
+        /// `{}` when `is_dcproxy` is false. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("dcproxy")]
         public ProxyDetail? Dcproxy { get; set; } = default!;
 
         /// <summary>
-        /// `{}` when `is_mobproxy` is false. Paid plans and the trial.
+        /// `{}` when `is_mobproxy` is false. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("mobproxy")]
         public ProxyDetail? Mobproxy { get; set; } = default!;
 
         /// <summary>
-        /// `{}` when `is_pubproxy` is false. Paid plans and the trial.
+        /// `{}` when `is_pubproxy` is false. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("pubproxy")]
         public PubproxyDetail? Pubproxy { get; set; } = default!;
 
         /// <summary>
-        /// `{}` when `is_hosting` is false. Paid plans and the trial.
+        /// `{}` when `is_hosting` is false. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("hosting")]
         public ClassDetail? Hosting { get; set; } = default!;
 
         /// <summary>
-        /// `{}` when `is_cdn` is false. Paid plans and the trial.
+        /// `{}` when `is_cdn` is false. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("cdn")]
         public ClassDetail? Cdn { get; set; } = default!;
 
         /// <summary>
-        /// `{}` when `is_bot` is false. Paid plans and the trial.
+        /// `{}` when `is_bot` is false. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("bot")]
         public BotDetail? Bot { get; set; } = default!;
 
         /// <summary>
-        /// `{}` when `is_carrier` is false. Paid plans and the trial.
+        /// `{}` when `is_carrier` is false. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("carrier")]
         public CarrierDetail? Carrier { get; set; } = default!;
 
         /// <summary>
-        /// `{}` when `is_satellite` is false. Paid plans and the trial.
+        /// `{}` when `is_satellite` is false. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("satellite")]
         public SatelliteDetail? Satellite { get; set; } = default!;
 
         /// <summary>
-        /// `{}` when `is_ssh` is false. Paid plans and the trial.
+        /// `{}` when `is_ssh` is false. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ssh")]
         public SshDetail? Ssh { get; set; } = default!;
 
         /// <summary>
-        /// `{}` when `is_smtp` is false. Paid plans and the trial.
+        /// `{}` when `is_smtp` is false. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("smtp")]
         public SmtpDetail? Smtp { get; set; } = default!;
 
         /// <summary>
-        /// A row per port that answered, lowest first; `[]` when `is_web` is false. Paid plans and the trial.
+        /// A row per port that answered, lowest first; `[]` when `is_web` is false. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("web")]
         public System.Collections.Generic.IReadOnlyList<WebDetail>? Web { get; set; } = default!;
 
         /// <summary>
-        /// `{}` when `is_dns_resolver` is false. Paid plans and the trial.
+        /// `{}` when `is_dns_resolver` is false. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("dns_resolver")]
         public DnsResolverDetail? DnsResolver { get; set; } = default!;
 
         /// <summary>
-        /// `{}` when `is_bittorrent` is false. Paid plans and the trial.
+        /// `{}` when `is_bittorrent` is false. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("bittorrent")]
         public BitTorrentDetail? Bittorrent { get; set; } = default!;
@@ -5729,6 +5729,12 @@ namespace InternetData
 
         [System.Text.Json.Serialization.JsonPropertyName("hosted_domains")]
         public HostedDomains? HostedDomains { get; set; } = default!;
+
+        /// <summary>
+        /// When the request sent `user_agent`, with every field, the agent it names and whether this address bears it out. Absent otherwise.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("user_agent")]
+        public UserAgentVerdict? UserAgent { get; set; } = default!;
 
         /// <summary>
         /// On every answer to a key on the free plan, and on no other: `false` while its organization's trial of every field lasts, `true` once the answer has Unlimited's fields.
@@ -6009,7 +6015,7 @@ namespace InternetData
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
-    internal partial class UserAgentVerdict
+    public partial class UserAgentVerdict
     {
 
         /// <summary>
@@ -6028,8 +6034,7 @@ namespace InternetData
         /// `verified`: the agent's operator vouches for this address as it. `spoofed`: the operator of a bot that publishes its addresses, or whose registered space it uses, does not vouch for this one, or this address posed as the bot before. `unverifiable`: a bot no published list or registered space can confirm. `not_bot`: a browser, an app or a script.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("verdict")]
-        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<UserAgentVerdictVerdict>))]
-        public UserAgentVerdictVerdict Verdict { get; set; } = default!;
+        public Verdict Verdict { get; set; } = default!;
 
         private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
@@ -6506,61 +6511,61 @@ namespace InternetData
         public string FlagUnicode { get; set; } = default!;
 
         /// <summary>
-        /// Region (state or province). Paid plans and the trial.
+        /// Region (state or province). On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("region")]
         public string? Region { get; set; } = default!;
 
         /// <summary>
-        /// ISO 3166-2 region code. Paid plans and the trial.
+        /// ISO 3166-2 region code. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("region_code")]
         public string? RegionCode { get; set; } = default!;
 
         /// <summary>
-        /// City. Paid plans and the trial.
+        /// City. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("city")]
         public string? City { get; set; } = default!;
 
         /// <summary>
-        /// Postal code. Paid plans and the trial.
+        /// Postal code. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("postal_code")]
         public string? PostalCode { get; set; } = default!;
 
         /// <summary>
-        /// Latitude of the city. Paid plans and the trial.
+        /// Latitude of the city. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("latitude")]
         public double? Latitude { get; set; } = default!;
 
         /// <summary>
-        /// Longitude of the city. Paid plans and the trial.
+        /// Longitude of the city. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("longitude")]
         public double? Longitude { get; set; } = default!;
 
         /// <summary>
-        /// Radius in km holding the true location with 67% confidence. Paid plans and the trial.
+        /// Radius in km holding the true location with 67% confidence. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("accuracy_radius")]
         public int? AccuracyRadius { get; set; } = default!;
 
         /// <summary>
-        /// GeoNames ID of the city. Paid plans and the trial.
+        /// GeoNames ID of the city. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("geoname_id")]
         public string? GeonameId { get; set; } = default!;
 
         /// <summary>
-        /// US TV market (DMA) code. Paid plans and the trial.
+        /// US TV market (DMA) code. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("dma_code")]
         public string? DmaCode { get; set; } = default!;
 
         /// <summary>
-        /// The day the range's location last changed. Paid plans and the trial.
+        /// The day the range's location last changed. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("last_changed")]
         public string? LastChanged { get; set; } = default!;
@@ -6656,13 +6661,13 @@ namespace InternetData
         public string Domain { get; set; } = default!;
 
         /// <summary>
-        /// What kind of organization: hosting, isp, business, education, government. Paid plans and the trial.
+        /// What kind of organization: hosting, isp, business, education, government. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("type")]
         public string? Type { get; set; } = default!;
 
         /// <summary>
-        /// ISO 3166 country code. Paid plans and the trial.
+        /// ISO 3166 country code. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("country")]
         public string? Country { get; set; } = default!;
@@ -6692,43 +6697,43 @@ namespace InternetData
         public string Email { get; set; } = default!;
 
         /// <summary>
-        /// The contact. Paid plans and the trial.
+        /// The contact. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("name")]
         public string? Name { get; set; } = default!;
 
         /// <summary>
-        /// Its phone number. Paid plans and the trial.
+        /// Its phone number. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("phone")]
         public string? Phone { get; set; } = default!;
 
         /// <summary>
-        /// Its postal address. Paid plans and the trial.
+        /// Its postal address. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("address")]
         public string? Address { get; set; } = default!;
 
         /// <summary>
-        /// ISO 3166 country code. Paid plans and the trial.
+        /// ISO 3166 country code. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("country")]
         public string? Country { get; set; } = default!;
 
         /// <summary>
-        /// The registry block it was derived from. Paid plans and the trial.
+        /// The registry block it was derived from. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("network")]
         public string? Network { get; set; } = default!;
 
         /// <summary>
-        /// ARIN reports the contact answered its yearly validation. Paid plans and the trial.
+        /// ARIN reports the contact answered its yearly validation. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("validated")]
         public bool? Validated { get; set; } = default!;
 
         /// <summary>
-        /// Since when it has not. Paid plans and the trial.
+        /// Since when it has not. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("unvalidated_since")]
         public string? UnvalidatedSince { get; set; } = default!;
@@ -6745,7 +6750,7 @@ namespace InternetData
     }
 
     /// <summary>
-    /// IP Whois's most specific record covering the address. Paid plans and the trial.
+    /// IP Whois's most specific record covering the address. On a paid plan or the trial.
     /// </summary>
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class Whois
@@ -6817,7 +6822,7 @@ namespace InternetData
     }
 
     /// <summary>
-    /// IP RWHOIS's most specific network covering the address. Paid plans and the trial.
+    /// IP RWHOIS's most specific network covering the address. On a paid plan or the trial.
     /// </summary>
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class Rwhois
@@ -6871,7 +6876,7 @@ namespace InternetData
     }
 
     /// <summary>
-    /// From IP Hosted Domains: how many registered domains resolve to the address, and the 10 most popular. Its database lists up to 1,000 an address. Paid plans and the trial.
+    /// From IP Hosted Domains: how many registered domains resolve to the address, and the 10 most popular. Its database lists up to 1,000 an address. On a paid plan or the trial.
     /// </summary>
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class HostedDomains
@@ -6901,7 +6906,7 @@ namespace InternetData
     }
 
     /// <summary>
-    /// From ASN Hosted Domains: how many registered domains the AS hosts, and the 10 most popular. Its database lists up to 1,000 an AS. Paid plans and the trial.
+    /// From ASN Hosted Domains: how many registered domains the AS hosts, and the 10 most popular. Its database lists up to 1,000 an AS. On a paid plan or the trial.
     /// </summary>
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class AsnHostedDomains
@@ -6974,103 +6979,103 @@ namespace InternetData
         public string Domain { get; set; } = default!;
 
         /// <summary>
-        /// The kind of network it runs. Paid plans and the trial.
+        /// The kind of network it runs. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("type")]
         public string? Type { get; set; } = default!;
 
         /// <summary>
-        /// IPv4 addresses it announces. Paid plans and the trial.
+        /// IPv4 addresses it announces. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("num_ips")]
         public int? NumIps { get; set; } = default!;
 
         /// <summary>
-        /// IPv4 prefixes it announces. Paid plans and the trial.
+        /// IPv4 prefixes it announces. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("num_prefixes4")]
         public int? NumPrefixes4 { get; set; } = default!;
 
         /// <summary>
-        /// IPv6 prefixes it announces. Paid plans and the trial.
+        /// IPv6 prefixes it announces. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("num_prefixes6")]
         public int? NumPrefixes6 { get; set; } = default!;
 
         /// <summary>
-        /// Its announcements RPKI calls valid. Paid plans and the trial.
+        /// Its announcements RPKI calls valid. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("rpki_valid")]
         public int? RpkiValid { get; set; } = default!;
 
         /// <summary>
-        /// Invalid. Paid plans and the trial.
+        /// Invalid. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("rpki_invalid")]
         public int? RpkiInvalid { get; set; } = default!;
 
         /// <summary>
-        /// With no RPKI record. Paid plans and the trial.
+        /// With no RPKI record. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("rpki_not_found")]
         public int? RpkiNotFound { get; set; } = default!;
 
         /// <summary>
-        /// Its ASN Whois record, every column, empty where the registry states nothing. Paid plans and the trial.
+        /// Its ASN Whois record, every column, empty where the registry states nothing. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("whois")]
         public System.Collections.Generic.IDictionary<string, string>? Whois { get; set; } = default!;
 
         /// <summary>
-        /// What it announces, IPv4 then IPv6, up to 20000 a family. Paid plans and the trial.
+        /// What it announces, IPv4 then IPv6, up to 20000 a family. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("prefixes")]
         public System.Collections.Generic.IReadOnlyList<AsnPrefix>? Prefixes { get; set; } = default!;
 
         /// <summary>
-        /// Its rank in ASN Extended, by customer cone, 1 the largest; `0` for an AS seen in no AS path. Paid plans and the trial.
+        /// Its rank in ASN Extended, by customer cone, 1 the largest; `0` for an AS seen in no AS path. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("rank")]
         public int? Rank { get; set; } = default!;
 
         /// <summary>
-        /// Whether it is one of the transit-free networks at the top of the hierarchy, which get transit from no one and peer with each other. Paid plans and the trial.
+        /// Whether it is one of the transit-free networks at the top of the hierarchy, which get transit from no one and peer with each other. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("tier1")]
         public bool? Tier1 { get; set; } = default!;
 
         /// <summary>
-        /// How many AS numbers it gets transit from. Paid plans and the trial.
+        /// How many AS numbers it gets transit from. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("num_upstreams")]
         public int? NumUpstreams { get; set; } = default!;
 
         /// <summary>
-        /// Those AS numbers, ascending, up to 20000. Paid plans and the trial.
+        /// Those AS numbers, ascending, up to 20000. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("upstreams")]
         public System.Collections.Generic.IReadOnlyList<int>? Upstreams { get; set; } = default!;
 
         /// <summary>
-        /// How many AS numbers it exchanges its own and its customers' routes with. Paid plans and the trial.
+        /// How many AS numbers it exchanges its own and its customers' routes with. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("num_peers")]
         public int? NumPeers { get; set; } = default!;
 
         /// <summary>
-        /// Those AS numbers, ascending, up to 20000. Paid plans and the trial.
+        /// Those AS numbers, ascending, up to 20000. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("peers")]
         public System.Collections.Generic.IReadOnlyList<int>? Peers { get; set; } = default!;
 
         /// <summary>
-        /// How many AS numbers it provides transit to. Paid plans and the trial.
+        /// How many AS numbers it provides transit to. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("num_downstreams")]
         public int? NumDownstreams { get; set; } = default!;
 
         /// <summary>
-        /// Those AS numbers, ascending, up to 20000. Paid plans and the trial.
+        /// Those AS numbers, ascending, up to 20000. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("downstreams")]
         public System.Collections.Generic.IReadOnlyList<int>? Downstreams { get; set; } = default!;
@@ -7178,7 +7183,7 @@ namespace InternetData
         public bool IsRegistered { get; set; } = default!;
 
         /// <summary>
-        /// In Disposable Domain. Paid plans and the trial.
+        /// In Disposable Domain. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("is_disposable")]
         public bool? IsDisposable { get; set; } = default!;
@@ -7217,7 +7222,7 @@ namespace InternetData
         public DomainDns? Dns { get; set; } = default!;
 
         /// <summary>
-        /// The network announcing each address in `dns.a` and then `dns.aaaa`, from IP ASN; `[]` where it resolves to none. Paid plans and the trial.
+        /// The network announcing each address in `dns.a` and then `dns.aaaa`, from IP ASN; `[]` where it resolves to none. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("hosting")]
         public System.Collections.Generic.IReadOnlyList<DomainHost>? Hosting { get; set; } = default!;
@@ -7229,7 +7234,7 @@ namespace InternetData
         public DomainIpRanges? IpRanges { get; set; } = default!;
 
         /// <summary>
-        /// `{}` when `is_disposable` is false. Paid plans and the trial.
+        /// `{}` when `is_disposable` is false. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("disposable")]
         public DisposableDetail? Disposable { get; set; } = default!;
@@ -7297,7 +7302,7 @@ namespace InternetData
     }
 
     /// <summary>
-    /// From IP Hosted Domains: the other registered domains on the domain's first IPv4 address, how many and the 10 most popular. Paid plans and the trial.
+    /// From IP Hosted Domains: the other registered domains on the domain's first IPv4 address, how many and the 10 most popular. On a paid plan or the trial.
     /// </summary>
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class CohostedDomains
@@ -7333,7 +7338,7 @@ namespace InternetData
     }
 
     /// <summary>
-    /// What our crawl last read of the domain's own home page, every member empty where it holds none. Paid plans and the trial.
+    /// What our crawl last read of the domain's own home page, every member empty where it holds none. On a paid plan or the trial.
     /// </summary>
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class DomainWeb
@@ -7408,7 +7413,7 @@ namespace InternetData
     }
 
     /// <summary>
-    /// The registered domains whose home page redirects to this one, how many and the 10 most popular. Paid plans and the trial.
+    /// The registered domains whose home page redirects to this one, how many and the 10 most popular. On a paid plan or the trial.
     /// </summary>
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class DomainRedirects
@@ -7438,7 +7443,7 @@ namespace InternetData
     }
 
     /// <summary>
-    /// The registered domains whose home page links to this one, how many and the 10 most popular. Paid plans and the trial.
+    /// The registered domains whose home page links to this one, how many and the 10 most popular. On a paid plan or the trial.
     /// </summary>
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class DomainBacklinks
@@ -7468,7 +7473,7 @@ namespace InternetData
     }
 
     /// <summary>
-    /// Its records in Domain DNS, up to 100 a type. Paid plans and the trial.
+    /// Its records in Domain DNS, up to 100 a type. On a paid plan or the trial.
     /// </summary>
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class DomainDns
@@ -7615,7 +7620,7 @@ namespace InternetData
     }
 
     /// <summary>
-    /// The organization's IP ranges, from Domain IP Ranges. Paid plans and the trial.
+    /// The organization's IP ranges, from Domain IP Ranges. On a paid plan or the trial.
     /// </summary>
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class DomainIpRanges
@@ -7926,7 +7931,8 @@ namespace InternetData
         /// The plan the organization is on, as an identifier that is never
         /// <br/>renamed or reused: `free` for the free plan, or a paid plan's key.
         /// <br/>Compare against it and show `name`. On `free`, usage counts its
-        /// <br/>trial, the lookups answered with every field.
+        /// <br/>trial, the lookups answered with every field. The Data plan is a key
+        /// <br/>per quota, `data_1` to `data_7`, each named Data.
         /// <br/>
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("key")]
@@ -7994,13 +8000,17 @@ namespace InternetData
         public long? HardLimit { get; set; } = default!;
 
         /// <summary>
-        /// When the current allowance period began.
+        /// When the current allowance period began. On the free plan, when
+        /// <br/>its trial began, or now before a first lookup starts it.
+        /// <br/>
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("window_start")]
         public System.DateTimeOffset WindowStart { get; set; } = default!;
 
         /// <summary>
-        /// When the allowance next resets.
+        /// When the allowance next resets. On the free plan, when its trial
+        /// <br/>ends, which it does once.
+        /// <br/>
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("window_end")]
         public System.DateTimeOffset WindowEnd { get; set; } = default!;
@@ -8306,21 +8316,53 @@ namespace InternetData
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]
-    internal enum UserAgentVerdictVerdict
+    [System.Text.Json.Serialization.JsonConverter(typeof(VocabularyConverter<Verdict>))]
+    public sealed class Verdict : System.IEquatable<Verdict>, IVocabulary<Verdict>
     {
+        /// <summary><c>verified</c></summary>
+        public static Verdict Verified { get; } = new("verified");
 
-        [System.Runtime.Serialization.EnumMember(Value = @"verified")]
-        Verified = 0,
+        /// <summary><c>spoofed</c></summary>
+        public static Verdict Spoofed { get; } = new("spoofed");
 
-        [System.Runtime.Serialization.EnumMember(Value = @"spoofed")]
-        Spoofed = 1,
+        /// <summary><c>unverifiable</c></summary>
+        public static Verdict Unverifiable { get; } = new("unverifiable");
 
-        [System.Runtime.Serialization.EnumMember(Value = @"unverifiable")]
-        Unverifiable = 2,
+        /// <summary><c>not_bot</c></summary>
+        public static Verdict Not_bot { get; } = new("not_bot");
 
-        [System.Runtime.Serialization.EnumMember(Value = @"not_bot")]
-        Not_bot = 3,
+        /// <summary>Every value this release was built with, in the spec's order.</summary>
+        public static System.Collections.Generic.IReadOnlyList<Verdict> Known { get; } = [Verified, Spoofed, Unverifiable, Not_bot];
 
+        /// <summary>A value as the API spells it, one this release was built with or not.</summary>
+        public Verdict(string value)
+        {
+            Value = value ?? throw new System.ArgumentNullException(nameof(value));
+        }
+
+        /// <summary>The value as the API spells it.</summary>
+        public string Value { get; }
+
+        /// <summary>
+        /// Whether this release was built with the value, one of <see cref="Known"/>. A value the API
+        /// added since reads as itself with this false, rather than failing the call.
+        /// </summary>
+        public bool IsKnown => System.Linq.Enumerable.Contains(Known, this);
+
+        public bool Equals(Verdict? other) => other is not null && string.Equals(Value, other.Value, System.StringComparison.Ordinal);
+
+        public override bool Equals(object? obj) => Equals(obj as Verdict);
+
+        public override int GetHashCode() => System.StringComparer.Ordinal.GetHashCode(Value);
+
+        /// <summary>The value as the API spells it.</summary>
+        public override string ToString() => Value;
+
+        public static bool operator ==(Verdict? left, Verdict? right) => left is null ? right is null : left.Equals(right);
+
+        public static bool operator !=(Verdict? left, Verdict? right) => !(left == right);
+
+        static Verdict IVocabulary<Verdict>.Of(string value) => new(value);
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.1.0 (NJsonSchema v11.5.1.0 (Newtonsoft.Json v13.0.0.0))")]

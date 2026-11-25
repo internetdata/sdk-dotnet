@@ -12,16 +12,13 @@ each must be found exactly where it is expected or the run fails:
   `Asn.Country` and `Asn.RpkiStatus` from `string?` into `string`, so the
   public type keeps them optional. The decoder still refuses an answer without
   them: Wire.cs's AnswerMembers names both, and HeldOptional says why.
-- The answer's `user_agent` verdict comes only when a lookup sends a
-  `user_agent`, which this client does not yet, so it adds no public type
-  until it does.
 - Spec 2026.11.23 gives 23 `first_seen` and `last_seen` members `format:
   date`, which NSwag would generate as `DateOnly?` where they were `string?`.
   They stay strings, handed back as served, until a major moves them.
 
-The request's `user_agent` parameter and the batch's `user_agents` stay in:
-they reach only the internal WireClient and its internal batch request, whose
-body leaves out every member left null.
+Nothing is dropped whole: the answer's `user_agent` verdict is generated, and
+the batch's `user_agents` reaches only the internal batch request, whose body
+leaves out every member left null.
 """
 
 import sys
@@ -33,9 +30,7 @@ REQUIRED_DROPPED = [
 ]
 
 # (schema, property): a property dropped, with everything indented under it.
-PROPERTIES_DROPPED = [
-    ("LookupResponse", "user_agent"),
-]
+PROPERTIES_DROPPED = []
 
 # (schema, property): a property's `format: date` dropped, so it stays a string.
 DATE_FORMAT_DROPPED = [

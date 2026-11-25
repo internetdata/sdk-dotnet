@@ -484,6 +484,7 @@ internal partial class WireClient
         [typeof(Asn)] = ["asn", "name", "domain", "type", "prefix", "country", "rpki_status"],
         [typeof(Company)] = ["name", "domain"],
         [typeof(AbuseContact)] = ["email"],
+        [typeof(UserAgentVerdict)] = ["agent", "kind", "verdict"],
         [typeof(Whois)] = ["id", "name", "org", "country", "status", "source", "domain", "abuse_email", "asn"],
         [typeof(Rwhois)] = ["id", "name", "country", "source", "domain", "abuse_email"],
         [typeof(HostedDomains)] = ["total"],
