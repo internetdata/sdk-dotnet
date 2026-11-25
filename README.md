@@ -32,7 +32,7 @@ Console.WriteLine(result.Asn.Name);           // Google LLC
 
 ### With an API key
 
-Every paid plan answers every field: the VPN, proxy, hosting and CDN flags as well, the row behind each flag, the city and coordinates, the Whois and RWhois records and how many domains an address hosts. The plans differ only in how many lookups they include, and a free account tries every field. Create a key in the [console](https://app.internetdata.io), then pass it in:
+A paid plan answers every field: the VPN, proxy, hosting and CDN flags as well, the row behind each flag, the city and coordinates, the Whois and RWhois records and how many domains an address hosts. Its quotas differ only in how many lookups they include, and a free account tries every field. Create a key in the [console](https://app.internetdata.io), then pass it in:
 
 ```csharp
 using var client = new InternetDataClient(Environment.GetEnvironmentVariable("INTERNETDATA_API_KEY")!);
