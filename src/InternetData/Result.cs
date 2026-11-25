@@ -252,6 +252,14 @@ public sealed class Result
     public SmtpDetail? Smtp => raw.Smtp;
 
     /// <summary>
+    /// When the lookup sent a user agent (<see cref="LookupOptions.UserAgent"/>,
+    /// <see cref="BatchOptions.UserAgents"/>), with every field: the agent it names, what kind of
+    /// client that is, and its <see cref="UserAgentVerdict.Verdict"/>. Null when none was sent, on
+    /// a plan that does not serve it, and on a bogon, which is answered locally.
+    /// </summary>
+    public UserAgentVerdict? UserAgent => raw.UserAgent;
+
+    /// <summary>
     /// A row per port that answered, lowest first. Empty when <see cref="IsWeb"/> is false. Paid
     /// plans and the trial.
     /// </summary>

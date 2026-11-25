@@ -31,9 +31,9 @@ public sealed class InternetDataClient : IDisposable
     private readonly WireClient wire;
     private readonly HttpClient? ownedHttpClient;
     private readonly MemoryCache? cache;
-    // The requests in the air, by address, so concurrent misses for one address share one request:
-    // a lookup's, or the batch chunk carrying it. Only kept with a cache on, since without one every
-    // lookup is served. Guarded by locking the dictionary itself.
+    // The requests in the air, by address and user agent (KeyOf), so concurrent misses for one pair
+    // share one request: a lookup's, or the batch chunk carrying it. Only kept with a cache on,
+    // since without one every lookup is served. Guarded by locking the dictionary itself.
     private readonly Dictionary<string, TaskCompletionSource<Result>> flights = new(StringComparer.Ordinal);
     private readonly TimeSpan cacheTtl;
     private readonly int concurrency;
@@ -243,9 +243,11 @@ public sealed class InternetDataClient : IDisposable
         {
             return Result.Bogon(ip);
         }
+        var agent = AgentOf(options?.UserAgent);
+        var key = KeyOf(ip, agent);
         if (cache is null)
         {
-            return await FetchAsync(ip, options, timeout, cancellationToken).ConfigureAwait(false);
+            return await FetchAsync(ip, agent, key, options, timeout, cancellationToken).ConfigureAwait(false);
         }
         TaskCompletionSource<Result> led;
         while (true)
@@ -255,13 +257,13 @@ public sealed class InternetDataClient : IDisposable
             {
                 // Checked under the lock: a request that lands caches its answer before it leaves
                 // the board, so a miss here with nothing on the board means nobody is asking.
-                if (cache.TryGetValue(ip, out Result? hit) && hit is not null)
+                if (cache.TryGetValue(key, out Result? hit) && hit is not null)
                 {
                     return hit;
                 }
-                if (!flights.TryGetValue(ip, out flight))
+                if (!flights.TryGetValue(key, out flight))
                 {
-                    flights[ip] = led = NewFlight();
+                    flights[key] = led = NewFlight();
                     break;
                 }
             }
@@ -277,34 +279,54 @@ public sealed class InternetDataClient : IDisposable
 
         try
         {
-            var result = await FetchAsync(ip, options, timeout, cancellationToken).ConfigureAwait(false);
-            Land(ip, led, result, null);
+            var result = await FetchAsync(ip, agent, key, options, timeout, cancellationToken).ConfigureAwait(false);
+            Land(key, led, result, null);
             return result;
         }
         catch (Exception e)
         {
-            Land(ip, led, null, e);
+            Land(key, led, null, e);
             throw;
         }
     }
 
-    // One GET for one address, cached once it answers.
+    // One GET for one address, cached once it answers. The agent goes in the query as it is, so
+    // one past the API's 1024 characters is sent for the API to cut, never refused here.
     private async Task<Result> FetchAsync(
-        string ip, LookupOptions? options, TimeSpan? timeout, CancellationToken cancellationToken)
+        string ip, string? agent, string key, LookupOptions? options, TimeSpan? timeout,
+        CancellationToken cancellationToken)
     {
         var result = await Wire.ExecuteAsync(
             options?.Retries ?? retries,
             timeout,
-            async ct => Result.Of(await wire.LookupIpAsync(ip, null, ct).ConfigureAwait(false)),
+            async ct => Result.Of(await wire.LookupIpAsync(ip, agent, ct).ConfigureAwait(false)),
             cancellationToken).ConfigureAwait(false);
-        Remember(ip, result);
+        Remember(key, result);
         return result;
     }
 
-    // Size 1 per entry, so MemoryCache's SizeLimit counts addresses rather than bytes and CacheSize
+    // Only an address's answer depends on an agent (LookupAsync, MyIpAsync), so one passed to any
+    // other call is a mistake, refused before a request rather than dropped.
+    private static void RefuseAgent(LookupOptions? options, string call)
+    {
+        if (AgentOf(options?.UserAgent) is not null)
+        {
+            throw new InternetDataException(ErrorKind.BadRequest, $"{call} takes no user agent");
+        }
+    }
+
+    // An empty user agent is none, as the API reads `user_agent=`.
+    private static string? AgentOf(string? agent) => string.IsNullOrEmpty(agent) ? null : agent;
+
+    // What an answer is cached and shared under: the address alone, or the address and the agent
+    // sent with it, since that answer carries the agent's verdict. An address holds no newline, so
+    // no pair reads as another.
+    private static string KeyOf(string ip, string? agent) => agent is null ? ip : ip + "\n" + agent;
+
+    // Size 1 per entry, so MemoryCache's SizeLimit counts answers rather than bytes and CacheSize
     // means what every other SDK's cache size means.
-    private void Remember(string ip, Result result)
-        => cache?.Set(ip, result, new MemoryCacheEntryOptions
+    private void Remember(string key, Result result)
+        => cache?.Set(key, result, new MemoryCacheEntryOptions
         {
             Size = 1,
             AbsoluteExpirationRelativeToNow = LifeOf(result, cacheTtl),
@@ -328,13 +350,13 @@ public sealed class InternetDataClient : IDisposable
     // passed on and never cached; a cancelled leader cancels the flight, which sends each waiter
     // to ask again rather than fail with it. Called after the answer is cached, so nobody finds
     // the board empty and the cache empty for an address that has just been answered.
-    private void Land(string ip, TaskCompletionSource<Result> flight, Result? result, Exception? error)
+    private void Land(string key, TaskCompletionSource<Result> flight, Result? result, Exception? error)
     {
         lock (flights)
         {
-            if (flights.TryGetValue(ip, out var current) && current == flight)
+            if (flights.TryGetValue(key, out var current) && current == flight)
             {
-                flights.Remove(ip);
+                flights.Remove(key);
             }
         }
         if (result is not null)
@@ -370,11 +392,14 @@ public sealed class InternetDataClient : IDisposable
     /// </exception>
     public Task<AsnLookupResponse> LookupAsnAsync(
         uint asn, LookupOptions? options, CancellationToken cancellationToken = default)
-        => Wire.ExecuteAsync(
+    {
+        RefuseAgent(options, nameof(LookupAsnAsync));
+        return Wire.ExecuteAsync(
             Wire.CheckRetries(options?.Retries) ?? retries,
             Wire.TimeoutFor(options?.RequestTimeout, requestTimeout),
             ct => wire.LookupAsnAsync(asn.ToString(CultureInfo.InvariantCulture), ct),
             cancellationToken);
+    }
 
     /// <summary>Look up one domain with the client's defaults.</summary>
     public Task<DomainLookupResponse> LookupDomainAsync(string domain, CancellationToken cancellationToken = default)
@@ -397,6 +422,7 @@ public sealed class InternetDataClient : IDisposable
         string domain, LookupOptions? options, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(domain);
+        RefuseAgent(options, nameof(LookupDomainAsync));
         return Wire.ExecuteAsync(
             Wire.CheckRetries(options?.Retries) ?? retries,
             Wire.TimeoutFor(options?.RequestTimeout, requestTimeout),
@@ -429,7 +455,7 @@ public sealed class InternetDataClient : IDisposable
         => Wire.ExecuteAsync(
             Wire.CheckRetries(options?.Retries) ?? retries,
             Wire.TimeoutFor(options?.RequestTimeout, requestTimeout),
-            async ct => Result.Of(await wire.LookupMyIpAsync(null, ct).ConfigureAwait(false)),
+            async ct => Result.Of(await wire.LookupMyIpAsync(AgentOf(options?.UserAgent), ct).ConfigureAwait(false)),
             cancellationToken);
 
     /// <summary>What this client's key is entitled to, with the client's defaults.</summary>
@@ -460,11 +486,14 @@ public sealed class InternetDataClient : IDisposable
     /// </exception>
     public Task<Entitlement> MyEntitlementAsync(
         LookupOptions? options, CancellationToken cancellationToken = default)
-        => Wire.ExecuteAsync(
+    {
+        RefuseAgent(options, nameof(MyEntitlementAsync));
+        return Wire.ExecuteAsync(
             Wire.CheckRetries(options?.Retries) ?? retries,
             Wire.TimeoutFor(options?.RequestTimeout, requestTimeout),
             ct => wire.MyEntitlementAsync(ct),
             cancellationToken);
+    }
 
     /// <summary>Look up many addresses concurrently, with the client's defaults.</summary>
     public Task<IReadOnlyDictionary<string, BatchResult>> LookupBatchAsync(
@@ -502,61 +531,102 @@ public sealed class InternetDataClient : IDisposable
             throw new InternetDataException(
                 ErrorKind.BadRequest, $"concurrency must be at least 1, got {options.Concurrency}");
         }
-        // An IPv4-mapped address is sent as the address it carries, once however many of its
-        // spellings were asked, and answered under each one asked.
+        // An IPv4-mapped address is sent as the address it carries, with the agent named for the
+        // address as it was asked, once per pair however many of its spellings were asked, and
+        // answered under each one asked.
+        var agents = options?.UserAgents;
         var asked = new List<string>();
-        var seenAsked = new HashSet<string>(StringComparer.Ordinal);
-        var unique = new List<string>();
+        var askedKeys = new Dictionary<string, string>(StringComparer.Ordinal);
+        var unique = new List<Pair>();
         var seen = new HashSet<string>(StringComparer.Ordinal);
         foreach (var ip in ips)
         {
-            if (ip is null || !seenAsked.Add(ip))
+            if (ip is null || askedKeys.ContainsKey(ip))
             {
                 continue;
             }
-            asked.Add(ip);
             var carried = Bogon.Unmapped(ip);
-            if (seen.Add(carried))
+            var agent = agents is not null && agents.TryGetValue(ip, out var named) ? AgentOf(named) : null;
+            var pair = new Pair(carried, agent, KeyOf(carried, agent));
+            asked.Add(ip);
+            askedKeys[ip] = pair.Key;
+            if (seen.Add(pair.Key))
             {
-                unique.Add(carried);
+                unique.Add(pair);
             }
         }
 
-        var answers = new ConcurrentDictionary<string, BatchResult>(StringComparer.Ordinal);
-        var pending = new List<string>();
-        // An address already in the air is awaited rather than sent again, and every address this
-        // batch sends is boarded before a chunk is built, so a lookup arriving meanwhile awaits the
-        // batch's answer.
-        var joined = new List<(string Ip, TaskCompletionSource<Result> Flight)>();
-        var boarded = new Dictionary<string, TaskCompletionSource<Result>>(StringComparer.Ordinal);
-        foreach (var ip in unique)
+        // A request keys user_agents by address, so one address asked with two agents (8.8.8.8 and
+        // ::ffff:8.8.8.8, each named its own) takes a round per agent. Almost every batch is one.
+        var rounds = new List<List<Pair>> { new() };
+        var turns = new Dictionary<string, int>(StringComparer.Ordinal);
+        foreach (var pair in unique)
         {
-            if (Bogon.IsBogon(ip))
+            var turn = turns.TryGetValue(pair.Ip, out var last) ? last + 1 : 0;
+            turns[pair.Ip] = turn;
+            if (turn == rounds.Count)
             {
-                answers[ip] = BatchResult.Found(Result.Bogon(ip));
+                rounds.Add(new List<Pair>());
+            }
+            rounds[turn].Add(pair);
+        }
+
+        var answers = new ConcurrentDictionary<string, BatchResult>(StringComparer.Ordinal);
+        foreach (var round in rounds)
+        {
+            await LookupRoundAsync(round, options, timeout, answers, cancellationToken).ConfigureAwait(false);
+        }
+
+        var byAsked = new Dictionary<string, BatchResult>(StringComparer.Ordinal);
+        foreach (var ip in asked)
+        {
+            byAsked[ip] = answers[askedKeys[ip]];
+        }
+        return new OrderedResults(asked, byAsked);
+    }
+
+    // An address as it is sent, the user agent sent with it, and what its answer is cached under.
+    private readonly record struct Pair(string Ip, string? Agent, string Key);
+
+    // Answers one round of a batch, which holds each address once, into answers by KeyOf.
+    private async Task LookupRoundAsync(
+        List<Pair> round, BatchOptions? options, TimeSpan? timeout,
+        ConcurrentDictionary<string, BatchResult> answers, CancellationToken cancellationToken)
+    {
+        var pending = new List<Pair>();
+        // A pair already in the air is awaited rather than sent again, and every pair this batch
+        // sends is boarded before a chunk is built, so a lookup arriving meanwhile awaits the
+        // batch's answer.
+        var joined = new List<(Pair Pair, TaskCompletionSource<Result> Flight)>();
+        var boarded = new Dictionary<string, TaskCompletionSource<Result>>(StringComparer.Ordinal);
+        foreach (var pair in round)
+        {
+            if (Bogon.IsBogon(pair.Ip))
+            {
+                answers[pair.Key] = BatchResult.Found(Result.Bogon(pair.Ip));
                 continue;
             }
             if (cache is not null)
             {
                 lock (flights)
                 {
-                    if (cache.TryGetValue(ip, out Result? hit) && hit is not null)
+                    if (cache.TryGetValue(pair.Key, out Result? hit) && hit is not null)
                     {
-                        answers[ip] = BatchResult.Found(hit);
+                        answers[pair.Key] = BatchResult.Found(hit);
                         continue;
                     }
-                    if (flights.TryGetValue(ip, out var inAir))
+                    if (flights.TryGetValue(pair.Key, out var inAir))
                     {
-                        joined.Add((ip, inAir));
+                        joined.Add((pair, inAir));
                         continue;
                     }
-                    flights[ip] = boarded[ip] = NewFlight();
+                    flights[pair.Key] = boarded[pair.Key] = NewFlight();
                 }
             }
-            pending.Add(ip);
+            pending.Add(pair);
         }
 
-        var chunks = new List<List<string>>();
+        var chunks = new List<List<Pair>>();
         for (var from = 0; from < pending.Count; from += BatchMax)
         {
             chunks.Add(pending.GetRange(from, Math.Min(BatchMax, pending.Count - from)));
@@ -576,12 +646,12 @@ public sealed class InternetDataClient : IDisposable
                 async (chunk, ct) =>
                 {
                     var answered = await LookupChunkAsync(chunk, retries, timeout, ct).ConfigureAwait(false);
-                    foreach (var (ip, answer) in answered)
+                    foreach (var (key, answer) in answered)
                     {
-                        answers[ip] = answer;
-                        if (boarded.TryGetValue(ip, out var flight))
+                        answers[key] = answer;
+                        if (boarded.TryGetValue(key, out var flight))
                         {
-                            Land(ip, flight, answer.Result, answer.Error);
+                            Land(key, flight, answer.Result, answer.Error);
                         }
                     }
                 }).ConfigureAwait(false);
@@ -590,30 +660,23 @@ public sealed class InternetDataClient : IDisposable
         {
             // A chunk that never answered, cancelled or not started, still releases whoever waits
             // on its addresses. Landing twice is harmless: a flight takes its first outcome only.
-            foreach (var (ip, flight) in boarded)
+            foreach (var (key, flight) in boarded)
             {
-                Land(ip, flight, null, e);
+                Land(key, flight, null, e);
             }
             throw;
         }
 
-        foreach (var (ip, flight) in joined)
+        foreach (var (pair, flight) in joined)
         {
-            answers[ip] = await AwaitFlightAsync(ip, flight, options, timeout, cancellationToken).ConfigureAwait(false);
+            answers[pair.Key] = await AwaitFlightAsync(pair, flight, options, timeout, cancellationToken).ConfigureAwait(false);
         }
-
-        var byAsked = new Dictionary<string, BatchResult>(StringComparer.Ordinal);
-        foreach (var ip in asked)
-        {
-            byAsked[ip] = answers[Bogon.Unmapped(ip)];
-        }
-        return new OrderedResults(asked, byAsked);
     }
 
-    // A batch's answer for an address a lookup was already fetching. Should that lookup be
-    // cancelled, the address is asked again, as a lookup of its own under this batch's options.
+    // A batch's answer for a pair a lookup was already fetching. Should that lookup be cancelled,
+    // the address is asked again, as a lookup of its own under this batch's options.
     private async Task<BatchResult> AwaitFlightAsync(
-        string ip, TaskCompletionSource<Result> flight, BatchOptions? options, TimeSpan? timeout,
+        Pair pair, TaskCompletionSource<Result> flight, BatchOptions? options, TimeSpan? timeout,
         CancellationToken cancellationToken)
     {
         try
@@ -624,8 +687,8 @@ public sealed class InternetDataClient : IDisposable
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
-                var again = new LookupOptions { Retries = options?.Retries, RequestTimeout = timeout };
-                return BatchResult.Found(await LookupAsync(ip, again, cancellationToken).ConfigureAwait(false));
+                var again = new LookupOptions { Retries = options?.Retries, RequestTimeout = timeout, UserAgent = pair.Agent };
+                return BatchResult.Found(await LookupAsync(pair.Ip, again, cancellationToken).ConfigureAwait(false));
             }
         }
         catch (InternetDataException e)
@@ -634,45 +697,53 @@ public sealed class InternetDataClient : IDisposable
         }
     }
 
-    // One POST /batch, mapped back onto the addresses it was asked about. A chunk-level failure -
-    // the call refused, the transport failing, the retries exhausted - becomes every address's
-    // error, exactly as it would have been had each been looked up alone.
+    // One POST /batch, mapped back onto the pairs it was asked about, by KeyOf. A chunk-level
+    // failure - the call refused, the transport failing, the retries exhausted - becomes every
+    // address's error, exactly as it would have been had each been looked up alone. user_agents
+    // goes only in a chunk where some address carries one.
     private async Task<Dictionary<string, BatchResult>> LookupChunkAsync(
-        List<string> chunk, int retries, TimeSpan? timeout, CancellationToken cancellationToken)
+        List<Pair> chunk, int retries, TimeSpan? timeout, CancellationToken cancellationToken)
     {
         var answers = new Dictionary<string, BatchResult>(StringComparer.Ordinal);
+        var request = new BatchLookupRequest { Ips = chunk.Select(pair => pair.Ip).ToList() };
+        var named = chunk.Where(pair => pair.Agent is not null)
+            .ToDictionary(pair => pair.Ip, pair => pair.Agent!, StringComparer.Ordinal);
+        if (named.Count > 0)
+        {
+            request.UserAgents = named;
+        }
         BatchLookupResponse body;
         try
         {
             body = await Wire.ExecuteAsync(
                 retries,
                 timeout,
-                ct => wire.LookupBatchAsync(new BatchLookupRequest { Ips = chunk }, ct),
+                ct => wire.LookupBatchAsync(request, ct),
                 cancellationToken).ConfigureAwait(false);
         }
         catch (InternetDataException e)
         {
-            foreach (var ip in chunk)
+            foreach (var pair in chunk)
             {
-                answers[ip] = BatchResult.Failed(e);
+                answers[pair.Key] = BatchResult.Failed(e);
             }
             return answers;
         }
-        foreach (var ip in chunk)
+        foreach (var (ip, _, key) in chunk)
         {
             if (body.Results.TryGetValue(ip, out var served))
             {
                 var result = Result.Of(served);
-                Remember(ip, result);
-                answers[ip] = BatchResult.Found(result);
+                Remember(key, result);
+                answers[key] = BatchResult.Found(result);
                 continue;
             }
             if (body.Errors.TryGetValue(ip, out var failed))
             {
-                answers[ip] = BatchResult.Failed(Wire.FromEntry(failed.Status, failed.Error));
+                answers[key] = BatchResult.Failed(Wire.FromEntry(failed.Status, failed.Error));
                 continue;
             }
-            answers[ip] = BatchResult.Failed(new InternetDataException(
+            answers[key] = BatchResult.Failed(new InternetDataException(
                 ErrorKind.ServerError, $"the batch answer did not include {ip}", 200, null, null));
         }
         return answers;
