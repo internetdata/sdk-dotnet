@@ -32,7 +32,7 @@ Console.WriteLine(result.Asn.Name);           // Google LLC
 
 ### With an API key
 
-A paid plan answers every field: the VPN, proxy, hosting and CDN flags as well, the row behind each flag, the city and coordinates, the Whois and RWhois records and how many domains an address hosts. Its quotas differ only in how many lookups they include, and a free account tries every field. Create a key in the [console](https://app.internetdata.io), then pass it in:
+A paid plan answers every field: the VPN, proxy, hosting and CDN flags as well, the row behind each flag, the city and coordinates, the Whois and RWhois records and how many domains an address hosts, and `user_agent`, when you send the user agent of the request you are deciding on (below). Its quotas differ only in how many lookups they include, and a free account tries every field. Create a key in the [console](https://app.internetdata.io), then pass it in:
 
 ```csharp
 using var client = new InternetDataClient(Environment.GetEnvironmentVariable("INTERNETDATA_API_KEY")!);
@@ -66,6 +66,22 @@ Console.WriteLine(result.Ip);   // the address we saw this call come from
 ```
 
 Same answer `LookupAsync` would give for that address, and the same cost against your allowance. It is deliberately not cached: which address you are is the whole question, and a machine that moves between networks would otherwise be told where it used to be.
+
+### A visitor's user agent
+
+Pass the `User-Agent` of the request you are deciding on, and on a paid plan the answer says whether this address bears it out: a crawler claiming to be Googlebot from an address Google does not vouch for comes back `Spoofed`.
+
+```csharp
+var result = await client.LookupAsync(visitorIp, new LookupOptions { UserAgent = visitorUserAgent });
+Console.WriteLine(result.UserAgent?.Agent);     // Googlebot
+Console.WriteLine(result.UserAgent?.Kind);      // bot
+if (result.UserAgent?.Verdict == Verdict.Verified)
+{
+    // the agent's operator vouches for this address
+}
+```
+
+`Verdict` is `Verified`, `Spoofed`, `Unverifiable` (a bot no published list can confirm) or `Not_bot` (a browser, an app or a script), and a value the API adds later comes back as served (`Verdict.Value`). `MyIpAsync` takes one too, and a batch takes each address's in `BatchOptions.UserAgents`, keyed by the address as you list it; an AS, a domain and `MyEntitlementAsync` refuse one. The answer is cached on the address and the agent together. `UserAgent` is `null` when none was sent, on Unlimited, and for a private address, which is answered locally. The [ASP.NET Core middleware](https://www.nuget.org/packages/InternetData.AspNetCore) sends each request's own with `AllowBots`, and never refuses a verified crawler.
 
 ### Your plan and usage
 
@@ -366,7 +382,7 @@ result.CapReached == true     // a paid key is past its overage cap
 
 ### A value the API adds
 
-A plan's tier, a database's standing and license type, a format and a download's outcome are each a class with a property per value this release knows. A value the API adds later reads as itself rather than failing the call, so compare with `==` and keep a fallback:
+A plan's tier, a database's standing and license type, a format, a download's outcome and a user agent's verdict are each a class with a property per value this release knows. A value the API adds later reads as itself rather than failing the call, so compare with `==` and keep a fallback:
 
 ```csharp
 if (database.Standing == Standing.Licensed) { /* download it */ }
