@@ -2,6 +2,17 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.1.1 are described by their release commits.
 
+## 3.1.0 - 2026-11-25
+
+### Features
+
+- Send a visitor's user agent with a lookup or a batch ([`cba2c18`](https://github.com/internetdata/sdk-dotnet/commit/cba2c18d6f5feef2f0142c79e079ad54cc34a3f0))
+- Middleware: AllowBots lets a verified crawler through ([`e42f7b0`](https://github.com/internetdata/sdk-dotnet/commit/e42f7b04bd170804862f3f0bdbf1109d332af3a2))
+
+### Fixes
+
+- Re-pin the spec to 2026.11.25, the user agent's verdict generated ([`6fc31fc`](https://github.com/internetdata/sdk-dotnet/commit/6fc31fc7457ffead0134355ec601b7a30889e691))
+
 ## 3.0.0 - 2026-11-24
 
 ### Breaking changes
