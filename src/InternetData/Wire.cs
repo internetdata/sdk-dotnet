@@ -473,15 +473,14 @@ internal partial class WireClient
     // its `id` or `format` came back whole.
     internal static readonly IReadOnlyDictionary<Type, string[]> AnswerMembers = new Dictionary<Type, string[]>
     {
-        [typeof(LookupResponse)] = ["ip", "is_bogon", "is_tor", "is_relay", "is_bot", "is_anycast", "is_carrier",
-            "is_satellite", "is_ssh", "is_smtp", "is_web", "is_dns_resolver", "is_bittorrent", "tor", "relay",
+        [typeof(LookupResponse)] = ["ip", "is_bogon", "is_tor", "is_relay", "is_anycast", "tor", "relay",
             "location", "asn", "company", "hostname", "abuse"],
         [typeof(WebDetail)] = ["port", "tls_ok", "session_ok", "status_code", "server", "location", "title",
             "cert_subject_cn", "cert_subject_o", "cert_issuer_dn", "cert_browser_trusted", "tls_version",
             "first_seen", "last_seen"],
         [typeof(Location)] = ["continent", "continent_name", "country", "country_name", "timezone",
             "currency_code", "currency_name", "currency_symbol", "flag_emoji", "flag_unicode"],
-        [typeof(Asn)] = ["asn", "name", "domain", "type", "prefix", "country", "rpki_status"],
+        [typeof(Asn)] = ["asn", "name", "domain", "prefix", "country", "rpki_status"],
         [typeof(Company)] = ["name", "domain"],
         [typeof(AbuseContact)] = ["email"],
         [typeof(UserAgentVerdict)] = ["agent", "kind", "verdict"],
@@ -528,6 +527,17 @@ internal partial class WireClient
         [typeof(Asn)] = ["country", "rpki_status"],
     };
 
+    // Members the spec leaves optional whose generated property stays non-nullable, so the public type
+    // is the one earlier releases shipped (scripts/generator_input.py), and so they are left out of the
+    // table above: an answer may lack them, and one that does reads false, or empty for the AS's
+    // `type`, as every answer through 2026-11-26 09:35 UTC carried them.
+    internal static readonly IReadOnlyDictionary<Type, string[]> AbsentAllowed = new Dictionary<Type, string[]>
+    {
+        [typeof(LookupResponse)] = ["is_bot", "is_carrier", "is_satellite", "is_ssh", "is_smtp", "is_web",
+            "is_dns_resolver", "is_bittorrent"],
+        [typeof(Asn)] = ["type"],
+    };
+
     internal static readonly HashSet<string> EnvelopeMembers = ["databases", "downloads", "checksums"];
 
     private static void RequireAnswerMembers(JsonTypeInfo info)
@@ -537,6 +547,18 @@ internal partial class WireClient
             return;
         }
         var members = AnswerMembers.TryGetValue(info.Type, out var named) ? named : [];
+        var absentAllowed = AbsentAllowed.TryGetValue(info.Type, out var held) ? held : [];
+        if (absentAllowed.Length > 0)
+        {
+            info.OnDeserializing = target =>
+            {
+                ((IHeldAbsent)target).NotServed = [.. absentAllowed];
+                if (target is Asn asn)
+                {
+                    asn.Type = string.Empty;
+                }
+            };
+        }
         var nullability = new NullabilityInfoContext();
         foreach (var property in info.Properties)
         {
@@ -550,12 +572,21 @@ internal partial class WireClient
             {
                 property.Set = (target, value) => setSample(target, SampleRows(value));
             }
+            var name = property.Name;
+            if (absentAllowed.Contains(name) && property.Set is { } served)
+            {
+                property.Set = (target, value) =>
+                {
+                    ((IHeldAbsent)target).NotServed?.Remove(name);
+                    served(target, property.PropertyType.IsValueType ? value : NotNull(value, name));
+                };
+                continue;
+            }
             if (property.Set is not { } set || property.PropertyType.IsValueType)
             {
                 property.IsRequired |= members.Contains(property.Name);
                 continue;
             }
-            var name = property.Name;
             if (members.Contains(name) || EnvelopeMembers.Contains(name))
             {
                 property.IsRequired = true;

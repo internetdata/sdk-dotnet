@@ -12,6 +12,15 @@ each must be found exactly where it is expected or the run fails:
   `Asn.Country` and `Asn.RpkiStatus` from `string?` into `string`, so the
   public type keeps them optional. The decoder still refuses an answer without
   them: Wire.cs's AnswerMembers names both, and HeldOptional says why.
+- Spec 2026.11.26 stops requiring the answer's `is_bot`, `is_carrier`,
+  `is_satellite`, `is_ssh`, `is_smtp`, `is_web`, `is_dns_resolver` and
+  `is_bittorrent`, and the AS's `type`, which Unlimited does not serve (the
+  eight since 2026-11-26 09:36 UTC). Generated as optional they would turn
+  eight `bool` properties of the public `LookupResponse` into `bool?` and
+  `Asn.Type` from `string` into `string?`, so the copy requires them again and
+  they keep their types until a major. The decoder accepts an answer without
+  them (Wire.cs's AnswerMembers leaves them out, AbsentAllowed says why): an
+  absent flag reads false and an absent `type` reads empty.
 - Spec 2026.11.23 gives 23 `first_seen` and `last_seen` members `format:
   date`, which NSwag would generate as `DateOnly?` where they were `string?`.
   They stay strings, handed back as served, until a major moves them.
@@ -27,6 +36,21 @@ import sys
 REQUIRED_DROPPED = [
     ("Asn", "country"),
     ("Asn", "rpki_status"),
+]
+
+# (schema, entry, after): an entry put back into a schema's `required` list, right after the
+# entry it followed in the spec that last required it. It fails once the spec requires it
+# again, or when `after` is not there once.
+REQUIRED_KEPT = [
+    ("LookupResponse", "is_bot", "is_relay"),
+    ("LookupResponse", "is_carrier", "is_anycast"),
+    ("LookupResponse", "is_satellite", "is_carrier"),
+    ("LookupResponse", "is_ssh", "is_satellite"),
+    ("LookupResponse", "is_smtp", "is_ssh"),
+    ("LookupResponse", "is_web", "is_smtp"),
+    ("LookupResponse", "is_dns_resolver", "is_web"),
+    ("LookupResponse", "is_bittorrent", "is_dns_resolver"),
+    ("Asn", "type", "domain"),
 ]
 
 # (schema, property): a property dropped, with everything indented under it.
@@ -100,6 +124,17 @@ def drop_required(lines, schema, entry):
     del lines[hits[0]]
 
 
+def keep_required(lines, schema, entry, after):
+    start, end = schema_span(lines, schema)
+    first, last = field_span(lines, start, end, "required", schema)
+    if any(lines[i] == f"{MEMBER_INDENT}- {entry}\n" for i in range(first, last)):
+        raise SystemExit(f"schema {schema}: `{entry}` is required again; review the transform")
+    anchors = [i for i in range(first, last) if lines[i] == f"{MEMBER_INDENT}- {after}\n"]
+    if len(anchors) != 1:
+        raise SystemExit(f"schema {schema}: `{after}` is not in `required` once; review the transform")
+    lines.insert(anchors[0] + 1, f"{MEMBER_INDENT}- {entry}\n")
+
+
 def drop_property(lines, schema, prop):
     start, end = schema_span(lines, schema)
     first, last = field_span(lines, start, end, "properties", schema)
@@ -136,6 +171,9 @@ def main() -> int:
     for schema, entry in REQUIRED_DROPPED:
         drop_required(lines, schema, entry)
         print(f"  generator input: {schema}.{entry} left optional")
+    for schema, entry, after in REQUIRED_KEPT:
+        keep_required(lines, schema, entry, after)
+        print(f"  generator input: {schema}.{entry} kept required")
     for schema, prop in PROPERTIES_DROPPED:
         drop_property(lines, schema, prop)
         print(f"  generator input: {schema}.{prop} left out")

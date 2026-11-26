@@ -5548,7 +5548,7 @@ namespace InternetData
         public bool? IsCdn { get; set; } = default!;
 
         /// <summary>
-        /// In Bot IP: an automated client's address, such as a search engine's or an AI company's crawler, an uptime monitor, an internet scanner or a webhook sender. `bot` says whose, what it does and whether its operator vouches for the address.
+        /// In Bot IP: an automated client's address, such as a search engine's or an AI company's crawler, an uptime monitor, an internet scanner or a webhook sender. `bot` says whose, what it does and whether its operator vouches for the address. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("is_bot")]
         public bool IsBot { get; set; } = default!;
@@ -5560,43 +5560,43 @@ namespace InternetData
         public bool IsAnycast { get; set; } = default!;
 
         /// <summary>
-        /// In Carrier IP: a mobile carrier's address space.
+        /// In Carrier IP: a mobile carrier's address space. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("is_carrier")]
         public bool IsCarrier { get; set; } = default!;
 
         /// <summary>
-        /// In Satellite IP: a satellite operator's address space.
+        /// In Satellite IP: a satellite operator's address space. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("is_satellite")]
         public bool IsSatellite { get; set; } = default!;
 
         /// <summary>
-        /// In SSH IP: an SSH server answered here.
+        /// In SSH IP: an SSH server answered here. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("is_ssh")]
         public bool IsSsh { get; set; } = default!;
 
         /// <summary>
-        /// In SMTP IP: a mail server answered here.
+        /// In SMTP IP: a mail server answered here. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("is_smtp")]
         public bool IsSmtp { get; set; } = default!;
 
         /// <summary>
-        /// In Web IP: a web server answered here on port 80 or 443.
+        /// In Web IP: a web server answered here on port 80 or 443. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("is_web")]
         public bool IsWeb { get; set; } = default!;
 
         /// <summary>
-        /// In DNS Resolver IP: an open DNS resolver answered here.
+        /// In DNS Resolver IP: an open DNS resolver answered here. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("is_dns_resolver")]
         public bool IsDnsResolver { get; set; } = default!;
 
         /// <summary>
-        /// In BitTorrent IP: a BitTorrent client was seen here in the last 90 days.
+        /// In BitTorrent IP: a BitTorrent client was seen here in the last 90 days. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("is_bittorrent")]
         public bool IsBittorrent { get; set; } = default!;
@@ -6607,7 +6607,7 @@ namespace InternetData
         public string Domain { get; set; } = default!;
 
         /// <summary>
-        /// The kind of network it runs.
+        /// The kind of network it runs. On a paid plan or the trial.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("type")]
         public string Type { get; set; } = default!;

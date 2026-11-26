@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 
 namespace InternetData.Middleware;
 
@@ -12,15 +13,33 @@ namespace InternetData.Middleware;
 /// condition with no list here to keep in step: a projection built property by property once left
 /// <c>location</c> and <c>asn</c> out, and a country condition matched nothing. A member the plan
 /// does not include is null in the model and has to come out as an ABSENT key, so nulls are dropped
-/// here, at every depth, rather than left to a serializer's null-handling setting.
+/// here, at every depth, rather than left to a serializer's null-handling setting. A member that
+/// keeps a non-optional type (the bot, carrier, satellite and service flags) reads false when the
+/// wire left it out, so it is dropped by what the wire carried, never by its value.
 /// </remarks>
 internal static class Served
 {
     // Writes every null, so dropping them is this class's alone.
-    private static readonly JsonSerializerOptions Options = new();
+    private static readonly JsonSerializerOptions Options = new()
+    {
+        TypeInfoResolver = new DefaultJsonTypeInfoResolver { Modifiers = { LeaveOutWhatWasNotServed } },
+    };
 
     internal static Dictionary<string, object?> Of(Result result)
         => (Dictionary<string, object?>)Present(JsonSerializer.SerializeToElement(result.Raw, Options))!;
+
+    private static void LeaveOutWhatWasNotServed(JsonTypeInfo info)
+    {
+        if (!typeof(IHeldAbsent).IsAssignableFrom(info.Type))
+        {
+            return;
+        }
+        foreach (var property in info.Properties)
+        {
+            var name = property.Name;
+            property.ShouldSerialize = (target, _) => ((IHeldAbsent)target).NotServed?.Contains(name) != true;
+        }
+    }
 
     // An object becomes a dictionary and a list a list, so a condition descends into either; a
     // scalar stays a JsonElement, which the condition unwraps where it compares.

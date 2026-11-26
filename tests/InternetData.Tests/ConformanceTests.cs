@@ -213,6 +213,13 @@ public class ConformanceTests
         Assert.Empty(handler.Calls);
     }
 
+    // The eight flags are held at their non-optional public type until the next major, so an absent one
+    // reads false, and the corpus's `absent` check asserts that for these alone.
+    private static readonly HashSet<string> HeldFlags =
+    [
+        "is_bot", "is_carrier", "is_satellite", "is_ssh", "is_smtp", "is_web", "is_dns_resolver", "is_bittorrent",
+    ];
+
     // Absent means "not in your plan", never false or zero, and that holds inside a shared object
     // too: an Unlimited answer's location carries no city.
     [Fact]
@@ -262,6 +269,11 @@ public class ConformanceTests
             }
             foreach (var field in Strings(expect, "absent"))
             {
+                if (HeldFlags.Contains(field))
+                {
+                    Assert.True(Read(answer, field) is false, $"{name}: {field} is held at bool, so absent reads false");
+                    continue;
+                }
                 Assert.True(Read(answer, field) is null, $"{name}: {field} must be ABSENT, not false or zero");
             }
             if (expect.TryGetProperty("absentIn", out var absentIn))

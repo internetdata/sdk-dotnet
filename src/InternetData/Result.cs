@@ -11,6 +11,12 @@ namespace InternetData;
 /// same holds inside the shared objects: <c>Location.City</c> is null on a plan without it.</para>
 /// <para>A detail object that is present but empty (Web IP's empty list) means the flag above it is
 /// false. A populated one always carries every one of its keys.</para>
+/// <para>The bot, carrier, satellite, SSH, SMTP, web, DNS resolver and BitTorrent flags are on paid
+/// plans and the trial alone, but keep the <c>bool</c> type they had while Unlimited served them
+/// too: on a plan without them they read <c>false</c>, not null. The row behind each
+/// (<see cref="Bot"/>, <see cref="Carrier"/>, <see cref="Satellite"/>, <see cref="Ssh"/>,
+/// <see cref="Smtp"/>, <see cref="Web"/>, <see cref="DnsResolver"/>, <see cref="Bittorrent"/>) is
+/// null there, which tells a plan without the flag from a flag that is false.</para>
 /// </remarks>
 public sealed class Result
 {
@@ -169,40 +175,53 @@ public sealed class Result
 
     /// <summary>
     /// Whether the address is in Bot IP: an automated client's, such as a search engine's or an AI
-    /// company's crawler, an uptime monitor, an internet scanner or a webhook sender. On every answer.
+    /// company's crawler, an uptime monitor, an internet scanner or a webhook sender. Paid plans and
+    /// the trial; false without one.
     /// </summary>
     public bool IsBot => raw.IsBot;
 
     /// <summary>Whether the address is in Anycast IP: announced from many places at once. On every answer.</summary>
     public bool IsAnycast => raw.IsAnycast;
 
-    /// <summary>Whether the address is in Carrier IP: a mobile carrier's address space. On every answer.</summary>
+    /// <summary>
+    /// Whether the address is in Carrier IP: a mobile carrier's address space. Paid plans and the
+    /// trial; false without one.
+    /// </summary>
     public bool IsCarrier => raw.IsCarrier;
 
     /// <summary>
-    /// Whether the address is in Satellite IP: a satellite operator's address space. On every answer.
+    /// Whether the address is in Satellite IP: a satellite operator's address space. Paid plans and
+    /// the trial; false without one.
     /// </summary>
     public bool IsSatellite => raw.IsSatellite;
 
-    /// <summary>Whether the address is in SSH IP: an SSH server answered on it. On every answer.</summary>
+    /// <summary>
+    /// Whether the address is in SSH IP: an SSH server answered on it. Paid plans and the trial;
+    /// false without one.
+    /// </summary>
     public bool IsSsh => raw.IsSsh;
 
-    /// <summary>Whether the address is in SMTP IP: a mail server answered on it. On every answer.</summary>
+    /// <summary>
+    /// Whether the address is in SMTP IP: a mail server answered on it. Paid plans and the trial;
+    /// false without one.
+    /// </summary>
     public bool IsSmtp => raw.IsSmtp;
 
     /// <summary>
-    /// Whether the address is in Web IP: a web server answered on it on port 80 or 443. On every answer.
+    /// Whether the address is in Web IP: a web server answered on it on port 80 or 443. Paid plans
+    /// and the trial; false without one.
     /// </summary>
     public bool IsWeb => raw.IsWeb;
 
     /// <summary>
-    /// Whether the address is in DNS Resolver IP: an open DNS resolver answered on it. On every answer.
+    /// Whether the address is in DNS Resolver IP: an open DNS resolver answered on it. Paid plans and
+    /// the trial; false without one.
     /// </summary>
     public bool IsDnsResolver => raw.IsDnsResolver;
 
     /// <summary>
     /// Whether the address is in BitTorrent IP: a BitTorrent client was seen on it in the last 90
-    /// days. On every answer.
+    /// days. Paid plans and the trial; false without one.
     /// </summary>
     public bool IsBittorrent => raw.IsBittorrent;
 

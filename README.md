@@ -17,7 +17,7 @@ Targets .NET 8 and newer.
 
 ## Usage
 
-**No API key needed to start.** Unlimited, the free plan, answers the bot, anycast, carrier, satellite and service flags, Tor and relay detection, the country, the AS, the company, the reverse DNS name and the abuse email, with no daily or monthly cap, with a key or without one.
+**No API key needed to start.** Unlimited, the free plan, answers the anycast flag, Tor and relay detection, the country, the AS, the company, the reverse DNS name and the abuse email, with no daily or monthly cap, with a key or without one.
 
 ```csharp
 using InternetData;
@@ -370,12 +370,14 @@ Each redirect URI must be https on a public host name, or http on a loopback add
 
 ### Absent is not false
 
-Unlimited leaves out the VPN, proxy, hosting and CDN flags, the city and coordinates, and the paid half of the company and abuse contact; a free-plan key's answer carries `TrialExpired`, true once its trial is spent. A paid key's carries `CapReached`, true once its organization's overage cap is reached, when the answer has Unlimited's fields and isn't billed. Those members are `null` on a plan without them, which means "not in your plan" rather than "checked, and no".
+Unlimited leaves out the VPN, proxy, hosting, CDN, bot, carrier, satellite, SSH, SMTP, web, DNS resolver and BitTorrent flags, the city and coordinates, and the paid half of the company and abuse contact; a free-plan key's answer carries `TrialExpired`, true once its trial is spent. A paid key's carries `CapReached`, true once its organization's overage cap is reached, when the answer has Unlimited's fields and isn't billed. Those members are `null` on a plan without them, which means "not in your plan" rather than "checked, and no". The bot, carrier, satellite, SSH, SMTP, web, DNS resolver and BitTorrent flags are the exception: they keep the `bool` they were typed as while Unlimited still answered them, so on Unlimited they read `false`, and the row behind each (`Bot`, `Carrier`, `Satellite`, `Ssh`, `Smtp`, `Web`, `DnsResolver`, `Bittorrent`) is `null`, which tells a plan without the flag from a flag that is false.
 
 ```csharp
 result.IsHosting ?? false     // when you only want the flag
 result.IsHosting is null      // on Unlimited: not in your plan
 result.Location.City is null  // on Unlimited: not in your plan
+result.IsBot                  // false on Unlimited, whatever the address
+result.Bot is null            // on Unlimited: not in your plan
 result.TrialExpired == true   // a free-plan key's trial is spent
 result.CapReached == true     // a paid key is past its overage cap
 ```
