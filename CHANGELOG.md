@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.1.1 are described by their release commits.
 
+## 3.2.0 - 2026-11-26
+
+### Fixes
+
+- Read a keyless answer without the bot, carrier, satellite and service flags ([`690708a`](https://github.com/internetdata/sdk-dotnet/commit/690708a55540432bcb0b9ad89d6358eb90fc94ec))
+
 ## 3.1.0 - 2026-11-25
 
 ### Features
