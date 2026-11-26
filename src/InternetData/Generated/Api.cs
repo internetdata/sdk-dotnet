@@ -6607,7 +6607,7 @@ namespace InternetData
         public string Domain { get; set; } = default!;
 
         /// <summary>
-        /// The kind of network it runs. On a paid plan or the trial.
+        /// The kind of network it runs.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("type")]
         public string Type { get; set; } = default!;

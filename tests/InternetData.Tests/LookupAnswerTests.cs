@@ -56,7 +56,7 @@ public class LookupAnswerTests
 
     // One member per case, left out and then sent as null, from an otherwise whole answer: a body
     // missing several at once lets a decoder that defaults all but one of them pass. The eight flags
-    // and the AS's `type` are not here: an answer may lack them (HeldAbsentTests).
+    // are not here: an answer may lack them (HeldAbsentTests).
     public static TheoryData<string, string, string> RequiredMembers()
     {
         var data = new TheoryData<string, string, string>();
@@ -71,7 +71,7 @@ public class LookupAnswerTests
             "company", "hostname", "abuse");
         Add("lookup", "location", "continent", "continent_name", "country", "country_name", "timezone",
             "currency_code", "currency_name", "currency_symbol", "flag_emoji", "flag_unicode");
-        Add("lookup", "asn", "asn", "name", "domain", "prefix", "country", "rpki_status");
+        Add("lookup", "asn", "asn", "name", "domain", "type", "prefix", "country", "rpki_status");
         Add("lookup", "company", "name", "domain");
         Add("lookup", "abuse", "email");
         Add("lookup", "whois", "id", "name", "org", "country", "status", "source", "domain", "abuse_email", "asn");
@@ -100,7 +100,7 @@ public class LookupAnswerTests
         Add("lookupDomain", "ip_ranges", "domain", "redirects_to", "total", "ipv4", "ranges");
         Add("lookupDomain", "ip_ranges.ranges.0", "range", "name", "country");
         Add("lookupDomain", "hosting.0", "ip", "asn");
-        Add("lookupDomain", "hosting.0.asn", "asn", "name", "domain", "prefix", "country", "rpki_status");
+        Add("lookupDomain", "hosting.0.asn", "asn", "name", "domain", "type", "prefix", "country", "rpki_status");
         Add("lookupDomain", "cohosted_domains", "ip", "total", "domains");
         Add("lookupDomain", "web", "url", "title", "description", "last_seen", "links");
         Add("lookupDomain", "web.links", "total", "hosts");

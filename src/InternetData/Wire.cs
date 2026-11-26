@@ -480,7 +480,7 @@ internal partial class WireClient
             "first_seen", "last_seen"],
         [typeof(Location)] = ["continent", "continent_name", "country", "country_name", "timezone",
             "currency_code", "currency_name", "currency_symbol", "flag_emoji", "flag_unicode"],
-        [typeof(Asn)] = ["asn", "name", "domain", "prefix", "country", "rpki_status"],
+        [typeof(Asn)] = ["asn", "name", "domain", "type", "prefix", "country", "rpki_status"],
         [typeof(Company)] = ["name", "domain"],
         [typeof(AbuseContact)] = ["email"],
         [typeof(UserAgentVerdict)] = ["agent", "kind", "verdict"],
@@ -529,13 +529,12 @@ internal partial class WireClient
 
     // Members the spec leaves optional whose generated property stays non-nullable, so the public type
     // is the one earlier releases shipped (scripts/generator_input.py), and so they are left out of the
-    // table above: an answer may lack them, and one that does reads false, or empty for the AS's
-    // `type`, as every answer through 2026-11-26 09:35 UTC carried them.
+    // table above: an answer may lack them, and one that does reads false, as every Unlimited answer
+    // through 2026-11-26 09:35 UTC said.
     internal static readonly IReadOnlyDictionary<Type, string[]> AbsentAllowed = new Dictionary<Type, string[]>
     {
         [typeof(LookupResponse)] = ["is_bot", "is_carrier", "is_satellite", "is_ssh", "is_smtp", "is_web",
             "is_dns_resolver", "is_bittorrent"],
-        [typeof(Asn)] = ["type"],
     };
 
     internal static readonly HashSet<string> EnvelopeMembers = ["databases", "downloads", "checksums"];
@@ -550,14 +549,7 @@ internal partial class WireClient
         var absentAllowed = AbsentAllowed.TryGetValue(info.Type, out var held) ? held : [];
         if (absentAllowed.Length > 0)
         {
-            info.OnDeserializing = target =>
-            {
-                ((IHeldAbsent)target).NotServed = [.. absentAllowed];
-                if (target is Asn asn)
-                {
-                    asn.Type = string.Empty;
-                }
-            };
+            info.OnDeserializing = target => ((IHeldAbsent)target).NotServed = [.. absentAllowed];
         }
         var nullability = new NullabilityInfoContext();
         foreach (var property in info.Properties)
@@ -578,7 +570,7 @@ internal partial class WireClient
                 property.Set = (target, value) =>
                 {
                     ((IHeldAbsent)target).NotServed?.Remove(name);
-                    served(target, property.PropertyType.IsValueType ? value : NotNull(value, name));
+                    served(target, value);
                 };
                 continue;
             }

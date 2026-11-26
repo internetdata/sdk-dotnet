@@ -14,13 +14,12 @@ each must be found exactly where it is expected or the run fails:
   them: Wire.cs's AnswerMembers names both, and HeldOptional says why.
 - Spec 2026.11.26 stops requiring the answer's `is_bot`, `is_carrier`,
   `is_satellite`, `is_ssh`, `is_smtp`, `is_web`, `is_dns_resolver` and
-  `is_bittorrent`, and the AS's `type`, which Unlimited does not serve (the
-  eight since 2026-11-26 09:36 UTC). Generated as optional they would turn
-  eight `bool` properties of the public `LookupResponse` into `bool?` and
-  `Asn.Type` from `string` into `string?`, so the copy requires them again and
-  they keep their types until a major. The decoder accepts an answer without
-  them (Wire.cs's AnswerMembers leaves them out, AbsentAllowed says why): an
-  absent flag reads false and an absent `type` reads empty.
+  `is_bittorrent`, which Unlimited has not served since 2026-11-26 09:36 UTC.
+  Generated as optional they would turn eight `bool` properties of the public
+  `LookupResponse` into `bool?`, so the copy requires them again and they stay
+  `bool` until a major. The decoder accepts an answer without them (Wire.cs's
+  AnswerMembers leaves them out, AbsentAllowed says why) and an absent one
+  reads false.
 - Spec 2026.11.23 gives 23 `first_seen` and `last_seen` members `format:
   date`, which NSwag would generate as `DateOnly?` where they were `string?`.
   They stay strings, handed back as served, until a major moves them.
@@ -50,7 +49,6 @@ REQUIRED_KEPT = [
     ("LookupResponse", "is_web", "is_smtp"),
     ("LookupResponse", "is_dns_resolver", "is_web"),
     ("LookupResponse", "is_bittorrent", "is_dns_resolver"),
-    ("Asn", "type", "domain"),
 ]
 
 # (schema, property): a property dropped, with everything indented under it.
