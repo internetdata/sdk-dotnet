@@ -979,7 +979,6 @@ paths:
                       asn: 9009
                       name: M247 Europe SRL
                       domain: m247global.com
-                      type: hosting
                       prefix: 146.70.116.0/24
                       country: RO
                       rpki_status: not_found
@@ -1127,7 +1126,6 @@ paths:
                       asn: 9009
                       name: M247 Europe SRL
                       domain: m247global.com
-                      type: hosting
                       prefix: 146.70.116.0/24
                       country: RO
                       rpki_status: not_found
@@ -1558,7 +1556,6 @@ paths:
                       asn: 9009
                       name: M247 Europe SRL
                       domain: m247global.com
-                      type: hosting
                       prefix: 146.70.116.0/24
                       country: RO
                       rpki_status: not_found
@@ -1833,7 +1830,6 @@ paths:
                       asn: 9009
                       name: M247 Europe SRL
                       domain: m247global.com
-                      type: hosting
                       prefix: 146.70.116.0/24
                       country: RO
                       rpki_status: not_found
@@ -4406,7 +4402,7 @@ components:
           description: Its operator's domain.
         type:
           type: string
-          description: The kind of network it runs.
+          description: The kind of network it runs. On a paid plan or the trial.
         prefix:
           type: string
           description: The announced prefix covering the address.
@@ -4420,7 +4416,6 @@ components:
         - asn
         - name
         - domain
-        - type
         - prefix
         - country
         - rpki_status

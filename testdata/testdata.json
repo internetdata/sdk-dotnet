@@ -1930,7 +1930,6 @@
           "asn": 9009,
           "name": "M247 Europe SRL",
           "domain": "m247global.com",
-          "type": "hosting",
           "prefix": "146.70.116.0/24",
           "country": "RO",
           "rpki_status": "not_found"
@@ -2027,6 +2026,9 @@
             "network",
             "validated",
             "unvalidated_since"
+          ],
+          "asn": [
+            "type"
           ]
         }
       }
@@ -2262,7 +2264,6 @@
           "asn": 9009,
           "name": "M247 Europe SRL",
           "domain": "m247global.com",
-          "type": "hosting",
           "prefix": "146.70.116.0/24",
           "country": "RO",
           "rpki_status": "not_found"
@@ -2360,6 +2361,9 @@
             "network",
             "validated",
             "unvalidated_since"
+          ],
+          "asn": [
+            "type"
           ]
         }
       }
@@ -2394,7 +2398,6 @@
           "asn": 9009,
           "name": "M247 Europe SRL",
           "domain": "m247global.com",
-          "type": "hosting",
           "prefix": "146.70.116.0/24",
           "country": "RO",
           "rpki_status": "not_found"
@@ -2492,6 +2495,9 @@
             "network",
             "validated",
             "unvalidated_since"
+          ],
+          "asn": [
+            "type"
           ]
         }
       }
@@ -7620,7 +7626,6 @@
             "asn": 9009,
             "name": "M247 Europe SRL",
             "domain": "m247global.com",
-            "type": "hosting",
             "prefix": "146.70.116.0/24",
             "country": "RO",
             "rpki_status": "not_found"
@@ -7671,7 +7676,6 @@
             "asn": 9009,
             "name": "M247 Europe SRL",
             "domain": "m247global.com",
-            "type": "hosting",
             "prefix": "146.70.116.0/24",
             "country": "RO",
             "rpki_status": "not_found"
@@ -7722,7 +7726,6 @@
             "asn": 9009,
             "name": "M247 Europe SRL",
             "domain": "m247global.com",
-            "type": "hosting",
             "prefix": "146.70.116.0/24",
             "country": "RO",
             "rpki_status": "not_found"
@@ -10505,7 +10508,6 @@
             "asn": 9009,
             "name": "M247 Europe SRL",
             "domain": "m247global.com",
-            "type": "hosting",
             "prefix": "146.70.116.0/24",
             "country": "RO",
             "rpki_status": "not_found"
@@ -10560,7 +10562,6 @@
             "asn": 9009,
             "name": "M247 Europe SRL",
             "domain": "m247global.com",
-            "type": "hosting",
             "prefix": "146.70.116.0/24",
             "country": "RO",
             "rpki_status": "not_found"
@@ -10615,7 +10616,6 @@
             "asn": 9009,
             "name": "M247 Europe SRL",
             "domain": "m247global.com",
-            "type": "hosting",
             "prefix": "146.70.116.0/24",
             "country": "RO",
             "rpki_status": "not_found"
@@ -12926,7 +12926,6 @@
             "asn": 9009,
             "name": "M247 Europe SRL",
             "domain": "m247global.com",
-            "type": "hosting",
             "prefix": "146.70.116.0/24",
             "country": "RO",
             "rpki_status": "not_found"
@@ -12977,7 +12976,6 @@
             "asn": 9009,
             "name": "M247 Europe SRL",
             "domain": "m247global.com",
-            "type": "hosting",
             "prefix": "146.70.116.0/24",
             "country": "RO",
             "rpki_status": "not_found"
@@ -13031,7 +13029,6 @@
             "asn": 9009,
             "name": "M247 Europe SRL",
             "domain": "m247global.com",
-            "type": "hosting",
             "prefix": "146.70.116.0/24",
             "country": "RO",
             "rpki_status": "not_found"
@@ -13082,7 +13079,6 @@
             "asn": 9009,
             "name": "M247 Europe SRL",
             "domain": "m247global.com",
-            "type": "hosting",
             "prefix": "146.70.116.0/24",
             "country": "RO",
             "rpki_status": "not_found"
@@ -13285,7 +13281,6 @@
             "asn": 9009,
             "name": "M247 Europe SRL",
             "domain": "m247global.com",
-            "type": "hosting",
             "prefix": "146.70.116.0/24",
             "country": "RO",
             "rpki_status": "not_found"
@@ -13346,7 +13341,6 @@
             "asn": 9009,
             "name": "M247 Europe SRL",
             "domain": "m247global.com",
-            "type": "hosting",
             "prefix": "146.70.116.0/24",
             "country": "RO",
             "rpki_status": "not_found"
@@ -13372,7 +13366,7 @@
       },
       {
         "name": "asn-type-matches",
-        "why": "The network's type, on every plan.",
+        "why": "The network's type is a paid plan's: Unlimited does not serve it, so the term can never match and is reported by its path.",
         "body": {
           "ip": "146.70.116.130",
           "is_bogon": false,
@@ -13397,7 +13391,6 @@
             "asn": 9009,
             "name": "M247 Europe SRL",
             "domain": "m247global.com",
-            "type": "hosting",
             "prefix": "146.70.116.0/24",
             "country": "RO",
             "rpki_status": "not_found"
@@ -13417,8 +13410,10 @@
           }
         },
         "expect": {
-          "blocked": true,
-          "missing": []
+          "blocked": false,
+          "missing": [
+            "asn.type"
+          ]
         }
       },
       {
@@ -13448,7 +13443,6 @@
             "asn": 9009,
             "name": "M247 Europe SRL",
             "domain": "m247global.com",
-            "type": "hosting",
             "prefix": "146.70.116.0/24",
             "country": "RO",
             "rpki_status": "not_found"
@@ -13649,7 +13643,6 @@
             "asn": 9009,
             "name": "M247 Europe SRL",
             "domain": "m247global.com",
-            "type": "hosting",
             "prefix": "146.70.116.0/24",
             "country": "RO",
             "rpki_status": "not_found"
@@ -14043,7 +14036,6 @@
             "asn": 9009,
             "name": "M247 Europe SRL",
             "domain": "m247global.com",
-            "type": "hosting",
             "prefix": "146.70.116.0/24",
             "country": "RO",
             "rpki_status": "not_found"

@@ -7,9 +7,10 @@ using Xunit;
 namespace InternetData.Tests;
 
 /// <summary>
-/// The eight flags Unlimited stopped serving on 2026-11-26: a lookup may lack them, they keep their
-/// non-optional public type until the next major so an absent flag reads false, a flag that is there
-/// is read as before, and the middleware still sees the one the wire left out as a plan gap.
+/// The eight flags Unlimited stopped serving on 2026-11-26 and the AS's <c>type</c>: a lookup may
+/// lack them, they keep their non-optional public type until the next major so an absent flag reads
+/// false and an absent type reads empty, a member that is there is read as before, and the
+/// middleware still sees the one the wire left out as a plan gap.
 /// </summary>
 public class HeldAbsentTests
 {
@@ -130,6 +131,51 @@ public class HeldAbsentTests
 
         Assert.Equal(ErrorKind.ServerError, failure.Kind);
         Assert.Equal(200, failure.StatusCode);
+        Assert.Equal(2, handler.Calls.Count);
+    }
+
+    [Fact]
+    public async Task AnAnswerWithoutTheAsTypeReadsItEmptyAndReportsItMissing()
+    {
+        var body = Paid();
+        Assert.True(body["asn"]!.AsObject().Remove("type"));
+
+        var result = await Read("lookup", body);
+
+        Assert.Equal(string.Empty, result.Asn.Type);
+        Assert.Equal("Cloudflare, Inc.", result.Asn.Name);
+        Assert.Equal(
+            ["asn.type"],
+            Condition.MissingMembers([new Condition { ["asn"] = new Condition { ["type"] = "hosting" } }], result));
+    }
+
+    [Fact]
+    public async Task TheAsTypeThatIsThereIsReadAsServed()
+    {
+        var result = await Read("lookup", Paid());
+
+        Assert.Equal("hosting", result.Asn.Type);
+        Assert.Empty(
+            Condition.MissingMembers([new Condition { ["asn"] = new Condition { ["type"] = "hosting" } }], result));
+        Assert.True(
+            Condition.Matches([new Condition { ["asn"] = new Condition { ["type"] = "hosting" } }], result));
+    }
+
+    [Theory]
+    [InlineData("null")]
+    [InlineData("1")]
+    [InlineData("true")]
+    [InlineData("[]")]
+    public async Task AnAsTypeThatIsNullOrNotAStringIsARetriedServerError(string form)
+    {
+        var body = Paid();
+        body["asn"]!["type"] = JsonNode.Parse(form);
+        var handler = new StubHandler(_ => StubHandler.Json(new Route(body.ToJsonString())));
+        using var client = Stub.Client(handler, new InternetDataClientOptions { Retries = 1, CacheEnabled = false });
+
+        var failure = await Assert.ThrowsAsync<InternetDataException>(() => client.LookupAsync(Ip));
+
+        Assert.Equal(ErrorKind.ServerError, failure.Kind);
         Assert.Equal(2, handler.Calls.Count);
     }
 

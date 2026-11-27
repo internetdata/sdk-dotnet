@@ -220,6 +220,9 @@ public class ConformanceTests
         "is_bot", "is_carrier", "is_satellite", "is_ssh", "is_smtp", "is_web", "is_dns_resolver", "is_bittorrent",
     ];
 
+    // The AS's `type` is held at its non-optional public type too, so an answer without it reads empty.
+    private static readonly HashSet<string> HeldIn = ["asn.type"];
+
     // Absent means "not in your plan", never false or zero, and that holds inside a shared object
     // too: an Unlimited answer's location carries no city.
     [Fact]
@@ -284,6 +287,13 @@ public class ConformanceTests
                     Assert.True(parent is not null, $"{name}: {owner.Name} must be present");
                     foreach (var field in owner.Value.EnumerateArray().Select(v => v.GetString()!))
                     {
+                        if (HeldIn.Contains($"{owner.Name}.{field}"))
+                        {
+                            Assert.True(
+                                Corpus.Field(parent, field) is "",
+                                $"{name}: {owner.Name}.{field} is held at string, so absent reads empty");
+                            continue;
+                        }
                         Assert.True(
                             Corpus.Field(parent, field) is null,
                             $"{name}: {owner.Name}.{field} must be ABSENT, not false or zero");
