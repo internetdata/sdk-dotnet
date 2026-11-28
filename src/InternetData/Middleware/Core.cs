@@ -209,7 +209,8 @@ public sealed class Core<TRequest>
         }
         if (condition is not null)
         {
-            ReportMissing(result);
+            // A request that sent no agent has no verdict to lack, whatever the plan serves.
+            ReportMissing(result, options.AllowBots && agent is null);
         }
         if (agent is not null && !result.IsBogon && result.UserAgent is null)
         {
@@ -228,14 +229,16 @@ public sealed class Core<TRequest>
     private AgentMemory AgentsOf()
         => LazyInitializer.EnsureInitialized(ref agents, () => new AgentMemory(agentsClock))!;
 
-    private void ReportMissing(Result result)
+    private void ReportMissing(Result result, bool unsentAgent)
     {
         if (options.OnMissingField == MiddlewareOptions<TRequest>.MissingField.Ignore
             || condition is null)
         {
             return;
         }
-        IReadOnlyList<string> missing = Condition.MissingMembers(condition, result);
+        IReadOnlyList<string> missing = Condition.MissingMembers(condition, result)
+            .Where(member => !(unsentAgent && member == "user_agent"))
+            .ToList();
         if (missing.Count == 0)
         {
             return;

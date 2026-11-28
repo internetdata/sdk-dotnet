@@ -279,6 +279,40 @@ public class AllowBotsTests
     }
 
     [Fact]
+    public async Task AConditionOnTheVerdictIsNoPlanGapForARequestThatSentNoAgent()
+    {
+        IReadOnlyList<Condition> forged = [new Condition { ["user_agent"] = new Condition { ["verdict"] = "spoofed" } }];
+        foreach (var header in new string?[] { Chrome, null })
+        {
+            var warnings = new List<string>();
+            var origin = new Origin(new(), any: "spoofed");
+            var core = CoreFor(origin, allowBots: true, warnings, MiddlewareOptions<Req>.MissingField.Throw, forged);
+
+            var lookup = await core.EvaluateAsync(new Req(Peer), header);
+
+            Assert.False(lookup!.Blocked, header ?? "no header");
+            Assert.Equal(new string?[] { null }, origin.Agents);
+            Assert.Empty(warnings);
+        }
+
+        var crawlers = new Origin(new(), any: "spoofed");
+        var throwing = CoreFor(crawlers, allowBots: true, onMissing: MiddlewareOptions<Req>.MissingField.Throw, condition: forged);
+        for (var n = 1; n <= 4; n++)
+        {
+            await throwing.EvaluateAsync(new Req(Peer), Crawler(n));
+        }
+        var past = await throwing.EvaluateAsync(new Req(Peer), Crawler(5));
+        Assert.False(past!.Blocked, "past the bound, no gap either");
+        Assert.Null(crawlers.Agents[^1]);
+
+        var warned = new List<string>();
+        var off = CoreFor(new Origin(new(), any: "spoofed"), allowBots: false, warned, condition: forged);
+        await off.EvaluateAsync(new Req(Peer));
+        Assert.Single(warned);
+        Assert.Contains("user_agent", warned[0], StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task OnlyAnAgentThatWasSentIsReportedWhenTheAnswerHasNoVerdict()
     {
         var origin = new Origin(new());
