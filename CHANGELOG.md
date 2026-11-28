@@ -2,6 +2,18 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 2.1.1 are described by their release commits.
 
+## 3.4.0 - 2026-11-28
+
+### Features
+
+- Middleware: AllowBots sends only a crawler's User-Agent, at most four an address ([`b9dadf6`](https://github.com/internetdata/sdk-dotnet/commit/b9dadf699c1b271a67525bf6007416d79d0b117e))
+
+### Fixes
+
+- Middleware: a condition on the verdict is no plan gap for a request that sent no agent ([`e9413ea`](https://github.com/internetdata/sdk-dotnet/commit/e9413ea84448c1e270520410fbe7de2a21a03c57))
+- Middleware: a bogon's answer reports no missing member ([`bd5dc4c`](https://github.com/internetdata/sdk-dotnet/commit/bd5dc4c44cdfc59082f3f02ceeae607cb4f5299d))
+- Spec 2026.11.27: the free plan's trial is a window, no plan figure in a comment ([`32246b3`](https://github.com/internetdata/sdk-dotnet/commit/32246b3741e6548e96637b1a6edce456ead7e5e6))
+
 ## 3.3.0 - 2026-11-27
 
 ### Fixes
