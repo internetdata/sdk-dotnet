@@ -2,8 +2,13 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Internal;
 
 namespace InternetData.Middleware;
 
@@ -79,16 +84,20 @@ public class MiddlewareOptions<TRequest>
     public Action<string>? OnWarn { get; set; }
 
     /// <summary>
-    /// Send the request's own <c>User-Agent</c> with its lookup, and never refuse a request whose
-    /// answer's <see cref="Result.UserAgent"/> verdict is <see cref="Verdict.Verified"/>, whatever
-    /// <see cref="BlockCondition"/> matches; the answer is still attached.
+    /// Send the request's own <c>User-Agent</c> with its lookup when it names a crawler, and never
+    /// refuse a request whose answer's <see cref="Result.UserAgent"/> verdict is
+    /// <see cref="Verdict.Verified"/>, whatever <see cref="BlockCondition"/> matches; the answer is
+    /// still attached.
     /// </summary>
     /// <remarks>
-    /// Off by default, so the cache holds one answer per address rather than one per agent. An
-    /// absent or empty header sends none. A keyless client, or a free key past its trial, is never
-    /// answered a verdict, so nothing is let through and <see cref="OnMissingField"/> says so once.
-    /// A condition naming <c>user_agent</c> (<c>{ "user_agent": { "verdict": "spoofed" } }</c>)
-    /// can match only with this on.
+    /// Off by default, so the cache holds one answer per address rather than one per agent. Any
+    /// other agent, or none, is not sent, since its verdict could only be <c>Not_bot</c>. One
+    /// address is looked up with at most <see cref="CrawlerAgents.MaxAgentsPerAddress"/> crawler
+    /// agents an hour: past those its lookup sends none, and a request passes as a crawler only
+    /// where the answer's <c>Bot.Verified</c> is true. A keyless client, or a free key past its
+    /// trial, is never answered a verdict, so nothing is let through and
+    /// <see cref="OnMissingField"/> says so once. A condition naming <c>user_agent</c>
+    /// (<c>{ "user_agent": { "verdict": "spoofed" } }</c>) can match only with this on.
     /// </remarks>
     public bool AllowBots { get; set; }
 }
@@ -109,13 +118,23 @@ public sealed class Core<TRequest>
     private readonly Func<TRequest, string?> selector;
     private readonly IReadOnlyList<Condition>? condition;
     private readonly ConcurrentDictionary<string, bool> warned = new();
+    private readonly ISystemClock? agentsClock;
+    private AgentMemory? agents;
 
     /// <param name="options">How the middleware behaves.</param>
     /// <param name="defaultIpSelector">
     /// The framework's own accessor, used when the caller named none.
     /// </param>
     public Core(MiddlewareOptions<TRequest> options, Func<TRequest, string?> defaultIpSelector)
+        : this(options, defaultIpSelector, null)
     {
+    }
+
+    // The suite moves the clock the crawler agents' hour is read from.
+    internal Core(
+        MiddlewareOptions<TRequest> options, Func<TRequest, string?> defaultIpSelector, ISystemClock? agentsClock)
+    {
+        this.agentsClock = agentsClock;
         Condition.Validate(options.BlockCondition);
         this.options = options;
         this.condition = options.BlockCondition;
@@ -146,7 +165,7 @@ public sealed class Core<TRequest>
 
     /// <summary>
     /// Classify one request whose own <c>User-Agent</c> header an adapter has read, which
-    /// <c>AllowBots</c> sends with the lookup. Off, the agent is never sent.
+    /// <c>AllowBots</c> sends with the lookup when it names a crawler. Off, the agent is never sent.
     /// </summary>
     public async Task<Lookup?> EvaluateAsync(
         TRequest request, string? userAgent, CancellationToken cancellationToken = default)
@@ -173,11 +192,11 @@ public sealed class Core<TRequest>
                 + "setting or pass an IpSelector that reads your edge's header.");
         }
 
-        var agent = options.AllowBots ? userAgent?.Trim() : null;
-        if (string.IsNullOrEmpty(agent))
-        {
-            agent = null;
-        }
+        // Only a crawler's agent can be answered a verdict other than not_bot, and one address is
+        // looked up with at most MaxAgentsPerAddress of them an hour.
+        var header = options.AllowBots ? userAgent?.Trim() : null;
+        var crawler = !string.IsNullOrEmpty(header) && CrawlerAgents.NamesCrawler(header);
+        var agent = crawler ? AgentsOf().Claim(ip, header!) : null;
         Result result;
         try
         {
@@ -198,10 +217,16 @@ public sealed class Core<TRequest>
                 + "verdict, so no crawler is let through: a keyless client, or a free key past its "
                 + "trial, is never answered one.");
         }
-        var verified = agent is not null && result.UserAgent?.Verdict == Verdict.Verified;
+        // Past the bound no agent was sent, so the operator's own word for the address is the claim.
+        var verified = crawler && (agent is null
+            ? result.Bot?.Verified == true
+            : result.UserAgent?.Verdict == Verdict.Verified);
         return new Lookup(
             condition is not null && !verified && Condition.Matches(condition, result), ip, result, null);
     }
+
+    private AgentMemory AgentsOf()
+        => LazyInitializer.EnsureInitialized(ref agents, () => new AgentMemory(agentsClock))!;
 
     private void ReportMissing(Result result)
     {
@@ -249,5 +274,68 @@ public sealed class Core<TRequest>
             return;
         }
         Console.Error.WriteLine($"[internetdata] {message}");
+    }
+
+    // The crawler agents each address was looked up with, for an hour from its first, so a visitor
+    // inventing an agent per request spends at most MaxAgentsPerAddress lookups. A MemoryCache is
+    // the cache the client already uses, bounded by entries (Size 1) and not by the agents' length,
+    // which is why an agent is kept as its digest: a header can be kilobytes long.
+    private sealed class AgentMemory
+    {
+        private const int MaxAddresses = 10_000;
+        private static readonly TimeSpan Life = TimeSpan.FromHours(1);
+
+        private readonly MemoryCache seen;
+        private readonly object gate = new();
+
+        internal AgentMemory(ISystemClock? clock)
+            => seen = new MemoryCache(new MemoryCacheOptions { SizeLimit = MaxAddresses, Clock = clock });
+
+        /// <summary>
+        /// The agent the lookup sends: the one given, or null once the address has its four.
+        /// </summary>
+        internal string? Claim(string ip, string agent)
+        {
+            var digest = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(agent)));
+            lock (gate)
+            {
+                if (seen.TryGetValue(ip, out List<string>? known) && known is not null)
+                {
+                    if (known.Contains(digest))
+                    {
+                        return agent;
+                    }
+                    if (known.Count >= CrawlerAgents.MaxAgentsPerAddress)
+                    {
+                        return null;
+                    }
+                    // Added in place, so the entry keeps the expiry its first agent set.
+                    known.Add(digest);
+                    return agent;
+                }
+                // An address that cannot be remembered sends none: its bound could not hold.
+                return Remember(ip, [digest]) ? agent : null;
+            }
+        }
+
+        // A full cache refuses a new entry until it is compacted, so make room once, least
+        // recently used first, and ask again.
+        private bool Remember(string ip, List<string> digests)
+        {
+            for (var attempt = 0; attempt < 2; attempt++)
+            {
+                seen.Set(ip, digests, new MemoryCacheEntryOptions
+                {
+                    Size = 1,
+                    AbsoluteExpirationRelativeToNow = Life,
+                });
+                if (seen.TryGetValue(ip, out List<string>? stored) && ReferenceEquals(stored, digests))
+                {
+                    return true;
+                }
+                seen.Compact(0.05);
+            }
+            return false;
+        }
     }
 }
