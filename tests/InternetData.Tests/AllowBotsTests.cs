@@ -313,6 +313,22 @@ public class AllowBotsTests
     }
 
     [Fact]
+    public async Task ABogonPeerSendingACrawlerAgentIsNoPlanGap()
+    {
+        IReadOnlyList<Condition> forged = [new Condition { ["user_agent"] = new Condition { ["verdict"] = "spoofed" } }];
+        var origin = new Origin(new(), any: "spoofed");
+        var warnings = new List<string>();
+        var core = CoreFor(origin, allowBots: true, warnings, MiddlewareOptions<Req>.MissingField.Throw, forged);
+
+        var lookup = await core.EvaluateAsync(new Req("10.0.0.7"), Crawler(1));
+
+        Assert.False(lookup!.Blocked);
+        Assert.True(lookup.Result!.IsBogon);
+        Assert.Empty(origin.Agents);
+        Assert.DoesNotContain(warnings, warning => warning.Contains("user_agent", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public async Task OnlyAnAgentThatWasSentIsReportedWhenTheAnswerHasNoVerdict()
     {
         var origin = new Origin(new());

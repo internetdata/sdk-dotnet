@@ -48,12 +48,17 @@ public sealed class Condition : Dictionary<string, object?>
     /// answer, meaning the flag above it is false, so nothing inside one is reported:
     /// <c>vpn</c> present but <c>{}</c> is not a plan gap. A populated object carries every member
     /// the plan includes, so a member missing there is one.</para>
-    /// <para>A locally answered bogon needs no special case: it is synthesized in the widest
-    /// shape, so every member is present and nothing reads as missing.</para>
+    /// <para>A locally answered bogon reports nothing missing: it is synthesized in the widest
+    /// shape, so every member is present but a user agent's verdict, which the API answers for a
+    /// bogon and the client does not, and which no plan gap explains.</para>
     /// </remarks>
     public static IReadOnlyList<string> MissingMembers(
         IReadOnlyList<Condition> conditions, Result result)
     {
+        if (result.IsBogon)
+        {
+            return [];
+        }
         Dictionary<string, object?> served = Served.Of(result);
         var missing = new List<string>();
         foreach (Condition one in conditions)
