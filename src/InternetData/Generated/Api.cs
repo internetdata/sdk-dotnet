@@ -3879,7 +3879,11 @@ namespace InternetData
         /// Answers what the presented key is, what plan is behind it, and what has
         /// <br/>been spent against that plan's allowance in the current window.
         /// </remarks>
-        /// <returns>The key's entitlements and consumption.</returns>
+        /// <returns>The key's entitlements and consumption. On the free plan, Unlimited,
+        /// <br/>usage is its trial: the lookups answered with every field while it
+        /// <br/>lasts, against its limit, and no hard limit, since nothing stops a
+        /// <br/>lookup past it. The trial's length and limit are on the pricing
+        /// <br/>page, never fixed here.</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
         public virtual System.Threading.Tasks.Task<Entitlement> MyEntitlementAsync()
         {
@@ -3894,7 +3898,11 @@ namespace InternetData
         /// Answers what the presented key is, what plan is behind it, and what has
         /// <br/>been spent against that plan's allowance in the current window.
         /// </remarks>
-        /// <returns>The key's entitlements and consumption.</returns>
+        /// <returns>The key's entitlements and consumption. On the free plan, Unlimited,
+        /// <br/>usage is its trial: the lookups answered with every field while it
+        /// <br/>lasts, against its limit, and no hard limit, since nothing stops a
+        /// <br/>lookup past it. The trial's length and limit are on the pricing
+        /// <br/>page, never fixed here.</returns>
         /// <exception cref="WireException">A server side error occurred.</exception>
         public virtual async System.Threading.Tasks.Task<Entitlement> MyEntitlementAsync(System.Threading.CancellationToken cancellationToken)
         {
@@ -7932,7 +7940,7 @@ namespace InternetData
         /// <br/>renamed or reused: `free` for the free plan, or a paid plan's key.
         /// <br/>Compare against it and show `name`. On `free`, usage counts its
         /// <br/>trial, the lookups answered with every field. The Data plan is a key
-        /// <br/>per quota, `data_1` to `data_7`, each named Data.
+        /// <br/>per quota (`data_1`, `data_2` and on), each named Data.
         /// <br/>
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("key")]

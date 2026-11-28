@@ -335,9 +335,10 @@ public sealed class InternetDataClient : IDisposable
     /// <summary>The longest an answer past the trial or the overage cap stays cached.</summary>
     internal static readonly TimeSpan ReducedAnswerLife = TimeSpan.FromSeconds(60);
 
-    // An answer with Unlimited's fields because the trial is spent or the overage cap is reached
-    // holds only until the trial is renewed or the cap raised, so it is kept a minute at most rather
-    // than the whole TTL. It is still kept, so a busy address is not asked again on every lookup.
+    // An answer with Unlimited's fields because the free plan's trial window has ended or the
+    // overage cap is reached holds only until the cap is raised or a paid plan begins, so it is
+    // kept a minute at most rather than the whole TTL. It is still kept, so a busy address is not
+    // asked again on every lookup.
     internal static TimeSpan LifeOf(Result result, TimeSpan ttl)
         => (result.TrialExpired == true || result.CapReached == true) && ttl > ReducedAnswerLife
             ? ReducedAnswerLife

@@ -90,7 +90,7 @@ var acct = await client.MyEntitlementAsync();
 Console.WriteLine(acct.Plan.Key);         // the plan your key is on
 Console.WriteLine(acct.Plan.Name);        // its name to show, "Unlimited" on free
 Console.WriteLine(acct.Usage.Requests);   // lookups spent this window
-Console.WriteLine(acct.Usage.WindowEnd);  // when the allowance resets
+Console.WriteLine(acct.Usage.WindowEnd);  // when the window ends, the trial's on the free plan
 ```
 
 It needs a key, and it's never cached. `HardLimit` is `null` on an uncapped plan, which is not the same as zero.
@@ -152,7 +152,7 @@ using var client = new InternetDataClient(new InternetDataClientOptions
 using var noCache = new InternetDataClient(new InternetDataClientOptions { CacheEnabled = false });
 ```
 
-An answer with `TrialExpired` or `CapReached` true is cached for a minute at most, so a renewed trial or a raised cap reaches you within a minute.
+An answer with `TrialExpired` or `CapReached` true is cached for a minute at most, so a raised cap or a paid plan reaches you within a minute.
 
 The cache belongs to the client instance, never to the process, because two keys can be on different plans and so entitled to different fields.
 

@@ -26,7 +26,7 @@ public sealed class InternetDataClientOptions
     /// <summary>
     /// How long an answer stays fresh. Default 1 hour. An answer whose
     /// <see cref="Result.TrialExpired"/> or <see cref="Result.CapReached"/> is true stays a minute
-    /// at most, since a renewed trial or a raised cap ends it.
+    /// at most, since a raised cap or a paid plan ends it.
     /// </summary>
     public TimeSpan CacheTtl { get; set; } = TimeSpan.FromHours(1);
 
